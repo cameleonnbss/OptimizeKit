@@ -2,11 +2,11 @@
 
 # ⚡ OptimizeKit — Kit d'optimisation Windows
 
-**Une app .exe avec dashboard « liquid glass » + scripts .bat/.ps1 — le kit complet.**
+**Une app .exe avec dashboard « liquid glass » style WormGPT + monitoring live + scripts .bat/.ps1.**
 
-FPS gaming · ping/latence · confidentialité · débbiottage · pilotes · logs — tout est réversible.
+Monitoring live (CPU / RAM / GPU / disque / réseau) · FPS gaming · ping/latence · confidentialité · débbiottage · pilotes · logs — tout est réversible.
 
-[⬇️ Télécharger v1.0 (release)](../../releases) · [README anglais](README.md)
+[⬇️ Télécharger v1.1.0 (release)](../../releases) · [README anglais](README.md)
 
 </div>
 
@@ -16,20 +16,22 @@ FPS gaming · ping/latence · confidentialité · débbiottage · pilotes · log
 
 | Release | Lien |
 |---|---|
-| **v1.0.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v1.0.0 |
+| **v1.1.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v1.1.0 |
 | Toutes les releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
-`OptimizeKit.exe` est **100 % statique** (compilé MinGW-w64, ~4 Mo) : aucune DLL, aucune
-installation, aucun compte. Tu le poses où tu veux et tu lances.
+`OptimizeKit.exe` est **100 % statique** (compilé MinGW-w64, ~5 Mo) : aucune DLL, aucune
+installation, aucun compte. Il embarque un serveur HTTP et le dashboard DarkGPT (dossier
+`web/` à côté de l'exe). Tu le poses où tu veux et tu lances.
 
 ## 🚀 Démarrage rapide
 
 | Tu veux | Double-clique |
 |---|---|
-| Le dashboard (sans droits admin) | `OptimizeKit-user.bat` |
+| Le dashboard (interface web, fenêtre autonome) | `OptimizeKit-user.bat` |
 | **Tout le kit** (tous les tweaks, prompt UAC) | `OptimizeKit-admin.bat` |
 | Le menu CLI à chiffres | `OptimizeKit-cli.bat` |
 | Le moteur PowerShell pur (sans exe) | `PowerShell\OptimizeKit.ps1` |
+| L'ancienne fenêtre native Direct2D | `OptimizeKit.exe --native` |
 
 Ensuite choisis un profil et regarde l'onglet **Logs** : chaque action est écrite dans
 `%LOCALAPPDATA%\OptimizeKit\OptimizeKit.log`, et chaque clé de registre touchée est
@@ -39,20 +41,33 @@ Ensuite choisis un profil et regarde l'onglet **Logs** : chaque action est écri
 > le moteur PowerShell a un mode `-Restore`, et les sauvegardes `.reg` sont dans
 > `%LOCALAPPDATA%\OptimizeKit\`.
 
-## 🧭 Le dashboard (liquid glass)
+## 🖥️ Le dashboard (liquid glass, style WormGPT)
 
-Interface native Direct2D — panneaux de verre sombres, fond animé, DPI-aware, exe unique :
+L'interface reprend le **design system DarkGPT** de WormGPT-desktop (cameleonnbss) : noir
+profond + accent rouge exclusif `#ff3d57`, glassmorphism avec reflet spéculaire animé,
+particules rouges qui suivent la souris, grille de fond + noise + vignette, polices Inter
+et Space Mono. Servi par un serveur HTTP C++ embarqué sur `127.0.0.1:8765`, ouvert comme
+fenêtre d'application autonome (msedge `--app`).
 
-| Onglet | Contenu |
+| Vue | Contenu |
 |---|---|
-| **Dashboard** | Résumé système live : OS/CPU/GPU/RAM, plan d'alimentation, Game Mode, HAGS, uptime + profils en 1 clic |
-| **Tweaks** | Les 30 tweaks avec badges ADMIN/USER, niveau d'impact, application individuelle, multi-sélection, restauration |
-| **Gaming** | Profil gaming, raccourcis latence, liste des processus avec boost de priorité / kill |
-| **Privacy** | Télémétrie, pub, historique d'activité, Bing, Copilot, Edge en fond — 1 clic chacun |
-| **Drivers** | GPU + version du pilote, pages de téléchargement constructeur, `dxdiag`, scan Windows Update |
-| **Network** | Test de latence ICMP (moyenne de 4 pings), cibles sauvegardées, code couleur |
-| **Logs** | Le journal d'activité complet, en direct — tout ce que fait le kit est écrit ici |
-| **About** | Crédits, sources et emplacement des sauvegardes |
+| **Dashboard** | **Monitoring live** : CPU / RAM / GPU avec sparklines 60 s, débits disque & réseau, process/threads, top processus par CPU (2,5 s), résumé système complet, profils 1 clic |
+| **Tweaks** | Les 30 tweaks avec badges ADMIN/USER, impact, filtres, multi-sélection apply/restore |
+| **Gaming** | Profil gaming + 8 raccourcis latence (DVR, réseau, timer, HAGS, MPO, alim, souris, FSO) |
+| **Privacy** | Profil privacy + 8 raccourcis (télémétrie, pub, activité, Bing, Copilot, Edge…) |
+| **Drivers** | GPU + version du pilote (auto-détectée), pages constructeur, dxdiag, Gestionnaire de périphériques |
+| **Network** | Test de latence ICMP + ping rapide de n'importe quel hôte |
+| **Logs** | Journal d'activité complet, coloré, en direct |
+| **About** | Crédits et emplacement des sauvegardes |
+
+## 📊 Monitoring live
+
+- **CPU %** (agrégé, PDH `Processor Information`) + % de la fréquence de base
+- **RAM %** + octets utilisés/total (`GlobalMemoryStatusEx`)
+- **GPU %** (PDH `GPU Engine`, tous les moteurs fusionnés) — marche sur NVIDIA / AMD / Intel
+- **Disque** % occupé + lecture/écriture Mo/s, **Réseau** Ko/s montant/descendant
+- **Top processus** par CPU avec RAM et PID (delta 250 ms)
+- **Historique 60 secondes** en sparklines lumineuses, rafraîchi chaque seconde
 
 ## 🛠️ Les 30 tweaks
 

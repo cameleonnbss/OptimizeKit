@@ -15,17 +15,21 @@ add_executable(OptimizeKit WIN32
     src/core/ping.cpp
     src/core/drivers.cpp
     src/core/gameboost.cpp
+    src/core/monitor.cpp
+    src/server/server.cpp
     src/ui/ui.cpp
     resources/OptimizeKit.rc
 )
 
 target_include_directories(OptimizeKit PRIVATE src src/core)
 
+target_compile_definitions(OptimizeKit PRIVATE CPPHTTPLIB_THREAD_POOL_COUNT=4)
+
 target_link_libraries(OptimizeKit PRIVATE
-    d2d1 dwrote dwrite windowscodecs
+    d2d1 dwrite windowscodecs
     user32 gdi32 shell32 advapi32 ole32 oleaut32
     shlwapi iphlpapi ws2_32 winmm uxtheme dwmapi uuid
-    powrprof setupapi psapi
+    powrprof setupapi psapi pdh wininet
 )
 
 if (MINGW)

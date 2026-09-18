@@ -9,15 +9,19 @@ using json = nlohmann::json;
 
 json loadConfig() {
     json j;
+    bool fromDisk = false;
     std::ifstream f(configPath().c_str());
-    if (f) { try { f >> j; } catch (...) { j = json::object(); } }
-    if (!j.is_object()) j = json::object();
-    if (!j.contains("ping_targets")) {
+    if (f) {
+        try { f >> j; fromDisk = j.is_object(); } catch (...) { j = json::object(); }
+    }
+    if (!fromDisk) j = json::object();
+    if (!j.contains("ping_targets") || !j["ping_targets"].is_array() || j["ping_targets"].empty()) {
         j["ping_targets"] = json::array({
             { {"name", "Cloudflare"}, {"host", "1.1.1.1"} },
             { {"name", "Google"},     {"host", "8.8.8.8"} },
-            { {"name", "Gateway"},    {"host", "192.168.1.1"} },
+            { {"name", "Quad9"},      {"host", "9.9.9.9"} },
         });
+        saveConfig(j); // persist defaults so the file exists on first run
     }
     if (!j.contains("applied_tweaks")) j["applied_tweaks"] = json::object();
     return j;
@@ -61,6 +65,7 @@ RunReport runProfile(const string& name) {
 json pingTargets() {
     json cfg = loadConfig();
     json out = json::array();
+    if (!cfg.contains("ping_targets") || !cfg["ping_targets"].is_array()) return out;
     for (auto& t : cfg["ping_targets"]) {
         auto r = ping::measure(widen(t.value("host", "1.1.1.1")));
         out.push_back({

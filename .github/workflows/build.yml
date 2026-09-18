@@ -24,16 +24,20 @@ jobs:
           g++ --version
           windres resources/OptimizeKit.rc -O coff -o build/OptimizeKit.res
           g++ -std=c++20 -O2 -municode -mwindows `
-            -Isrc -Isrc/core `
+            -Isrc -Isrc/core -DCPPHTTPLIB_THREAD_POOL_COUNT=4 `
             src/app/main.cpp src/app/cli.cpp `
             src/core/common.cpp src/core/sysinfo.cpp src/core/tweaks.cpp src/core/cleaner.cpp `
             src/core/engine.cpp src/core/ping.cpp src/core/drivers.cpp src/core/gameboost.cpp `
-            src/ui/ui.cpp build/OptimizeKit.res `
+            src/core/monitor.cpp src/server/server.cpp src/ui/ui.cpp build/OptimizeKit.res `
             -o dist/OptimizeKit.exe `
             -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lshell32 -ladvapi32 -lole32 -loleaut32 `
-            -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi -luuid `
+            -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi `
+            -lpdh -lwininet -luuid `
             -static -static-libgcc -static-libstdc++
           if (-not (Test-Path dist/OptimizeKit.exe)) { throw "build failed" }
+          New-Item -ItemType Directory -Force dist/web/assets/fonts | Out-Null
+          Copy-Item web/index.html, web/style.css, web/app.js dist/web/
+          Copy-Item web/assets/fonts/*.ttf dist/web/assets/fonts/
           Get-Item dist/OptimizeKit.exe | Select-Object Name, Length
 
       - name: Smoke test
@@ -48,10 +52,17 @@ jobs:
           name: OptimizeKit
           path: |
             dist/OptimizeKit.exe
+            dist/web/
             OptimizeKit-user.bat
             OptimizeKit-admin.bat
             OptimizeKit-cli.bat
             PowerShell/OptimizeKit.ps1
+
+      - name: Zip portable bundle
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          Compress-Archive -Force -Path dist/OptimizeKit.exe, dist/web, OptimizeKit-user.bat, OptimizeKit-admin.bat, OptimizeKit-cli.bat, Uninstall-OptimizeKit.bat, PowerShell, README.fr.md -DestinationPath dist/OptimizeKit-${{ github.ref_name }}.zip
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -60,6 +71,7 @@ jobs:
           overwrite_files: true
           files: |
             dist/OptimizeKit.exe
+            dist/OptimizeKit-*.zip
             OptimizeKit-user.bat
             OptimizeKit-admin.bat
             OptimizeKit-cli.bat

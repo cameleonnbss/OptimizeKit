@@ -1,12 +1,18 @@
-// OptimizeKit - GUI-subsystem entry point.
-// No arguments -> liquid glass dashboard.
+// OptimizeKit - entry point.
+// No arguments -> WormGPT-style web dashboard served by the embedded HTTP server
+//                (opened as a standalone app window via msedge --app when available).
+// --native      -> the native Direct2D liquid-glass dashboard (no browser).
 // With arguments (from OptimizeKit-cli.bat) -> attaches to the parent console and runs the CLI.
 #include "core/common.h"
 #include "core/engine.h"
 #include "ui/ui.h"
 #include "app/cli.h"
+#include "server/server.h"
 #include <shellapi.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iostream>
+#include <thread>
 #include <fcntl.h>
 #include <io.h>
 #include <cstdio>
@@ -42,9 +48,11 @@ static std::vector<wstring> getArgs() {
 
 static void printHelp() {
     std::wcout <<
-        L"OptimizeKit v1.0 - Windows Optimization Suite\n"
+        L"OptimizeKit v1.1 - Windows Optimization Suite\n"
         L"usage:\n"
-        L"  OptimizeKit.exe                 open the liquid-glass dashboard\n"
+        L"  OptimizeKit.exe                 web dashboard (embedded server, standalone window)\n"
+        L"  OptimizeKit.exe --native        native Direct2D dashboard\n"
+        L"  OptimizeKit.exe --web [port]    web dashboard without opening the browser\n"
         L"  OptimizeKit.exe --cli           numbered CLI menu (user or admin)\n"
         L"  OptimizeKit.exe --profile gaming|privacy|full|clean\n"
         L"  OptimizeKit.exe --apply <tweak-id>\n"
@@ -55,11 +63,59 @@ static void printHelp() {
         L"  OptimizeKit.exe --ping <host>   latency test\n";
 }
 
+static string g_probeBuf;
+
+static bool openAppWindow(const wstring& url) {
+    // msedge --app gives the WormGPT-like chromeless window when available
+    if (runCapture(L"reg query HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe /ve", g_probeBuf, 8000)) {
+        ShellExecuteW(nullptr, L"open",
+            L"msedge.exe",
+            (L"--app=" + url + L" --window-size=1280,860").c_str(), nullptr, SW_SHOWNORMAL);
+        return true;
+    }
+    ShellExecuteW(nullptr, L"open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    return true;
+}
+
+// probe 127.0.0.1:port..port+20 until one accepts a TCP connection (server ready)
+static int probeServer(int port) {
+    WSADATA wd; WSAStartup(MAKEWORD(2, 2), &wd);
+    for (int attempt = 0; attempt < 60; ++attempt) {
+        for (int p = port; p < port + 20; ++p) {
+            SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+            if (s == INVALID_SOCKET) continue;
+            sockaddr_in a{};
+            a.sin_family = AF_INET;
+            a.sin_port = htons((u_short)p);
+            a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            if (connect(s, (sockaddr*)&a, sizeof(a)) == 0) { closesocket(s); return p; }
+            closesocket(s);
+        }
+        Sleep(100);
+    }
+    return -1;
+}
+
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     auto args = getArgs();
 
     if (args.empty()) {
-        return ui::runDashboard();
+        // default: embedded web dashboard (served locally, no install)
+        std::thread srv([] { ok::server::serve(8765); });
+        int port = probeServer(8765);
+        if (port > 0) {
+            wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
+            openAppWindow(url);
+        }
+        srv.join();
+        return 0;
+    }
+
+    if (args[0] == L"--native") return ui::runDashboard();
+    if (args[0] == L"--web") {
+        unsigned short port = 8765;
+        if (args.size() > 1) port = (unsigned short)_wtoi(args[1].c_str());
+        return ok::server::serve(port) < 0 ? 2 : 0;
     }
 
     attachParentConsole();

@@ -11,34 +11,26 @@ namespace ok::drivers {
 
 Info collect() {
     Info inf;
-    HDEVINFO set = SetupDiGetClassDevsW(&GUID_DEVCLASS_DISPLAY, nullptr, nullptr, DIGCF_PRESENT);
-    if (set != INVALID_HANDLE_VALUE) {
-        SP_DEVINFO_DATA dd{}; dd.cbSize = sizeof(dd);
-        if (SetupDiEnumDeviceInfo(set, 0, &dd)) {
-            auto getProp = [&](DWORD prop) -> wstring {
-                wchar_t b[512] = {};
-                DWORD sz = sizeof(b), type = 0;
-                if (SetupDiGetDeviceRegistryPropertyW(set, &dd, prop, &type, (PBYTE)b, sz, nullptr))
-                    return b;
-                return L"";
-            };
-            inf.gpuName       = getProp(SPDRP_DEVICEDESC);
-            wstring drvKey    = getProp(SPDRP_DRIVER);   // e.g. "Class\{4d36e968-...}\0000"
-            if (!drvKey.empty()) {
-                wstring full = L"SYSTEM\\CurrentControlSet\\" + drvKey;
-                HKEY k;
-                if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, full.c_str(), 0, KEY_READ, &k) == ERROR_SUCCESS) {
-                    wchar_t b[128] = {}; DWORD sz = sizeof(b);
-                    if (RegQueryValueExW(k, L"DriverVersion", nullptr, nullptr, (LPBYTE)b, &sz) == ERROR_SUCCESS)
-                        inf.driverVersion = b;
-                    sz = sizeof(b);
-                    if (RegQueryValueExW(k, L"DriverDate", nullptr, nullptr, (LPBYTE)b, &sz) == ERROR_SUCCESS)
-                        inf.driverDate = b;
-                    RegCloseKey(k);
-                }
-            }
+    // Enumerate the Display class instances directly from the registry
+    // (0000, 0001, ...) — more reliable than setupapi for driver metadata.
+    const wstring cls = L"SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\";
+    for (DWORD i = 0; i < 16; ++i) {
+        wchar_t sub[16]; swprintf(sub, 16, L"%04llu", (unsigned long long)i);
+        HKEY k;
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, (cls + sub).c_str(), 0, KEY_READ, &k) != ERROR_SUCCESS) break;
+        wchar_t desc[256] = {}; DWORD sz = sizeof(desc);
+        if (RegQueryValueExW(k, L"DriverDesc", nullptr, nullptr, (LPBYTE)desc, &sz) == ERROR_SUCCESS && desc[0]) {
+            inf.gpuName = desc;
+            sz = sizeof(desc);
+            if (RegQueryValueExW(k, L"DriverVersion", nullptr, nullptr, (LPBYTE)desc, &sz) == ERROR_SUCCESS)
+                inf.driverVersion = desc;
+            wchar_t date[64] = {}; sz = sizeof(date);
+            if (RegQueryValueExW(k, L"DriverDate", nullptr, nullptr, (LPBYTE)date, &sz) == ERROR_SUCCESS)
+                inf.driverDate = date;
+            RegCloseKey(k);
+            break;
         }
-        SetupDiDestroyDeviceInfoList(set);
+        RegCloseKey(k);
     }
     return inf;
 }

@@ -2,13 +2,13 @@
 
 # ⚡ OptimizeKit
 
-**Windows Optimization Suite — one exe, liquid-glass dashboard, real tweaks.**
+**Windows Optimization Suite — one exe, WormGPT-style liquid-glass dashboard, live monitoring.**
 
-Gaming FPS · latency · privacy · debloat · drivers · network · full activity log
+Live monitoring (CPU / RAM / GPU / disk / network) · gaming FPS · latency · privacy · debloat · drivers · full activity log
 
-`C++20 / Win32 / Direct2D` · `PowerShell engine` · `no install · no dependencies`
+`C++20 / Win32 / embedded HTTP server` · `WormGPT-style UI (DarkGPT theme)` · `PowerShell engine` · `no install · no dependencies`
 
-[⬇️ Download v1.0 (release)](../../releases) · [Quick start](#-quick-start) · [CLI](#-cli--numbered-menus) · [Français](README.fr.md)
+[⬇️ Download v1.1.0 (release)](../../releases) · [Quick start](#-quick-start) · [CLI](#-cli--numbered-menus) · [Français](README.fr.md)
 
 </div>
 
@@ -18,41 +18,54 @@ Gaming FPS · latency · privacy · debloat · drivers · network · full activi
 
 | Release | Link |
 |---|---|
-| **v1.0.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v1.0.0 |
+| **v1.1.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v1.1.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
-`OptimizeKit.exe` is fully **static** (MinGW-w64, ~4 MB): no runtime, no DLLs, no install. Drop it anywhere and run.
+`OptimizeKit.exe` is fully **static** (MinGW-w64, ~5 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the DarkGPT-style web dashboard (`web/` folder ships next to it).
 
 ## ⚡ Quick start
 
 | You want | Double-click |
 |---|---|
-| The dashboard (no admin needed) | `OptimizeKit-user.bat` |
+| **The dashboard** (web UI in a standalone window) | `OptimizeKit-user.bat` |
 | **Everything** (all tweaks, UAC prompt) | `OptimizeKit-admin.bat` |
 | The numbered CLI menu (choice by digits) | `OptimizeKit-cli.bat` |
 | The pure PowerShell engine (no exe) | `PowerShell\OptimizeKit.ps1` |
+| The old native Direct2D window | `OptimizeKit.exe --native` |
 
-Then pick a profile and watch the **Logs** tab: every action is written to
+Then pick a profile and watch the **Logs** view: every action is written to
 `%LOCALAPPDATA%\OptimizeKit\OptimizeKit.log` and every registry key is **backed up as `.reg`**
 before any change.
 
-> 🛡️ **Safety**: `Restore Windows default` is available for every single tweak (GUI + CLI),
+> 🛡️ **Safety**: `Restore Windows default` is available for every single tweak (web UI + CLI),
 > the PowerShell engine has `-Restore`, and `.reg` backups live in `%LOCALAPPDATA%\OptimizeKit\`.
 
-## 🧭 The dashboard (liquid glass)
+## 🖥️ The dashboard (WormGPT-style liquid glass)
 
-Native Direct2D UI — dark glass panels, animated background, DPI-aware, one file exe:
+The UI reuses the **DarkGPT design system** from WormGPT-desktop (cameleonnbss): deep black +
+exclusive `#ff3d57` red accent, glassmorphism with moving specular sheen, animated red particles
+following the mouse, background grid + noise + vignette, Inter & Space Mono fonts. Served by an
+embedded C++ HTTP server on `127.0.0.1:8765` and opened as a chromeless app window.
 
-| Tab | What you get |
+| View | What you get |
 |---|---|
-| **Dashboard** | Live system snapshot: OS/CPU/GPU/RAM, power plan, Game Mode, HAGS, uptime + one-click profiles |
-| **Tweaks** | All 30 tweaks with ADMIN/USER badges, impact rating, per-tweak *apply*, multi-select, restore |
-| **Gaming** | Gaming profile, quick latency tweaks, live process list with priority boost / kill |
-| **Privacy** | Telemetry, ads, activity history, Bing, Copilot, Edge background — one click each |
-| **Drivers** | GPU + driver version, vendor download pages, `dxdiag`, Windows Update driver scan |
-| **Network** | ICMP latency tester (avg of 4 pings) with saved targets, add/remove, color-coded ms |
-| **Logs** | The full activity log, live — everything the kit does is written here |
-| **About** | Credits, sources and where your backups live |
+| **Dashboard** | **Live monitoring**: CPU / RAM / GPU usage with 60-second sparkline graphs, disk & network throughput, process/thread counts, top processes by CPU (2.5 s refresh), full system snapshot, one-click profiles |
+| **Tweaks** | All 30 tweaks with ADMIN/USER badges, impact rating, filters, multi-select apply/restore |
+| **Gaming** | Gaming profile + 8 quick latency tweaks (DVR, network, timer, HAGS, MPO, power, mouse, FSO) |
+| **Privacy** | Privacy profile + 8 quick tweaks (telemetry, ads, activity, Bing, Copilot, Edge…) |
+| **Drivers** | GPU + driver version (auto-detected), vendor pages, dxdiag, Device Manager |
+| **Network** | ICMP latency tester with saved targets + quick ping any host |
+| **Logs** | Full activity log, color-coded, live |
+| **About** | Credits and backup locations |
+
+## 📊 Live monitoring
+
+- **CPU %** (per-core aggregated, PDH `Processor Information`) + % of base clock
+- **RAM %** + used/total bytes (`GlobalMemoryStatusEx`)
+- **GPU %** (PDH `GPU Engine` utilization, all engines merged) — works on NVIDIA / AMD / Intel
+- **Disk** % busy + read/write MB/s, **Network** down/up KB-s
+- **Top processes** by CPU with RAM and PID (250 ms delta sampling)
+- **60-second rolling history** rendered as glowing sparklines, 1 s polling
 
 ## 🛠️ The 30 tweaks
 
@@ -105,7 +118,15 @@ OptimizeKit.exe --apply  timer_high
 OptimizeKit.exe --restore timer_high
 OptimizeKit.exe --clean                " junk cleanup
 OptimizeKit.exe --ping 1.1.1.1
+OptimizeKit.exe --web 8765             " serve the dashboard headless
 ```
+
+### HTTP API (localhost only)
+
+The embedded server also exposes a JSON API you can script against:
+`GET /api/state` · `GET /api/monitor` · `GET /api/processes` · `GET/POST /api/tweaks` ·
+`POST /api/tweaks/apply` · `POST /api/tweaks/restore` · `POST /api/profile` ·
+`GET/POST /api/ping` · `POST /api/clean` · `GET /api/logs`.
 
 ## 🧪 PowerShell engine (no exe required)
 
