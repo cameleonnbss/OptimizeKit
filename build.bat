@@ -29,14 +29,15 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     src\app\main.cpp src\app\cli.cpp ^
     src\core\common.cpp src\core\sysinfo.cpp src\core\tweaks.cpp src\core\cleaner.cpp ^
     src\core\engine.cpp src\core\ping.cpp src\core\drivers.cpp src\core\gameboost.cpp ^
-    src\core\monitor.cpp ^
+    src\core\monitor.cpp src\core\netprofile.cpp src\core\scan.cpp ^
+    src\core\games.cpp src\core\ram.cpp src\core\storage.cpp src\core\logging2.cpp ^
     src\server\server.cpp ^
     src\ui\ui.cpp ^
     build\OptimizeKit.res ^
     -o dist\OptimizeKit.exe ^
-    -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lshell32 -ladvapi32 -lole32 -loleaut32 ^
+    -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 ^
     -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi ^
-    -lpdh -lwininet -luuid ^
+    -lpdh -lwininet -luuid -lntdll ^
     -static -static-libgcc -static-libstdc++
 if errorlevel 1 exit /b 1
 

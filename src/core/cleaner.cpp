@@ -36,10 +36,21 @@ static vector<wstring> junkDirs() {
 }
 
 static uint64_t sizeOfTree(const wstring& dir) {
+    // hand-rolled walk: libstdc++'s recursive iterator chokes on Windows junctions
     uint64_t bytes = 0;
-    std::error_code ec;
-    for (auto& p : fs::recursive_directory_iterator(dir, fs::directory_options::skip_permission_denied, ec))
-        if (p.is_regular_file(ec)) bytes += p.file_size(ec);
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW((dir + (dir.back() == L'\\' ? L"*" : L"\\*")).c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return 0;
+    do {
+        if (fd.cFileName[0] == L'.') continue;
+        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) continue;   // junction/symlink: never follow
+            bytes += sizeOfTree(dir + (dir.back() == L'\\' ? L"" : L"\\") + fd.cFileName);
+        } else {
+            bytes += ((uint64_t)fd.nFileSizeHigh << 32) | fd.nFileSizeLow;
+        }
+    } while (FindNextFileW(h, &fd));
+    FindClose(h);
     return bytes;
 }
 

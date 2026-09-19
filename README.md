@@ -1,27 +1,53 @@
 <div align="center">
 
+<img src="assets/icon256.png" width="88" alt="OptimizeKit"/>
+
 # ⚡ OptimizeKit
 
-**Windows Optimization Suite — one exe, WormGPT-style liquid-glass dashboard, live monitoring.**
+**Windows Gaming Control Center — one exe, liquid-glass dashboard, every tweak reversible.**
 
-Live monitoring (CPU / RAM / GPU / disk / network) · gaming FPS · latency · privacy · debloat · drivers · full activity log
+[![Release](https://img.shields.io/github/v/release/cameleonnbss/OptimizeKit?style=flat-square&color=ff3d57)](../../releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078d4?style=flat-square)](https://github.com/cameleonnbss/OptimizeKit)
+[![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
+[![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
+[![Size](https://img.shields.io/badge/exe-~6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-`C++20 / Win32 / embedded HTTP server` · `WormGPT-style UI (DarkGPT theme)` · `PowerShell engine` · `no install · no dependencies`
+**Live monitoring** · **Gaming score** · **30 reversible tweaks** · **Game library with real icons** · **Network center** · **Benchmark** · **Full activity log**
 
-[⬇️ Download v1.1.0 (release)](../../releases) · [Quick start](#-quick-start) · [CLI](#-cli--numbered-menus) · [Français](README.fr.md)
+`C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install`
+
+[⬇️ **Download v2.0.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
 ---
 
+## 📸 Screenshots
+
+| Gaming Center | Dashboard |
+|---|---|
+| ![Gaming Center](docs/screenshots/gaming.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+| Tweaks — instant ON/OFF switches | Games — real icons |
+|---|---|
+| ![Tweaks](docs/screenshots/tweaks.png) | ![Games](docs/screenshots/games.png) |
+
+| Network Center | PC Scanner |
+|---|---|
+| ![Network](docs/screenshots/network.png) | ![Scan](docs/screenshots/scan.png) |
+
+| Storage | Splash screen |
+|---|---|
+| ![Storage](docs/screenshots/storage.png) | ![Splash](docs/screenshots/dashboard.png) |
+
 ## 📦 Download
 
 | Release | Link |
 |---|---|
-| **v1.1.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v1.1.0 |
+| **v2.0.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.0.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
-`OptimizeKit.exe` is fully **static** (MinGW-w64, ~5 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the DarkGPT-style web dashboard (`web/` folder ships next to it).
+`OptimizeKit.exe` is fully **static** (MinGW-w64, ~6 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the liquid-glass web dashboard (`web/` folder ships next to it).
 
 ## ⚡ Quick start
 
@@ -29,156 +55,97 @@ Live monitoring (CPU / RAM / GPU / disk / network) · gaming FPS · latency · p
 |---|---|
 | **The dashboard** (web UI in a standalone window) | `OptimizeKit-user.bat` |
 | **Everything** (all tweaks, UAC prompt) | `OptimizeKit-admin.bat` |
-| The numbered CLI menu (choice by digits) | `OptimizeKit-cli.bat` |
+| The numbered CLI menu | `OptimizeKit-cli.bat` |
 | The pure PowerShell engine (no exe) | `PowerShell\OptimizeKit.ps1` |
-| The old native Direct2D window | `OptimizeKit.exe --native` |
+| Headless web dashboard | `OptimizeKit.exe --web 8765` |
 
-Then pick a profile and watch the **Logs** view: every action is written to
-`%LOCALAPPDATA%\OptimizeKit\OptimizeKit.log` and every registry key is **backed up as `.reg`**
-before any change.
+The dashboard opens on a **splash boot sequence** (detecting hardware → reading Windows state → loading tweak catalog → measuring network), then lands on the **Gaming Center** with your machine's gaming score.
 
-> 🛡️ **Safety**: `Restore Windows default` is available for every single tweak (web UI + CLI),
-> the PowerShell engine has `-Restore`, and `.reg` backups live in `%LOCALAPPDATA%\OptimizeKit\`.
+> 🛡️ **Safety**: every tweak has a one-click **restore to Windows default** (web UI + CLI), the PowerShell engine has `-Restore`, and `.reg` backups live in `%LOCALAPPDATA%\OptimizeKit\`.
 
-## 🖥️ The dashboard (WormGPT-style liquid glass)
+## 🎮 Gaming Center
 
-The UI reuses the **DarkGPT design system** from WormGPT-desktop (cameleonnbss): deep black +
-exclusive `#ff3d57` red accent, glassmorphism with moving specular sheen, animated red particles
-following the mouse, background grid + noise + vignette, Inter & Space Mono fonts. Served by an
-embedded C++ HTTP server on `127.0.0.1:8765` and opened as a chromeless app window.
+The new home page scores your machine 0–100 from the real state of gaming-relevant settings, then groups every gaming switch by category:
+
+- **FPS & rendering** — HAGS, Game Mode, fullscreen optimizations, MPO, GPU preference
+- **Latency & input** — 0.5 ms timer, gaming network stack (TcpAckFrequency/NoDelay/MMCSS), mouse acceleration, menu delay, Win32PrioritySeparation
+- **Background load** — Game DVR, background apps, SysMain, search indexing, Xbox Live services
+- **Power & thermals** — Ultimate Performance plan, HPET
+
+Every switch is a real toggle: click → registry snapshot → apply → animated confirmation. Click again to restore the Windows default. Category chips show `OPTIMIZED / 3/5 / STOCK` at a glance.
+
+## 🔧 The dashboard (WormGPT-style liquid glass)
+
+Deep black + your accent color (6 themes in the top bar, persisted), glassmorphism with moving specular sheen, mouse-following particles, Inter & Space Mono. Served by an embedded C++ HTTP server on `127.0.0.1:8765`, opened as a chromeless app window.
 
 | View | What you get |
 |---|---|
-| **Dashboard** | **Live monitoring**: CPU / RAM / GPU usage with 60-second sparkline graphs, disk & network throughput, process/thread counts, top processes by CPU (2.5 s refresh), full system snapshot, one-click profiles |
-| **Tweaks** | All 30 tweaks with ADMIN/USER badges, impact rating, filters, multi-select apply/restore |
-| **Gaming** | Gaming profile + 8 quick latency tweaks (DVR, network, timer, HAGS, MPO, power, mouse, FSO) |
-| **Privacy** | Privacy profile + 8 quick tweaks (telemetry, ads, activity, Bing, Copilot, Edge…) |
-| **Drivers** | GPU + driver version (auto-detected), vendor pages, dxdiag, Device Manager |
-| **Network** | ICMP latency tester with saved targets + quick ping any host |
-| **Logs** | Full activity log, color-coded, live |
-| **About** | Credits and backup locations |
+| **Dashboard** | Live CPU / RAM / GPU / disk with 60-second sparklines, network throughput, process/thread counts, top processes (2.5 s refresh) |
+| **Gaming Center** | Gaming score ring, category score cards, grouped ON/OFF switches, Gaming Mode enter/exit |
+| **Tweaks** | All 30 tweaks as switch cards: instant apply / instant restore, search, category filters, ADMIN/USER badges, impact bars, live count in the sidebar |
+| **Games** | Steam + Epic + Riot + GOG + registry detection, real icons extracted from the executables, per-game boost (IFEO persistent priority) and Gaming Mode |
+| **Scan PC** | Full system scan: junk files, tweak state, network config, power plan, startup load, drivers, games — every finding has an Apply button |
+| **Optimize** | One-click profiles (SAFE / GAMING / PRIVACY / RESTORE ALL) with snapshot → apply → verify |
+| **Network** | Adapter status (autotuning, RSC, RSS, DNS, MTU), profiles, **MTU slider** with presets (Ethernet/PPPoE/VPN/Jumbo), latency monitor, quick ping |
+| **RAM** | Usage graph, committed/cached stats, top consumers, honest standby-list trim (with an explanation of what it really does) |
+| **Storage** | Drives with NVMe/SATA bus detection, usage bars, largest files |
+| **Startup** | HKCU/HKLM Run keys + startup folders, one-click disable (reversible via stash) |
+| **Benchmark** | Real measured numbers: CPU MOPS, RAM GB/s, disk MB/s, network latency — with history |
+| **Logs** | Color-coded activity log with live filter |
+| **Settings** | Accent color, particles, kill list for Gaming Mode, DNS management — persisted in `config.json` |
 
-## 📊 Live monitoring
+## 🕹️ Game detection
 
-- **CPU %** (per-core aggregated, PDH `Processor Information`) + % of base clock
-- **RAM %** + used/total bytes (`GlobalMemoryStatusEx`)
-- **GPU %** (PDH `GPU Engine` utilization, all engines merged) — works on NVIDIA / AMD / Intel
-- **Disk** % busy + read/write MB/s, **Network** down/up KB-s
-- **Top processes** by CPU with RAM and PID (250 ms delta sampling)
-- **60-second rolling history** rendered as glowing sparklines, 1 s polling
+Multi-provider scanner — no single-store lock-in:
 
-## 🛠️ The 30 tweaks
-
-**Gaming / FPS / latency** — Game Mode · Game DVR & Game Bar off · Hardware-accelerated GPU
-scheduling · MPO off (24H2 stutter fix) · global timer resolution 0.5 ms · gaming network stack
-(`TcpAckFrequency=1`, `TCPNoDelay`, `NetworkThrottlingIndex=0xFFFFFFFF`, `SystemResponsiveness=0`,
-MMCSS Games priority) · mouse acceleration off (raw 1:1) · performance visual effects · instant
-menus · background apps off · Storage Sense · search indexing off · SysMain off · HPET off +
-`useplatformclock false` · Ultimate Performance plan · `Win32PrioritySeparation=0x26` · GPU
-preference high performance · fullscreen optimizations off · Xbox services off.
-
-**Privacy** — telemetry off (AllowTelemetry=0, DiagTrack, dmwappush) · advertising ID ·
-activity history / timeline · Bing out of search · tailored experiences · CEIP scheduled tasks ·
-Copilot removed · Edge background & startup boost off.
-
-**Debloat** — MS Store bloat apps removal (Clipchamp, News, Solitaire, Teams, Xbox gems…) ·
-OneDrive uninstall · boot trim.
-
-Full annotated mapping in [`docs/SOURCES.md`](docs/SOURCES.md) — curated from
-**Chris Titus Tech's WinUtil (MIT)**, Microsoft/Valve documentation and the PC-gaming community.
-
-## 💻 CLI — numbered menus
-
-`OptimizeKit-cli.bat` (or `OptimizeKit.exe --cli`) opens a menu adapted to your privileges:
-
-```
--- ADMIN MODE (full power) --
-  1. System information
-  2. Apply GAMING profile (one click)
-  3. Apply PRIVACY profile
-  4. Apply FULL kit profile
-  5. Select multiple tweaks (numbers, a/n/d)
-  6. Apply or restore a single tweak
-  7. GAME BOOST : boost a running process priority
-  8. NETWORK : saved targets latency test
-  9. CLEAN : junk cleanup + recycle bin
- 10. DRIVERS menu
- 11. Registry backup
- 12. Activity log
-  0. Exit
-```
-
-One-shot commands (scriptable / CI-friendly):
-
-```bat
-OptimizeKit.exe --info                 " system summary
-OptimizeKit.exe --list                 " all tweak ids
-OptimizeKit.exe --profile gaming       " gaming | privacy | full
-OptimizeKit.exe --apply  timer_high
-OptimizeKit.exe --restore timer_high
-OptimizeKit.exe --clean                " junk cleanup
-OptimizeKit.exe --ping 1.1.1.1
-OptimizeKit.exe --web 8765             " serve the dashboard headless
-```
-
-### HTTP API (localhost only)
-
-The embedded server also exposes a JSON API you can script against:
-`GET /api/state` · `GET /api/monitor` · `GET /api/processes` · `GET/POST /api/tweaks` ·
-`POST /api/tweaks/apply` · `POST /api/tweaks/restore` · `POST /api/profile` ·
-`GET/POST /api/ping` · `POST /api/clean` · `GET /api/logs`.
-
-## 🧪 PowerShell engine (no exe required)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File PowerShell\OptimizeKit.ps1 -User   # user menu
-powershell -ExecutionPolicy Bypass -File PowerShell\OptimizeKit.ps1         # self-elevates, admin menu
-powershell -ExecutionPolicy Bypass -File PowerShell\OptimizeKit.ps1 -Silent # apply full kit, no menus
-powershell -ExecutionPolicy Bypass -File PowerShell\OptimizeKit.ps1 -Restore
-```
-
-Same tweaks, same logging (`OptimizeKit-PowerShell.log`), same registry backups, numbered menus.
-
-## 📁 Where things are stored
-
-| What | Where |
+| Provider | Source |
 |---|---|
-| Config (ping targets, applied tweaks) | `%LOCALAPPDATA%\OptimizeKit\config.json` |
-| Activity log | `%LOCALAPPDATA%\OptimizeKit\OptimizeKit.log` |
-| PowerShell log | `%LOCALAPPDATA%\OptimizeKit\OptimizeKit-PowerShell.log` |
-| Registry backups (auto, before any change) | `%LOCALAPPDATA%\OptimizeKit\backup_*.reg` |
+| **Steam** | `libraryfolders.vdf` → `appmanifest_*.acf` (all libraries, all drives) |
+| **Epic** | `%PROGRAMDATA%\Epic\EpicGamesLauncher\Data\Manifests\*.item` |
+| **Riot** | `HKLM\SOFTWARE\Riot Games, Inc.\*` (VALORANT, LoL…) |
+| **GOG** | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\*` |
+| **Registry** | Uninstall keys under Epic/Riot/GOG/Battle.net/Ubisoft/EA/Xbox/Rockstar dirs |
 
-Delete the folder for a fresh start, or run `Uninstall-OptimizeKit.bat`.
+Plus per-game profiles (persistent high priority via IFEO), gaming mode per game, and real icon extraction (`SHDefExtractIconW` → PNG cache).
 
-## 🔨 Build from source
+## 🖥️ CLI
 
-Requirements: Windows 10/11, [MinGW-w64](https://winlibs.com) (`g++` + `windres`) on PATH.
+`OptimizeKit-cli.bat` gives numbered menus (user or admin). Direct flags:
 
-```bat
-build.bat
+```
+OptimizeKit.exe --native            native Direct2D dashboard
+OptimizeKit.exe --web [port]        web dashboard without opening a browser
+OptimizeKit.exe --profile gaming|privacy|full|clean
+OptimizeKit.exe --apply <tweak-id>
+OptimizeKit.exe --restore <tweak-id>
+OptimizeKit.exe --list              list tweak ids
+OptimizeKit.exe --clean             junk cleanup
+OptimizeKit.exe --info              system summary
 ```
 
-Output: `dist\OptimizeKit.exe`. CMake also works (`cmake -B build && cmake --build build`).
-CI builds every push via GitHub Actions (`.github/workflows/build.yml`).
+## 🛡️ Safety first
 
-## ⚠️ Disclaimer
+- **Every tweak is reversible** — switch OFF restores the exact Windows default value.
+- **Registry backups** before any change: `%LOCALAPPDATA%\OptimizeKit\backup_*.reg`.
+- **Honest descriptions** — no magic FPS promises; the RAM trim page even explains why "empty standby" is not "extra RAM".
+- **Gaming Mode** snapshots your power plan and restores everything on exit.
+- **Nothing runs at boot**, no service is installed; the exe only acts when you ask.
+- Source curated from [Chris Titus Tech's WinUtil](https://github.com/ChrisTitusTech/winutil) (MIT), Microsoft documentation and the PC-gaming community — every tweak shows its origin in the CLI.
 
-Registry tweaks change your system. The kit backs up every key it touches and can restore
-defaults per-tweak, but **you** stay in charge: read a tweak's description before applying it,
-and reboot after HAGS / timer / power-plan changes. Not affiliated with Microsoft. Use at your own risk.
+## 🏗️ Build from source
 
-## 📜 Credits & sources
+```
+git clone https://github.com/cameleonnbss/OptimizeKit
+cd OptimizeKit
+build.bat          rem MinGW-w64 g++ 13+ (winlibs / MSYS2)
+```
 
-- [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil) (MIT) — debloat & privacy baseline
-- Microsoft docs — [HAGS](https://learn.microsoft.com/windows/win32/direct3d12/hardware-accelerated-gpu-scheduling), Game Bar/GeDVR, MPO `OverlayTestMode`
-- Community — [TimerResolution-Optimization](https://github.com/insovs/TimerResolution-Optimization), MarkC mouse fix, network latency guides
-- [nlohmann/json](https://github.com/nlohmann/json) (MIT, vendored single header)
-- UI style inspired by [WormGPT-desktop](https://github.com/cameleonnbss/WormGPT-desktop)
+Output: `dist\OptimizeKit.exe` + `dist\web\`. Or use the provided CMakeLists with any MinGW toolchain.
 
-## 🇫🇷 Français
+## 📄 License
 
-README annexe en français : **[README.fr.md](README.fr.md)**
+MIT — see [LICENSE](LICENSE). Tweaks curated from WinUtil (MIT), Microsoft docs and community knowledge.
 
----
-
-MIT © 2026 [cameleonnbss](https://github.com/cameleonnbss)
+<div align="center">
+<b>If OptimizeKit saved you time, a ⭐ on the repo helps a lot.</b>
+</div>

@@ -29,6 +29,7 @@ inline string narrow(const wstring& s) {
 }
 
 wstring fmtBytes(uint64_t b);        // "16.0 GB"
+wstring fmtFloat(double v);          // "12.3" (1 decimal)
 wstring fmtDuration(DWORD seconds);  // "1h 02m 03s"
 bool isAdmin();                      // elevated token?
 bool is64bit();

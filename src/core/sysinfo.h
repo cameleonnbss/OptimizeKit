@@ -24,6 +24,7 @@ Info collect();
 
 // Individual getters used by the dashboard tiles
 wstring activePowerPlanName();
+wstring activePowerPlanGuid();
 bool   queryGameMode();
 bool   queryHags();
 

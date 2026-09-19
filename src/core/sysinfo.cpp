@@ -2,6 +2,7 @@
 #include <psapi.h>
 #include <dxgi.h>
 #include <powrprof.h>
+#include <objbase.h>
 #include <tuple>
 
 #pragma comment(lib, "psapi.lib")
@@ -34,6 +35,19 @@ wstring activePowerPlanName() {
         LocalFree(scheme);
     }
     return L"Unknown";
+}
+
+wstring activePowerPlanGuid() {
+    GUID* scheme = nullptr;
+    if (PowerGetActiveScheme(nullptr, &scheme) == ERROR_SUCCESS && scheme) {
+        wchar_t g[64];
+        if (StringFromGUID2(*scheme, g, 64) > 0) {
+            LocalFree(scheme);
+            return g;
+        }
+        LocalFree(scheme);
+    }
+    return L"";
 }
 
 bool queryGameMode() {

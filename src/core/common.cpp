@@ -24,6 +24,12 @@ wstring fmtBytes(uint64_t b) {
     return buf;
 }
 
+wstring fmtFloat(double v) {
+    wchar_t buf[32];
+    swprintf(buf, 32, L"%.1f", v);
+    return buf;
+}
+
 wstring fmtDuration(DWORD sec) {
     wchar_t buf[64];
     DWORD h = sec / 3600, m = (sec % 3600) / 60, s = sec % 60;

@@ -2,7 +2,14 @@
 #include "server.h"
 #include "engine.h"
 #include "monitor.h"
+#include "netprofile.h"
+#include "scan.h"
+#include "games.h"
+#include "ram.h"
+#include "storage.h"
+#include "logging2.h"
 #include "httplib.h"
+#include <shellapi.h>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -49,6 +56,7 @@ static json jsonState() {
     j["uptime"]  = narrow(si.uptime);
     j["admin"]   = isAdmin();
     j["user"]    = narrow(userName());
+    j["gamingMode"] = games::gamingModeActive();
     return j;
 }
 
@@ -197,6 +205,219 @@ int serve(unsigned short preferredPort) {
         res.set_content(json({ {"log", narrow(log::readAll())} }).dump(), "application/json");
     });
 
+    // ============ v2: scanner ============
+    svr.Get("/api/scan", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(scan::runScan().dump(), "application/json");
+    });
+
+    // ============ v2: network center ============
+    svr.Get("/api/net/status", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(netprofile::statusJson().dump(), "application/json");
+    });
+    svr.Post("/api/net/profile", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        auto r = netprofile::apply(body.value("profile", "balanced"));
+        json out = { {"applied", r.applied}, {"failed", r.failed}, {"errors", json::array()} };
+        for (auto& e : r.errors) out["errors"].push_back(narrow(e));
+        res.set_content(out.dump(), "application/json");
+    });
+    svr.Post("/api/net/dns", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        wstring err;
+        bool okb = netprofile::setDns(widen(body.value("primary", "1.1.1.1")), widen(body.value("secondary", "")), err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+    svr.Post("/api/net/flush", [](const httplib::Request&, httplib::Response& res) {
+        wstring err;
+        bool okb = netprofile::flushDns(err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+    svr.Post("/api/net/mtu", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        wstring err;
+        bool okb = netprofile::setMtu(body.value("mtu", 1500), err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2: games ============
+    svr.Get("/api/games", [](const httplib::Request&, httplib::Response& res) {
+        json arr = json::array();
+        for (auto& g : games::detect()) {
+            arr.push_back({
+                {"id", narrow(g.id)}, {"name", narrow(g.name)},
+                {"launcher", narrow(g.launcher)}, {"exe", narrow(g.exePath)},
+                {"running", g.running}, {"icon", narrow(g.iconPath)},
+            });
+        }
+        res.set_content(arr.dump(), "application/json");
+    });
+    svr.Get(R"(/api/game-icon/(.*))", [](const httplib::Request& req, httplib::Response& res) {
+        // req.matches[1] = game id (already [\w-]+ by our pattern); build cache path safely
+        string id = req.matches[1];
+        if (id.find("..") != string::npos) { res.status = 400; return; }
+        wstring p = appDataDir() + L"\\game-icons\\" + widen(id) + L".png";
+        std::ifstream f(p.c_str(), std::ios::binary);
+        if (!f) { res.status = 404; res.set_content("{}", "application/json"); return; }
+        std::ostringstream ss; ss << f.rdbuf();
+        res.set_content(ss.str(), "image/png");
+    });
+    svr.Post("/api/games/icon", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        for (auto& g : games::detect()) {
+            if (narrow(g.id) == body.value("id", "")) {
+                wstring p = games::extractIcon(g);
+                res.set_content(json({ {"ok", !p.empty()} }).dump(), "application/json");
+                return;
+            }
+        }
+        res.status = 404;
+    });
+    svr.Post("/api/games/profile", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        wstring err;
+        bool okb;
+        if (body.value("action", "save") == "apply")
+            okb = games::applyProfile(widen(body.value("id", "")), err);
+        else if (body.value("action", "") == "clear")
+            okb = games::clearProfile(widen(body.value("id", "")), err);
+        else
+            okb = games::saveProfile(widen(body.value("id", "")), body.value("profile", json::object()));
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2: gaming mode ============
+    svr.Post("/api/gaming/enter", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        wstring err;
+        bool okb = games::gamingModeEnter(widen(body.value("game", "")), err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)}, {"active", games::gamingModeActive()} }).dump(), "application/json");
+    });
+    svr.Post("/api/gaming/exit", [](const httplib::Request&, httplib::Response& res) {
+        wstring err;
+        games::gamingModeExit(err);
+        res.set_content(json({ {"ok", true}, {"active", false} }).dump(), "application/json");
+    });
+
+    // ============ v2: RAM ============
+    svr.Get("/api/ram", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(ram::toJson().dump(), "application/json");
+    });
+    svr.Post("/api/ram/trim", [](const httplib::Request&, httplib::Response& res) {
+        wstring err;
+        bool okb = ram::trimStandby(err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2: startup ============
+    svr.Get("/api/startup", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(startup::listJson().dump(), "application/json");
+    });
+    svr.Post("/api/startup/toggle", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        wstring err;
+        bool okb = startup::setEnabled(widen(body.value("location", "")), widen(body.value("name", "")),
+                                       body.value("enable", true), err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2: storage ============
+    svr.Get("/api/storage", [](const httplib::Request&, httplib::Response& res) {
+        json out;
+        out["drives"] = storage::drivesJson();
+        out["junkBytes"] = cleaner::measure().total;
+        res.set_content(out.dump(), "application/json");
+    });
+    svr.Post("/api/storage/files", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        res.set_content(storage::largestFiles(widen(body.value("root", "C:\\")), body.value("top", 15)).dump(), "application/json");
+    });
+    svr.Post("/api/storage/folders", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        res.set_content(storage::folderSizes(widen(body.value("root", "C:\\")), body.value("top", 12)).dump(), "application/json");
+    });
+
+    // ============ v2: benchmark ============
+    svr.Post("/api/bench", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(storage::runBenchmarkAll().dump(), "application/json");
+    });
+    svr.Get("/api/bench/history", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(storage::historyJson().dump(), "application/json");
+    });
+
+    // ============ v2: logs (streaming) ============
+    svr.Get("/api/logs2", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(log2::recentJson(500).dump(), "application/json");
+    });
+    svr.Get("/api/logs2/stream", [](const httplib::Request& req, httplib::Response& res) {
+        long long after = 0;
+        try { after = std::stoll(req.get_param_value("after")); } catch (...) {}
+        auto page = log2::stream(after, 20000);   // long-poll up to 20 s
+        json arr = json::array();
+        long long last = after;
+        for (auto& r : page.items) {
+            ++last;
+            arr.push_back({ {"seq", last}, {"time", narrow(r.time)},
+                            {"sev", narrow(log2::sevName(r.sev))}, {"cat", narrow(r.category)},
+                            {"msg", narrow(r.message)} });
+        }
+        res.set_content(json({ {"items", arr}, {"nextSeq", last} }).dump(), "application/json");
+    });
+
+    // ============ v2: settings ============
+    svr.Get("/api/settings", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(engine::loadConfig().dump(), "application/json");
+    });
+    svr.Post("/api/settings", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        if (body.is_object()) {
+            for (auto it = body.begin(); it != body.end(); ++it)
+                settings::set(it.key(), it.value());
+        }
+        res.set_content(json({ {"ok", true} }).dump(), "application/json");
+    });
+
+    // ============ v2: tools launcher ============
+    svr.Post("/api/tools", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        string tool = body.value("tool", "");
+        wstring c;
+        if      (tool == "taskmgr")    c = L"taskmgr.exe";
+        else if (tool == "devmgmt")    c = L"devmgmt.msc";
+        else if (tool == "eventvwr")   c = L"eventvwr.msc";
+        else if (tool == "services")   c = L"services.msc";
+        else if (tool == "resmon")     c = L"resmon.exe";
+        else if (tool == "perfmon")    c = L"perfmon.exe";
+        else if (tool == "msinfo32")   c = L"msinfo32.exe";
+        else if (tool == "diskmgmt")   c = L"diskmgmt.msc";
+        else if (tool == "regedit")    c = L"regedit.exe";
+        else if (tool == "wscui")      c = L"wscui.cpl";
+        else if (tool == "ncpa")       c = L"ncpa.cpl";
+        else if (tool == "powercfg")   c = L"powercfg.cpl";
+        else if (tool == "wt")         c = L"wt.exe";
+        else if (tool == "powershell") c = L"powershell.exe";
+        else if (tool == "cmd")        c = L"cmd.exe";
+        else if (tool == "cleanmgr")   c = L"cleanmgr.exe";
+        else if (tool == "dfrgui")     c = L"dfrgui.exe";
+        if (!c.empty()) {
+            ShellExecuteW(nullptr, L"open", c.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+            log2::info(L"TOOLS", L"Opened " + widen(tool));
+            res.set_content(json({ {"ok", true} }).dump(), "application/json");
+        } else {
+            res.status = 404;
+        }
+    });
+
     svr.Get("/api/open", [](const httplib::Request& req, httplib::Response& res) {
         string what = req.get_param_value("what");
         if (what == "logfolder") shellOpen(appDataDir());
@@ -209,6 +430,7 @@ int serve(unsigned short preferredPort) {
     svr.set_exception_handler([](const httplib::Request&, httplib::Response& res, std::exception_ptr ep) {
         string msg = "internal error";
         try { if (ep) std::rethrow_exception(ep); } catch (const std::exception& e) { msg = e.what(); }
+        log2::error(L"API", widen(msg));
         res.status = 500;
         res.set_content(json({ {"error", msg} }).dump(), "application/json");
     });
