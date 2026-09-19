@@ -31,6 +31,7 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     src\core\engine.cpp src\core\ping.cpp src\core\drivers.cpp src\core\gameboost.cpp ^
     src\core\monitor.cpp src\core\netprofile.cpp src\core\scan.cpp ^
     src\core\games.cpp src\core\ram.cpp src\core\storage.cpp src\core\logging2.cpp ^
+    src\core\diagnostics.cpp ^
     src\server\server.cpp ^
     src\ui\ui.cpp ^
     build\OptimizeKit.res ^

@@ -1,4 +1,4 @@
-/* OptimizeKit v2.0 — WormGPT design system + Gaming Control Center */
+/* OptimizeKit v2.1 — WormGPT design system + Gaming Control Center */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -53,6 +53,18 @@ const overlay = {
   },
 };
 
+/* ===================== accent helpers (themes that actually work) ===================== */
+function accentRGB() {
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--accent-rgb").trim();
+  return v || "255,61,87";
+}
+const monitorColors = () => ({
+  cpu: `rgba(${accentRGB()},1)`,
+  ram: "rgba(245,165,36,1)",
+  gpu: "rgba(61,214,140,1)",
+  disk: `rgba(${accentRGB()},.8)`,
+});
+
 /* ===================== particles (WormGPT) ===================== */
 (function particles() {
   const cvs = $("#dg-particles"); if (!cvs) return;
@@ -85,6 +97,24 @@ const overlay = {
   })();
 })();
 
+/* ===================== i18n (EN base, FR) ===================== */
+const I18N = {
+  en: { dashboard:"Dashboard", gaming:"Gaming Center", scan:"Scan PC", optimize:"Optimize", tweaks:"Tweaks", games:"Games",
+        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", privacy:"Privacy",
+        diag:"Diagnostics", bench:"Benchmark", tools:"Tools", logs:"Logs", settings:"Settings", about:"About" },
+  fr: { dashboard:"Tableau de bord", gaming:"Centre Gaming", scan:"Analyser le PC", optimize:"Optimiser", tweaks:"Tweaks", games:"Jeux",
+        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", privacy:"Confidentialité",
+        diag:"Diagnostics", bench:"Benchmark", tools:"Outils", logs:"Journaux", settings:"Paramètres", about:"À propos" }
+};
+function applyLang(lang) {
+  const t = I18N[lang] || I18N.en;
+  document.querySelectorAll(".nav-item[data-view]").forEach((n) => {
+    const v = n.dataset.view, s = n.querySelector("span:nth-child(2)");
+    if (s && t[v]) s.textContent = t[v];
+  });
+  document.documentElement.lang = lang;
+}
+
 /* ===================== theme picker ===================== */
 function applyAccent(hex) {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
@@ -93,6 +123,9 @@ function applyAccent(hex) {
   document.documentElement.style.setProperty("--accent-hover", hex);
   document.documentElement.style.setProperty("--accent-rgb", `${r},${g},${b}`);
   $$(".theme-opt").forEach((o) => o.classList.toggle("on", o.dataset.accent === hex));
+  localStorage.setItem("ok_accent", hex);
+  if (currentView === "dashboard") { const mc = monitorColors(); sparkline($("#m-cpu-g"), histCpu, mc.cpu); sparkline($("#m-gpu-g"), histGpu, mc.gpu); sparkline($("#m-disk-g"), histDisk, mc.disk); }
+  if (currentView === "gaming") { const ring = $(".gc-ring"); if (ring) ring.style.background = `conic-gradient(${hex} calc(var(--p,0)*1%),rgba(255,255,255,.07) 0)`; }
 }
 async function setTheme(hex, persist) {
   applyAccent(hex);
@@ -124,6 +157,7 @@ function show(view) {
   if (view === "settings") loadSettings();
   if (view === "gaming") refreshGamingCenter();
   if (view === "tweaks") updateTweakState();
+  if (view === "diag") refreshDiag();
 }
 $("#nav").addEventListener("click", (e) => {
   const item = e.target.closest(".nav-item");
@@ -175,13 +209,14 @@ async function pollMonitor() {
     histCpu.push(s.cpu); histRam.push(s.ram); histGpu.push(s.gpu); histDisk.push(s.disk);
     for (const h of [histCpu, histRam, histGpu, histDisk]) if (h.length > 90) h.shift();
     if (currentView === "dashboard") {
-      sparkline($("#m-cpu-g"), histCpu, "rgba(255,61,87,1)");
-      sparkline($("#m-ram-g"), histRam, "rgba(245,165,36,1)");
-      sparkline($("#m-gpu-g"), histGpu, "rgba(61,214,140,1)");
-      sparkline($("#m-disk-g"), histDisk, "rgba(255,61,87,.8)");
+      const mc = monitorColors();
+      sparkline($("#m-cpu-g"), histCpu, mc.cpu);
+      sparkline($("#m-ram-g"), histRam, mc.ram);
+      sparkline($("#m-gpu-g"), histGpu, mc.gpu);
+      sparkline($("#m-disk-g"), histDisk, mc.disk);
       pollProcesses();
     }
-    if (currentView === "ram") drawRamBig(s);
+    if (currentView === "ram") { const mc = monitorColors(); drawRamBig(s, mc.cpu); }
   } catch (e) { /* server restarting */ }
 }
 function fmtUptime(sec) {
@@ -506,7 +541,7 @@ function selectGame(i) {
       <h2>${esc(g.name)} <span style="color:var(--accent)">profile</span></h2>
       <p>${esc(g.exe)}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-        <button class="btn primary" id="gp-apply">⚡ Boost this game (high priority + gaming flags)</button>
+        <button class="btn primary" id="gp-apply">Boost this game (high priority + gaming flags)</button>
         <button class="btn" id="gp-gmode">▶ Start in Gaming Mode</button>
         <button class="btn danger" id="gp-clear">↺ Clear boost</button>
       </div>
@@ -558,7 +593,7 @@ async function refreshNet() {
       <div class="net-card"><span>DNS</span><b>${esc(s.dns || "default")}</b></div>
       <div class="net-card"><span>MTU</span><b>${s.mtu || "?"}</b></div>`;
     const profiles = [
-      { id: "gaming", t: "⚡ Gaming", d: "RSC off · no NIC power saving · autotuning normal" },
+      { id: "gaming", t: "Gaming", d: "RSC off · no NIC power saving · autotuning normal" },
       { id: "low_latency", t: "⏱ Low latency", d: "Same as gaming, DNS managed if allowed in Settings" },
       { id: "download", t: "⬇ Download", d: "Autotuning experimental (max throughput)" },
       { id: "balanced", t: "⚖ Balanced", d: "Windows defaults + flushed DNS" },
@@ -647,10 +682,10 @@ async function refreshRam() {
       `<div class="proc-row"><span class="p-name">${esc(p.name)}</span><span class="p-host mono">${p.pid}</span><span class="p-ms mono muted">${fmtB((p.ramMB || 0) * 1048576)}</span></div>`).join("");
   } catch (e) { }
 }
-function drawRamBig(s) {
+function drawRamBig(s, color) {
   $("#ram-big").textContent = s.ram.toFixed(0) + "%";
   $("#ram-abs2").textContent = fmtB(s.ramUsed) + " / " + fmtB(s.ramTotal);
-  sparkline($("#ram-big-g"), histRam, "rgba(255,61,87,1)");
+  sparkline($("#ram-big-g"), histRam, color || `rgba(${accentRGB()},1)`);
 }
 on("#btn-ram-trim", async () => {
   const r = await api("/api/ram/trim");
@@ -777,6 +812,8 @@ async function loadSettings() {
   try {
     const s = await api("/api/settings");
     $("#set-accent").value = s.ui_accent || "#ff3d57";
+    $("#set-lang").value = s.ui_lang || "en";
+    applyLang(s.ui_lang || "en");
     $("#set-anim").checked = s.ui_particles !== false;
     $("#set-glitch").checked = s.ui_glitch !== false;
     $("#set-confirm").checked = s.confirm_destructive !== false;
@@ -789,6 +826,7 @@ async function loadSettings() {
 on("#btn-set-save", async () => {
   const body = {
     ui_accent: $("#set-accent").value,
+    ui_lang: $("#set-lang").value,
     ui_particles: $("#set-anim").checked,
     ui_glitch: $("#set-glitch").checked,
     confirm_destructive: $("#set-confirm").checked,
@@ -798,10 +836,100 @@ on("#btn-set-save", async () => {
   };
   await api("/api/settings", body);
   applyAccent(body.ui_accent);
+  applyLang(body.ui_lang);
   $("#set-saved").textContent = "saved ✓";
   setTimeout(() => ($("#set-saved").textContent = ""), 2200);
   toast("✔ Settings saved");
 });
+
+/* ===================== DIAGNOSTICS ===================== */
+let diagCache = null;
+async function refreshDiag(force) {
+  if (diagCache && !force) return renderDiag();
+  try {
+    diagCache = await api("/api/diagnostics");
+    renderDiag();
+  } catch (e) { toast("✖ diagnostics failed"); }
+}
+function renderDiag() {
+  const d = diagCache; if (!d) return;
+  $("#dg-clock").textContent = d.clockMHz ? (d.clockMHz / 1000).toFixed(2) + " GHz" : "—";
+  $("#dg-clock-sub").textContent = d.clockMHz ? "base × measured performance" : "could not read";
+  $("#dg-dpc").textContent = d.dpc.available ? d.dpc.dpcPercent + "% / " + d.dpc.isrPercent + "%" : "—";
+  $("#dg-dpc-sub").textContent = d.dpc.available ? d.dpc.verdict : "unavailable";
+  $("#dg-disk").textContent = d.disk.available ? d.disk.avgLatencyMs + " ms" : "—";
+  $("#dg-disk-sub").textContent = d.disk.available ? d.disk.verdict : "could not measure";
+  const n = d.network;
+  $("#diag-net").innerHTML = n.available ? `
+    <div class="net-card"><span>Ping avg</span><b>${n.avgMs} ms</b></div>
+    <div class="net-card"><span>Min / Max</span><b>${n.minMs} / ${n.maxMs}</b></div>
+    <div class="net-card"><span>Jitter</span><b style="color:${n.jitterMs > 2 ? "var(--warn)" : "var(--ok)"}">${n.jitterMs} ms</b></div>
+    <div class="net-card"><span>Packet loss</span><b style="color:${n.lossPercent > 0 ? "var(--err)" : "var(--ok)"}">${n.lossPercent}%</b></div>
+    <div class="net-card"><span>Verdict</span><b style="font-size:12px">${esc(n.verdict)}</b></div>`
+    : `<div class="net-card"><span>Network</span><b>no response</b></div>`;
+  $("#diag-cards").innerHTML = `
+    <div class="stat-card ${d.game.running ? "high" : "good"}"><b>${d.game.running ? "IN GAME" : "IDLE"}</b><span>${esc(d.game.process || "no game detected")}</span></div>
+    <div class="stat-card ${d.dpc.available && d.dpc.dpcPercent < 5 ? "good" : "med"}"><b>${d.dpc.available ? d.dpc.dpcPercent + "%" : "—"}</b><span>DPC load</span></div>
+    <div class="stat-card good"><b>${d.network.jitterMs ?? "—"}</b><span>jitter ms</span></div>`;
+}
+on("#btn-diag-run", async () => {
+  overlay.show("Running diagnostics", "2 s DPC sample + 20 pings + disk test — everything measured, nothing invented");
+  overlay.step("reading effective CPU clock"); overlay.progress(20);
+  try {
+    diagCache = await api("/api/diagnostics");
+    overlay.progress(100); overlay.step("✓ all measurements done", "ok");
+    await overlay.done(true);
+    renderDiag();
+  } catch (e) { await overlay.done(false, String(e)); }
+});
+
+/* ===================== ESPORT MODE ===================== */
+const ESPORT_IDS = ["game_mode", "game_dvr_off", "timer_high", "network_gaming", "mouse_precision", "menu_delay_0", "background_apps", "win32_priority", "hags_on", "power_ultimate", "usb_powersave", "pcie_aspm", "vrr"];
+async function toggleEsport() {
+  const btn = $("#btn-esport");
+  const active = btn.classList.toggle("on");
+  if (active) {
+    overlay.show("ESPORT MODE", "applying the competitive preset — everything is remembered and reversible");
+    overlay.step("applying " + ESPORT_IDS.length + " esport settings"); overlay.progress(30);
+    try {
+      const r = await api("/api/tweaks/apply", ESPORT_IDS);
+      overlay.progress(100);
+      overlay.step(`✓ ${r.applied} applied${r.errors.length ? " · " + r.errors.length + " need admin" : ""}`, "ok");
+      await overlay.done(true, r.errors.length ? r.applied + " applied, " + r.errors.length + " need admin via OptimizeKit.bat" : "competitive preset active");
+      toast("⚑ ESPORT MODE ON — " + r.applied + " optimizations", 4000);
+    } catch (e) { await overlay.done(false, String(e)); }
+  } else {
+    overlay.show("Leaving ESPORT MODE", "restoring Windows defaults for the esport set");
+    try {
+      const r = await api("/api/tweaks/restore", ESPORT_IDS);
+      await overlay.done(true, r.restored + " restored");
+      toast("↺ esport preset off");
+    } catch (e) { await overlay.done(false, String(e)); }
+  }
+  updateTweakState();
+}
+on("#btn-esport", toggleEsport);
+
+/* ===================== first-run wizard ===================== */
+function maybeWizard(state) {
+  const seen = localStorage.getItem("ok_wizard_done");
+  if (seen || !state) return;
+  const el = document.createElement("div");
+  el.id = "wizard";
+  el.innerHTML = `
+    <div class="wiz-card">
+      <div class="wiz-logo"><b>Optimize<span>Kit</span></b></div>
+      <h2>Welcome — three things before you start</h2>
+      <div class="wiz-row"><span class="wiz-n">1</span><div><b>Pick your accent</b><p>The whole UI recolors instantly — sparklines included.</p>
+        <div class="wiz-themes">${["#ff3d57","#a78bfa","#38bdf8","#34d399","#f59e0b","#f472b6"].map(c=>`<div class="theme-opt" data-accent="${c}" style="--c:${c}"></div>`).join("")}</div></div></div>
+      <div class="wiz-row"><span class="wiz-n">2</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit.bat (option 1)</span> for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
+      <div class="wiz-row"><span class="wiz-n">3</span><div><b>Everything is reversible</b><p>Every switch off restores the exact Windows default. Registry backups live in <span class="mono">%LOCALAPPDATA%\\OptimizeKit</span>.</p></div></div>
+      <button class="btn primary" id="wiz-done">Let's go</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.querySelectorAll(".theme-opt").forEach((o) => o.addEventListener("click", () => { applyAccent(o.dataset.accent); api("/api/settings", { ui_accent: o.dataset.accent }).catch(()=>{}); }));
+  $("#wiz-done").addEventListener("click", () => { el.remove(); localStorage.setItem("ok_wizard_done", "1"); });
+}
 
 /* ===================== splash + boot ===================== */
 (async function boot() {
@@ -830,7 +958,11 @@ on("#btn-set-save", async () => {
   updateGamingStatus();
   // restore last accent without toasting
   try { const s = await api("/api/settings"); if (s.ui_accent) applyAccent(s.ui_accent); } catch (e) { }
+  const savedAccent = localStorage.getItem("ok_accent");
+  if (savedAccent) applyAccent(savedAccent);
   // deep link: index.html?view=gaming
   const want = new URLSearchParams(location.search).get("view");
   if (want && $(".nav-item[data-view=" + want + "]")) show(want);
+  const st = await loadState();
+  maybeWizard(st);
 })();

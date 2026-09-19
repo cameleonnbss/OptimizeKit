@@ -8,6 +8,7 @@
 #include "ram.h"
 #include "storage.h"
 #include "logging2.h"
+#include "diagnostics.h"
 #include "httplib.h"
 #include <shellapi.h>
 #include <filesystem>
@@ -203,6 +204,11 @@ int serve(unsigned short preferredPort) {
 
     svr.Get("/api/logs", [](const httplib::Request&, httplib::Response& res) {
         res.set_content(json({ {"log", narrow(log::readAll())} }).dump(), "application/json");
+    });
+
+    // ============ v2.1: diagnostics ============
+    svr.Get("/api/diagnostics", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(diag::runAll().dump(), "application/json");
     });
 
     // ============ v2: scanner ============

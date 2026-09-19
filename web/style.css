@@ -479,6 +479,27 @@ input[type=range].ok-range::-webkit-slider-thumb:active{cursor:grabbing;transfor
 .ao-steps .er{color:var(--err)}
 .ao-done .ao-spin{border-color:rgba(61,214,140,.3);border-top-color:var(--ok);border-right-color:rgba(61,214,140,.5);animation:none}
 
+/* ---------- esport mode ---------- */
+.esport-btn{border-color:rgba(61,214,140,.4);color:var(--ok)}
+.esport-btn:hover{border-color:var(--ok);background:rgba(61,214,140,.08)}
+.esport-btn.on{background:linear-gradient(90deg,rgba(61,214,140,.2),rgba(61,214,140,.1));border-color:var(--ok);color:var(--ok);box-shadow:0 0 20px rgba(61,214,140,.25);animation:esport-pulse 2s ease-in-out infinite}
+@keyframes esport-pulse{0%,100%{box-shadow:0 0 12px rgba(61,214,140,.2)}50%{box-shadow:0 0 26px rgba(61,214,140,.45)}}
+
+/* ---------- first-run wizard ---------- */
+#wizard{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;background:rgba(4,4,7,.72);backdrop-filter:blur(18px);animation:ao-in .3s var(--ease) both}
+.wiz-card{width:min(560px,94vw);max-height:90vh;overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(160deg,rgba(20,16,24,.98),rgba(9,9,14,.99));padding:32px 34px;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 60px rgba(var(--accent-rgb),.1);animation:dg-scale-in .35s var(--ease) both}
+.wiz-logo{font-size:26px;letter-spacing:-.04em;margin-bottom:14px}
+.wiz-logo b span{color:var(--accent)}
+.wiz-card h2{font-size:18px;letter-spacing:-.02em;margin-bottom:18px}
+.wiz-row{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
+.wiz-n{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.4);color:var(--accent);display:grid;place-items:center;font:800 13px Inter,sans-serif}
+.wiz-row b{font-size:13px}
+.wiz-row p{color:var(--muted);font-size:12px;margin-top:3px;line-height:1.5}
+.wiz-row .mono{color:var(--accent);font-size:11px}
+.wiz-themes{display:flex;gap:8px;margin-top:10px}
+#wizard .theme-opt{width:26px;height:26px}
+#wiz-done{margin-top:6px;width:100%;padding:12px}
+
 /* ---------- misc v2.1 ---------- */
 .tw-hidden{display:none!important}
 .view-anim{animation:viewin .38s var(--ease) both}

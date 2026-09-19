@@ -11,11 +11,11 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 
-**Monitoring live** · **Score gaming** · **30 tweaks réversibles** · **Bibliothèque de jeux avec vraies icônes** · **Centre réseau** · **Benchmark** · **Journal d'activité complet**
+**Monitoring live** · **Score gaming** · **49 tweaks réversibles** · **Bibliothèque de jeux avec vraies icônes** · **Centre réseau** · **Benchmark** · **Journal d'activité complet**
 
 `C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation`
 
-[⬇️ **Télécharger v2.0.0**](../../releases) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.1.0**](../../releases) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
 
 </div>
 
@@ -39,7 +39,7 @@
 
 | Release | Lien |
 |---|---|
-| **v2.0.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.0.0 |
+| **v2.1.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.1.0 |
 | Toutes les releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` est **entièrement statique** (MinGW-w64, ~6 Mo) : aucun runtime, aucune DLL, aucune installation. Il embarque un serveur HTTP et le dashboard liquid-glass (dossier `web/` livré à côté).
@@ -48,10 +48,9 @@
 
 | Vous voulez | Double-cliquez |
 |---|---|
-| **Le dashboard** (UI web dans une fenêtre dédiée) | `OptimizeKit-user.bat` |
-| **Tout** (tous les tweaks, prompt UAC) | `OptimizeKit-admin.bat` |
-| Le menu CLI numéroté | `OptimizeKit-cli.bat` |
-| Le moteur PowerShell pur (sans exe) | `PowerShell\OptimizeKit.ps1` |
+| **Le menu** (tout, exe optionnel) | `OptimizeKit.bat` |
+| **Le dashboard** (UI web dans une fenêtre dédiée) | `OptimizeKit.bat` option 5, ou `dist\OptimizeKit.exe` |
+| Moteur PowerShell direct (sans exe) | `powershell -File PowerShell\OptimizeKit.ps1` ou `OptimizeKit.bat -Status` |
 | Dashboard web headless | `OptimizeKit.exe --web 8765` |
 
 Le dashboard s'ouvre sur une **séquence de démarrage animée** (détection matériel → état Windows → catalogue de tweaks → mesure réseau), puis arrive sur le **Gaming Center** avec le score gaming de votre machine.
@@ -77,7 +76,7 @@ Noir profond + couleur d'accent au choix (6 thèmes dans la barre du haut, persi
 |---|---|
 | **Dashboard** | CPU / RAM / GPU / disque live avec sparklines 60 s, débit réseau, processus top (2,5 s) |
 | **Gaming Center** | Anneau de score gaming, cartes par catégorie, interrupteurs groupés, Gaming Mode |
-| **Tweaks** | Les 30 tweaks en cartes interrupteur : application / restauration instantanée, recherche, filtres, badges ADMIN/USER, barres d'impact, compteur live dans la sidebar |
+| **Tweaks** | Les 49 tweaks en cartes interrupteur : application / restauration instantanée, recherche, filtres, badges ADMIN/USER, barres d'impact, compteur live dans la sidebar |
 | **Jeux** | Détection Steam + Epic + Riot + GOG + registre, vraies icônes extraites des exécutables, boost par jeu (priorité persistante via IFEO) et Gaming Mode |
 | **Scan PC** | Scan complet : fichiers temporaires, état des tweaks, réseau, plan d'alimentation, démarrage, pilotes, jeux — chaque résultat a son bouton Apply |
 | **Optimize** | Profils un clic (SAFE / GAMING / PRIVACY / RESTORE ALL) avec snapshot → application → vérification |

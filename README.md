@@ -16,7 +16,7 @@
 
 `C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install`
 
-[⬇️ **Download v2.0.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.1.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
@@ -44,7 +44,7 @@
 
 | Release | Link |
 |---|---|
-| **v2.0.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.0.0 |
+| **v2.1.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.1.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` is fully **static** (MinGW-w64, ~6 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the liquid-glass web dashboard (`web/` folder ships next to it).
@@ -53,10 +53,9 @@
 
 | You want | Double-click |
 |---|---|
-| **The dashboard** (web UI in a standalone window) | `OptimizeKit-user.bat` |
-| **Everything** (all tweaks, UAC prompt) | `OptimizeKit-admin.bat` |
-| The numbered CLI menu | `OptimizeKit-cli.bat` |
-| The pure PowerShell engine (no exe) | `PowerShell\OptimizeKit.ps1` |
+| **The menu** (everything, exe optional) | `OptimizeKit.bat` |
+| **The dashboard** (web UI in a standalone window) | `OptimizeKit.bat` option 5, or `dist\OptimizeKit.exe` |
+| Direct PowerShell engine (no exe) | `powershell -File PowerShell\OptimizeKit.ps1` or `OptimizeKit.bat -Status` |
 | Headless web dashboard | `OptimizeKit.exe --web 8765` |
 
 The dashboard opens on a **splash boot sequence** (detecting hardware → reading Windows state → loading tweak catalog → measuring network), then lands on the **Gaming Center** with your machine's gaming score.
@@ -82,7 +81,7 @@ Deep black + your accent color (6 themes in the top bar, persisted), glassmorphi
 |---|---|
 | **Dashboard** | Live CPU / RAM / GPU / disk with 60-second sparklines, network throughput, process/thread counts, top processes (2.5 s refresh) |
 | **Gaming Center** | Gaming score ring, category score cards, grouped ON/OFF switches, Gaming Mode enter/exit |
-| **Tweaks** | All 30 tweaks as switch cards: instant apply / instant restore, search, category filters, ADMIN/USER badges, impact bars, live count in the sidebar |
+| **Tweaks** | All 49 tweaks as switch cards: instant apply / instant restore, search, category filters, ADMIN/USER badges, impact bars, live count in the sidebar |
 | **Games** | Steam + Epic + Riot + GOG + registry detection, real icons extracted from the executables, per-game boost (IFEO persistent priority) and Gaming Mode |
 | **Scan PC** | Full system scan: junk files, tweak state, network config, power plan, startup load, drivers, games — every finding has an Apply button |
 | **Optimize** | One-click profiles (SAFE / GAMING / PRIVACY / RESTORE ALL) with snapshot → apply → verify |

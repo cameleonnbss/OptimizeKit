@@ -22,6 +22,7 @@ add_executable(OptimizeKit WIN32
     src/core/ram.cpp
     src/core/storage.cpp
     src/core/logging2.cpp
+    src/core/diagnostics.cpp
     src/server/server.cpp
     src/ui/ui.cpp
     resources/OptimizeKit.rc
