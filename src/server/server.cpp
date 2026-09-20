@@ -398,23 +398,61 @@ int serve(unsigned short preferredPort) {
         try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
         string tool = body.value("tool", "");
         wstring c;
-        if      (tool == "taskmgr")    c = L"taskmgr.exe";
-        else if (tool == "devmgmt")    c = L"devmgmt.msc";
-        else if (tool == "eventvwr")   c = L"eventvwr.msc";
-        else if (tool == "services")   c = L"services.msc";
-        else if (tool == "resmon")     c = L"resmon.exe";
-        else if (tool == "perfmon")    c = L"perfmon.exe";
-        else if (tool == "msinfo32")   c = L"msinfo32.exe";
-        else if (tool == "diskmgmt")   c = L"diskmgmt.msc";
-        else if (tool == "regedit")    c = L"regedit.exe";
-        else if (tool == "wscui")      c = L"wscui.cpl";
-        else if (tool == "ncpa")       c = L"ncpa.cpl";
-        else if (tool == "powercfg")   c = L"powercfg.cpl";
-        else if (tool == "wt")         c = L"wt.exe";
-        else if (tool == "powershell") c = L"powershell.exe";
-        else if (tool == "cmd")        c = L"cmd.exe";
-        else if (tool == "cleanmgr")   c = L"cleanmgr.exe";
-        else if (tool == "dfrgui")     c = L"dfrgui.exe";
+        // --- admin / system
+        if      (tool == "taskmgr")     c = L"taskmgr.exe";
+        else if (tool == "devmgmt")     c = L"devmgmt.msc";
+        else if (tool == "eventvwr")    c = L"eventvwr.msc";
+        else if (tool == "services")    c = L"services.msc";
+        else if (tool == "resmon")      c = L"resmon.exe";
+        else if (tool == "perfmon")     c = L"perfmon.exe";
+        else if (tool == "msinfo32")    c = L"msinfo32.exe";
+        else if (tool == "diskmgmt")    c = L"diskmgmt.msc";
+        else if (tool == "regedit")     c = L"regedit.exe";
+        else if (tool == "wscui")       c = L"wscui.cpl";
+        else if (tool == "ncpa")        c = L"ncpa.cpl";
+        else if (tool == "powercfg")    c = L"powercfg.cpl";
+        else if (tool == "wt")          c = L"wt.exe";
+        else if (tool == "powershell")  c = L"powershell.exe";
+        else if (tool == "cmd")         c = L"cmd.exe";
+        else if (tool == "cleanmgr")    c = L"cleanmgr.exe";
+        else if (tool == "dfrgui")      c = L"dfrgui.exe";
+        // --- control panel applets
+        else if (tool == "appwiz")      c = L"appwiz.cpl";
+        else if (tool == "sysdm")       c = L"sysdm.cpl";
+        else if (tool == "inetcpl")     c = L"inetcpl.cpl";
+        else if (tool == "timedate")    c = L"timedate.cpl";
+        else if (tool == "mouse")       c = L"main.cpl";
+        else if (tool == "display")     c = L"desk.cpl";
+        else if (tool == "hdwwiz")      c = L"hdwwiz.cpl";
+        else if (tool == "joy")         c = L"joy.cpl";
+        else if (tool == "intl")        c = L"intl.cpl";
+        else if (tool == "mmsys")       c = L"mmsys.cpl";
+        else if (tool == "firewall")    c = L"firewall.cpl";
+        else if (tool == "sysdefaultinput") c = L"control.exe";
+        // --- admin consoles
+        else if (tool == "compmgmt")    c = L"compmgmt.msc";
+        else if (tool == "taskchd")     c = L"taskschd.msc";
+        else if (tool == "secpol")      c = L"secpol.msc";
+        else if (tool == "gpedit")      c = L"gpedit.msc";
+        else if (tool == "lusrmgr")     c = L"lusrmgr.msc";
+        else if (tool == "certmgr")     c = L"certmgr.msc";
+        else if (tool == "wfmsc")       c = L"wf.msc";
+        else if (tool == "tpm")         c = L"tpm.msc";
+        else if (tool == "wmimgmt")     c = L"wmimgmt.msc";
+        // --- system utilities
+        else if (tool == "winver")      c = L"winver.exe";
+        else if (tool == "dxdiag")      c = L"dxdiag.exe";
+        else if (tool == "msconfig")    c = L"msconfig.exe";
+        else if (tool == "rstrui")      c = L"rstrui.exe";
+        else if (tool == "sysprotection") c = L"SystemPropertiesProtection.exe";
+        else if (tool == "sysperf")     c = L"SystemPropertiesPerformance.exe";
+        else if (tool == "sysadvanced") c = L"SystemPropertiesAdvanced.exe";
+        else if (tool == "optionalfeatures") c = L"optionalfeatures.exe";
+        else if (tool == "mdsched")     c = L"mdsched.exe";
+        else if (tool == "verifier")    c = L"verifier.exe";
+        else if (tool == "recoverydrive") c = L"RecoveryDrive.exe";
+        // --- ms-settings URIs (Windows 10/11 Settings pages)
+        else if (tool.rfind("ms-settings:", 0) == 0) c = widen(tool);
         if (!c.empty()) {
             ShellExecuteW(nullptr, L"open", c.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
             log2::info(L"TOOLS", L"Opened " + widen(tool));

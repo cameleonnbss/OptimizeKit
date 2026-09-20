@@ -816,30 +816,135 @@ on("#btn-bench-run", async () => {
   refreshBenchHistory();
 });
 
-/* ===================== tools ===================== */
-const TOOLS = [
-  ["taskmgr", "Task Manager", "processes & resources"],
-  ["resmon", "Resource Monitor", "CPU/disk/net in depth"],
-  ["perfmon", "Performance Monitor", "counters & graphs"],
-  ["devmgmt", "Device Manager", "drivers & devices"],
-  ["eventvwr", "Event Viewer", "system logs"],
-  ["services", "Services", "manage services"],
-  ["msinfo32", "System Information", "full hardware report"],
-  ["diskmgmt", "Disk Management", "partitions"],
-  ["regedit", "Registry Editor", "advanced"],
-  ["cleanmgr", "Disk Cleanup", "Windows built-in"],
-  ["dfrgui", "Defragment & Optimize", "drive maintenance"],
-  ["wscui", "Windows Security", "antivirus & firewall"],
-  ["ncpa", "Network Connections", "adapters"],
-  ["powercfg", "Power Options", "plans"],
-  ["wt", "Windows Terminal", "terminal"],
-  ["powershell", "PowerShell", "automation"],
+/* ===================== tools — full launcher, categorized ===================== */
+const TOOL_CATS = [
+  ["system", "System & Admin"],
+  ["perf", "Performance"],
+  ["gaming", "Gaming"],
+  ["net", "Network"],
+  ["security", "Security"],
+  ["storage", "Storage"],
+  ["av", "Display & Sound"],
+  ["settings", "Windows Settings"],
+  ["dev", "Power user"],
 ];
-$("#tools-grid").innerHTML = TOOLS.map(([id, n, d]) => `<div class="tool-card" data-t="${id}"><b>${n}</b><span>${d}</span></div>`).join("");
-$$("#tools-grid .tool-card").forEach((c) => c.addEventListener("click", async () => {
-  await api("/api/tools", { tool: c.dataset.t });
-  toast("Opening " + c.querySelector("b").textContent + "…");
+const TOOLS = [
+  // system & admin
+  ["system","taskmgr","Task Manager","processes & resources"],
+  ["system","resmon","Resource Monitor","CPU/disk/net in depth"],
+  ["system","perfmon","Performance Monitor","counters & graphs"],
+  ["system","devmgmt","Device Manager","drivers & devices"],
+  ["system","eventvwr","Event Viewer","system & app logs"],
+  ["system","services","Services","manage services"],
+  ["system","msinfo32","System Information","full hardware report"],
+  ["system","compmgmt","Computer Management","everything in one console"],
+  ["system","taskchd","Task Scheduler","scheduled tasks"],
+  ["system","regedit","Registry Editor","advanced"],
+  ["system","msconfig","System Configuration","boot & startup"],
+  ["system","optionalfeatures","Windows Features","toggle components"],
+  ["system","lusrmgr","Users & Groups","local accounts"],
+  ["system","certmgr","Certificate Manager","certificates"],
+  ["system","sysdm","System Properties","computer name, env, remote"],
+  ["system","appwiz","Programs & Features","uninstall apps"],
+  ["system","hdwwiz","Hardware Wizard","legacy devices"],
+  ["system","winver","About Windows","version & build"],
+  // performance
+  ["perf","powercfg","Power Options","power plans"],
+  ["perf","sysperf","Visual Effects","animations & effects"],
+  ["perf","sysadvanced","Advanced System","virtual memory, DEP"],
+  ["perf","sysprotection","System Protection","restore points"],
+  ["perf","rstrui","System Restore","rollback to a point"],
+  ["perf","mdsched","Memory Diagnostic","RAM test on reboot"],
+  ["perf","verifier","Driver Verifier","catch bad drivers"],
+  ["perf","ms-settings:storagesense","Storage Sense","auto disk cleanup"],
+  ["perf","ms-settings:startupapps","Startup Apps","what boots with Windows"],
+  ["perf","sysdefaultinput","Troubleshooters","control /name fixers"],
+  // gaming
+  ["gaming","ms-settings:gaming-gamemode","Game Mode","Windows gaming mode"],
+  ["gaming","ms-settings:gaming-gamebar","Game Bar","overlay & shortcuts"],
+  ["gaming","ms-settings:gaming-captures","Captures","background recording"],
+  ["gaming","ms-settings:gaming-broadcasting","Broadcasting","live streaming setup"],
+  ["gaming","ms-settings:gaming-xboxnetworking","Xbox Networking","NAT & multiplayer"],
+  ["gaming","ms-settings:display-advanced","Graphics Settings","per-app GPU preference"],
+  ["gaming","joy","Game Controllers","gamepads & joysticks"],
+  ["gaming","ms-settings:quiethours","Focus Assist","notifications while gaming"],
+  // network
+  ["net","ncpa","Network Connections","adapters"],
+  ["net","firewall","Firewall (applet)","allowed apps"],
+  ["net","wfmsc","Firewall (advanced)","rules & profiles"],
+  ["net","inetcpl","Internet Options","proxy, TLS, LAN"],
+  ["net","ms-settings:network","Network Status","connection overview"],
+  ["net","ms-settings:network-proxy","Proxy","system proxy"],
+  ["net","ms-settings:datausage","Data Usage","per-app traffic"],
+  ["net","timedate","Time & Date","clock sync"],
+  // security
+  ["security","wscui","Windows Security","antivirus & firewall"],
+  ["security","ms-settings:windowsdefender","Defender","virus protection"],
+  ["security","secpol","Local Security Policy","security settings"],
+  ["security","tpm","TPM Management","trusted platform chip"],
+  ["security","ms-settings:windowsupdate","Windows Update","drivers & patches"],
+  ["security","ms-settings:privacy","Privacy","permissions & telemetry"],
+  ["security","ms-settings:signin","Sign-in Options","PIN, Windows Hello"],
+  ["security","recoverydrive","Recovery Drive","USB rescue disk"],
+  // storage
+  ["storage","diskmgmt","Disk Management","partitions & letters"],
+  ["storage","dfrgui","Defragment & Optimize","drive maintenance"],
+  ["storage","cleanmgr","Disk Cleanup","Windows built-in"],
+  ["storage","ms-settings:savelocations","Where Content Saves","default save drives"],
+  ["storage","ms-settings:privacy-location","Location","per-app location"],
+  // display & sound
+  ["av","display","Display","resolution & scale"],
+  ["av","ms-settings:nightlight","Night Light","blue light filter"],
+  ["av","mmsys","Sound","playback & recording"],
+  ["av","mouse","Mouse","pointer & buttons"],
+  ["av","ms-settings:mousetouchpad","Mouse Settings","pointer speed"],
+  ["av","ms-settings:themes","Themes","wallpapers & colors"],
+  ["av","ms-settings:colors","Colors","accent & dark mode"],
+  // windows settings
+  ["settings","ms-settings:","Windows Settings","home page"],
+  ["settings","ms-settings:about","About","device specs & Windows build"],
+  ["settings","ms-settings:bluetooth","Bluetooth & Devices","pairing"],
+  ["settings","ms-settings:defaultapps","Default Apps","file associations"],
+  ["settings","ms-settings:multitasking","Multitasking","snap & desktops"],
+  ["settings","ms-settings:appsfeatures","Installed Apps","manage per app"],
+  ["settings","ms-settings:fonts","Fonts","installed fonts"],
+  ["settings","ms-settings:windowsactivation","Activation","license status"],
+  // power user
+  ["dev","wt","Windows Terminal","modern terminal"],
+  ["dev","powershell","PowerShell","automation"],
+  ["dev","cmd","Command Prompt","classic shell"],
+  ["dev","gpedit","Group Policy","local policy editor"],
+  ["dev","wmimgmt","WMI Management","instrumentation"],
+  ["dev","ms-settings:developers","Developer Mode","side-loading & dev"],
+  ["dev","ms-settings:advanced-startup","Advanced Startup","boot options"],
+];
+let toolsCat = "all";
+function renderTools() {
+  const q = ($("#tools-search").value || "").toLowerCase();
+  const items = TOOLS.filter(([cat, id, n, d]) =>
+    (toolsCat === "all" || cat === toolsCat) &&
+    (!q || (n + " " + d + " " + id).toLowerCase().includes(q)));
+  const byCat = {};
+  for (const [cat, id, n, d] of items) (byCat[cat] = byCat[cat] || []).push([id, n, d]);
+  $("#tools-grid-wrap").innerHTML = TOOL_CATS.filter(([c]) => byCat[c]).map(([c, label]) => `
+    <div class="sec-head" style="margin-top:14px"><h2 style="font-size:14px">${label}</h2><span class="muted" style="font-size:11px">${byCat[c].length}</span></div>
+    <div class="quick-grid">${byCat[c].map(([id, n, d]) => `<div class="tool-card" data-t="${id}"><b>${n}</b><span>${d}</span></div>`).join("")}</div>`
+  ).join("") || `<div class="conv-empty muted" style="padding:20px">no tool matches “${esc(q)}”</div>`;
+  $$("#tools-grid-wrap .tool-card").forEach((card) => card.addEventListener("click", async () => {
+    await api("/api/tools", { tool: card.dataset.t });
+    toast("Opening " + card.querySelector("b").textContent + "…");
+  }));
+  const total = TOOLS.filter(([c]) => toolsCat === "all" || c === toolsCat).length;
+  $("#tools-count").textContent = total + " tools";
+}
+$("#tools-cats").innerHTML = [`<span class="chip on" data-cat="all">All · ${TOOLS.length}</span>`]
+  .concat(TOOL_CATS.map(([c, label]) => `<span class="chip" data-cat="${c}">${label}</span>`)).join("");
+$$("#tools-cats .chip").forEach((ch) => ch.addEventListener("click", () => {
+  $$("#tools-cats .chip").forEach((x) => x.classList.remove("on"));
+  ch.classList.add("on"); toolsCat = ch.dataset.cat; renderTools();
 }));
+$("#tools-search").addEventListener("input", renderTools);
+renderTools();
 
 /* ===================== logs ===================== */
 let logSevClass = { INFO: "", SUCCESS: "ok", WARNING: "warn", ERROR: "err", CRITICAL: "err", DEBUG: "", TRACE: "" };

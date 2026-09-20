@@ -61,7 +61,7 @@
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.2 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.3 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
@@ -311,8 +311,14 @@
 
     <!-- ============ TOOLS ============ -->
     <section class="view hidden" id="view-tools">
-      <div class="sec-head"><h1>Windows tools</h1></div>
-      <div class="quick-grid" id="tools-grid"></div>
+      <div class="sec-head">
+        <h1>Windows Tools</h1>
+        <input class="input" id="tools-search" placeholder="search tools…" style="width:170px"/>
+        <div class="spacer"></div>
+        <span class="muted" style="font-size:11px" id="tools-count"></span>
+      </div>
+      <div class="chips" id="tools-cats" style="margin:4px 0 14px"></div>
+      <div id="tools-grid-wrap"></div>
     </section>
 
     <!-- ============ LOGS ============ -->

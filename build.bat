@@ -52,6 +52,8 @@ if exist web\assets\fonts (
     if not exist dist\web\assets\fonts mkdir dist\web\assets\fonts
     copy /y web\assets\fonts\*.ttf dist\web\assets\fonts\ >nul
 )
+if not exist dist\web\fonts mkdir dist\web\fonts
+if exist web\fonts copy /y web\fonts\*.woff2 dist\web\fonts\ >nul
 
 echo.
 echo [OK] Built dist\OptimizeKit.exe + dist\web\

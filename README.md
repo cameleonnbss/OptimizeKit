@@ -12,11 +12,11 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**Live monitoring** · **Gaming score** · **49 reversible tweaks** · **Game library with real icons** · **Network center** · **AnTuTu-style benchmark** · **7 theme packs** · **EN/FR** · **Full activity log**
+**Live monitoring** · **Gaming score** · **49 reversible tweaks** · **Game library with real icons** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **7 theme packs** · **EN/FR** · **Full activity log**
 
 `C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install`
 
-[⬇️ **Download v2.2.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.3.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
@@ -40,15 +40,19 @@
 |---|---|
 | ![Benchmark](docs/screenshots/bench.png) | ![Theme Ocean](docs/screenshots/theme-ocean.png) |
 
-| Storage | Splash screen |
+| Tools — 79-launcher catalog | Storage |
 |---|---|
-| ![Storage](docs/screenshots/storage.png) | ![Splash](docs/screenshots/dashboard.png) |
+| ![Tools](docs/screenshots/tools.png) | ![Storage](docs/screenshots/storage.png) |
+
+| Splash screen | |
+|---|---|
+| ![Splash](docs/screenshots/dashboard.png) | |
 
 ## 📦 Download
 
 | Release | Link |
 |---|---|
-| **v2.2.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.2.0 |
+| **v2.3.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.3.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` is fully **static** (MinGW-w64, ~6 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the liquid-glass web dashboard (`web/` folder ships next to it).
@@ -94,6 +98,7 @@ Deep black + your accent color (6 themes in the top bar, persisted), glassmorphi
 | **Storage** | Drives with NVMe/SATA bus detection, usage bars, largest files |
 | **Startup** | HKCU/HKLM Run keys + startup folders, one-click disable (reversible via stash) |
 | **Benchmark** | AnTuTu-style **score out of ~4000** (1000 = mainstream reference): CPU multi/single-core, memory bandwidth, NVMe/HDD read, latency — weighted sub-scores with bars, per-run deltas, 20-run history. The first-run wizard offers to benchmark so you can compare before/after optimizing |
+| **Tools catalog** | **79 Windows tools** in 9 searchable categories (System, Performance, Gaming, Network, Security, Storage, Display, Settings, Power user) — every console, control panel applet and ms-settings page, one click |
 | **Logs** | Color-coded activity log with live filter |
 | **Settings** | Accent color, particles, kill list for Gaming Mode, DNS management — persisted in `config.json` |
 
