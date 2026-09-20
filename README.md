@@ -12,11 +12,11 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**Live monitoring** · **Gaming score** · **30 reversible tweaks** · **Game library with real icons** · **Network center** · **Benchmark** · **Full activity log**
+**Live monitoring** · **Gaming score** · **49 reversible tweaks** · **Game library with real icons** · **Network center** · **AnTuTu-style benchmark** · **7 theme packs** · **EN/FR** · **Full activity log**
 
 `C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install`
 
-[⬇️ **Download v2.1.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.2.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
@@ -36,6 +36,10 @@
 |---|---|
 | ![Network](docs/screenshots/network.png) | ![Scan](docs/screenshots/scan.png) |
 
+| Benchmark — AnTuTu-style score | Theme packs (Ocean) |
+|---|---|
+| ![Benchmark](docs/screenshots/bench.png) | ![Theme Ocean](docs/screenshots/theme-ocean.png) |
+
 | Storage | Splash screen |
 |---|---|
 | ![Storage](docs/screenshots/storage.png) | ![Splash](docs/screenshots/dashboard.png) |
@@ -44,7 +48,7 @@
 
 | Release | Link |
 |---|---|
-| **v2.1.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.1.0 |
+| **v2.2.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.2.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` is fully **static** (MinGW-w64, ~6 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the liquid-glass web dashboard (`web/` folder ships next to it).
@@ -89,7 +93,7 @@ Deep black + your accent color (6 themes in the top bar, persisted), glassmorphi
 | **RAM** | Usage graph, committed/cached stats, top consumers, honest standby-list trim (with an explanation of what it really does) |
 | **Storage** | Drives with NVMe/SATA bus detection, usage bars, largest files |
 | **Startup** | HKCU/HKLM Run keys + startup folders, one-click disable (reversible via stash) |
-| **Benchmark** | Real measured numbers: CPU MOPS, RAM GB/s, disk MB/s, network latency — with history |
+| **Benchmark** | AnTuTu-style **score out of ~4000** (1000 = mainstream reference): CPU multi/single-core, memory bandwidth, NVMe/HDD read, latency — weighted sub-scores with bars, per-run deltas, 20-run history. The first-run wizard offers to benchmark so you can compare before/after optimizing |
 | **Logs** | Color-coded activity log with live filter |
 | **Settings** | Accent color, particles, kill list for Gaming Mode, DNS management — persisted in `config.json` |
 

@@ -2,6 +2,7 @@
    OptimizeKit — DarkGPT theme (design system reused from WormGPT-desktop)
    Deep black + exclusive #ff3d57 accent, glassmorphism, red glow,
    background grid, soft animations, liquid glass sheen.
+   THEME PACKS override every surface via body[data-theme=…]
    ============================================================ */
 @font-face { font-family:"Inter"; src:url("/assets/fonts/Inter-Regular.ttf"); font-weight:400; }
 @font-face { font-family:"Inter"; src:url("/assets/fonts/Inter-Bold.ttf"); font-weight:700; }
@@ -507,3 +508,111 @@ input[type=range].ok-range::-webkit-slider-thumb:active{cursor:grabbing;transfor
 .tw2-undo{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(8px);z-index:99;display:flex;gap:12px;align-items:center;padding:10px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(11,13,19,.96);backdrop-filter:blur(16px);box-shadow:0 16px 44px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;font-size:12px}
 .tw2-undo.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
 
+
+/* ===================== v2.2 THEME PACKS — full-surface redefinition =====================
+   Each pack overrides: base gradients, accent, borders, glow.
+   Set on <body data-theme="..."> by app.js (persisted ui_theme in config). */
+body[data-theme="magma"]{ /* default crimson — :root values */ }
+body[data-theme="ocean"]{
+  --accent:#38bdf8; --accent-hover:#7dd3fc; --accent-rgb:56,189,248;
+  --border:rgba(56,189,248,.16); --border-bright:rgba(14,165,233,.35);
+  --glow:0 0 60px rgba(14,165,233,.14);
+  background:
+    linear-gradient(180deg, rgba(12,74,110,.30) 0%, rgba(8,25,43,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(14,116,144,.45) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(12,74,110,.26) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(30,58,138,.22) 0%, transparent 60%),
+    linear-gradient(180deg,#080d14 0%,#060a10 64%,#04060a 100%) !important;
+}
+body[data-theme="matrix"]{
+  --accent:#22c55e; --accent-hover:#4ade80; --accent-rgb:34,197,94;
+  --border:rgba(34,197,94,.16); --border-bright:rgba(22,163,74,.35);
+  --glow:0 0 60px rgba(22,163,74,.13);
+  background:
+    linear-gradient(180deg, rgba(20,83,45,.28) 0%, rgba(6,28,16,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(22,101,52,.42) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(20,83,45,.24) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(22,163,74,.18) 0%, transparent 60%),
+    linear-gradient(180deg,#060c08 0%,#050806 64%,#030503 100%) !important;
+}
+body[data-theme="violet"]{
+  --accent:#a78bfa; --accent-hover:#c4b5fd; --accent-rgb:167,139,250;
+  --border:rgba(167,139,250,.17); --border-bright:rgba(139,92,246,.38);
+  --glow:0 0 60px rgba(139,92,246,.16);
+  background:
+    linear-gradient(180deg, rgba(76,29,149,.32) 0%, rgba(30,17,58,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(109,40,217,.42) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(76,29,149,.26) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(124,58,237,.22) 0%, transparent 60%),
+    linear-gradient(180deg,#0c0916 0%,#080610 64%,#050409 100%) !important;
+}
+body[data-theme="gold"]{
+  --accent:#f59e0b; --accent-hover:#fbbf24; --accent-rgb:245,158,11;
+  --border:rgba(245,158,11,.16); --border-bright:rgba(217,119,6,.36);
+  --glow:0 0 60px rgba(217,119,6,.14);
+  background:
+    linear-gradient(180deg, rgba(120,53,15,.30) 0%, rgba(43,26,8,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(180,83,9,.40) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(120,53,15,.24) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(217,119,6,.20) 0%, transparent 60%),
+    linear-gradient(180deg,#0e0a05 0%,#0a0704 64%,#060402 100%) !important;
+}
+body[data-theme="steel"]{
+  --accent:#94a3b8; --accent-hover:#cbd5e1; --accent-rgb:148,163,184;
+  --border:rgba(148,163,184,.15); --border-bright:rgba(100,116,139,.35);
+  --glow:0 0 60px rgba(100,116,139,.12);
+  background:
+    linear-gradient(180deg, rgba(51,65,85,.30) 0%, rgba(15,23,42,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(71,85,105,.40) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(30,41,59,.26) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(51,65,85,.22) 0%, transparent 60%),
+    linear-gradient(180deg,#090b0e 0%,#06080b 64%,#040507 100%) !important;
+}
+body[data-theme="rose"]{
+  --accent:#f472b6; --accent-hover:#f9a8d4; --accent-rgb:244,114,182;
+  --border:rgba(244,114,182,.16); --border-bright:rgba(219,39,119,.35);
+  --glow:0 0 60px rgba(219,39,119,.14);
+  background:
+    linear-gradient(180deg, rgba(131,24,67,.30) 0%, rgba(50,12,31,.10) 44%, transparent 100%),
+    radial-gradient(ellipse 95% 62% at 50% 12%, rgba(190,24,93,.40) 0%, transparent 64%),
+    radial-gradient(ellipse 72% 92% at 8% 50%, rgba(131,24,67,.24) 0%, transparent 60%),
+    radial-gradient(ellipse 72% 92% at 92% 48%, rgba(219,39,119,.20) 0%, transparent 60%),
+    linear-gradient(180deg,#0e070b 0%,#0a0508 64%,#060306 100%) !important;
+}
+
+/* ===================== v2.2 benchmark hero (AnTuTu-style) ===================== */
+.bench-hero{display:flex;gap:28px;align-items:center;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card);backdrop-filter:blur(30px) saturate(1.4);padding:24px 28px;margin-bottom:18px;box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,.08);animation:dg-scale-in 420ms var(--ease) both}
+.bh-ring{--p:0;width:170px;height:170px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;position:relative;transition:background .8s var(--ease)}
+.bh-ring::after{content:"";position:absolute;inset:14px;border-radius:50%;background:rgba(6,8,12,.88);box-shadow:inset 0 2px 14px rgba(0,0,0,.6)}
+.bh-score{position:relative;z-index:1;text-align:center;display:grid;gap:2px}
+.bh-score b{font-size:44px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.bh-score span{font-size:10px;letter-spacing:3px;color:var(--muted)}
+.bh-info{flex:1;min-width:0;display:grid;gap:10px}
+.bh-info h2{font-size:20px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.bh-info p{color:var(--muted);font-size:13px}
+.bh-subs{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px;margin-top:4px}
+.bh-sub{display:grid;grid-template-columns:150px 1fr auto auto;gap:10px;align-items:center;font-size:12px}
+.bh-sub .bh-l{color:var(--muted)}
+.bh-sub .bh-l em{font-style:normal;font-size:10px;opacity:.6;margin-left:4px}
+.bh-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.bh-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(var(--accent-rgb),.5),var(--accent));transition:width .9s var(--ease)}
+.bh-sub b{font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+.bh-delta{font-size:10px;font-weight:700;min-width:44px;text-align:right}
+.bh-delta.up{color:var(--ok)}
+.bh-delta.down{color:var(--err)}
+.bh-raw{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:11px;color:var(--muted);margin-top:2px}
+.bh-tot{color:var(--accent);font-size:15px}
+.bench-row{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);margin-bottom:8px;font-size:12px;color:var(--muted)}
+.bench-row .mono{opacity:.7}
+
+/* ===================== v2.2 theme pack grid (settings) ===================== */
+.pack-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+.pack-opt{display:grid;gap:6px;justify-items:center;padding:10px 4px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02);cursor:pointer;transition:border-color .2s,transform .2s;font-size:10px;color:var(--muted)}
+.pack-opt i{width:22px;height:22px;border-radius:50%;background:var(--c);box-shadow:0 0 14px var(--c)}
+.pack-opt:hover{transform:translateY(-2px);border-color:var(--border-bright)}
+.pack-opt.on{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 1px var(--accent),var(--glow)}
+
+/* wizard v2.2: pack swatches inside the onboarding card */
+.wiz-themes{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px}
+#wizard .pack-opt{padding:8px 2px;font-size:9px}
+#wizard .pack-opt i{width:18px;height:18px}

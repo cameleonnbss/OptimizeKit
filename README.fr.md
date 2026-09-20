@@ -11,11 +11,11 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 
-**Monitoring live** · **Score gaming** · **49 tweaks réversibles** · **Bibliothèque de jeux avec vraies icônes** · **Centre réseau** · **Benchmark** · **Journal d'activité complet**
+**Monitoring live** · **Score gaming** · **49 tweaks réversibles** · **Bibliothèque de jeux avec vraies icônes** · **Centre réseau** · **Benchmark style AnTuTu** · **7 packs de thèmes** · **EN/FR** · **Journal d'activité complet**
 
 `C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation`
 
-[⬇️ **Télécharger v2.1.0**](../../releases) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.2.0**](../../releases) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
 
 </div>
 
@@ -35,11 +35,15 @@
 |---|---|
 | ![Network](docs/screenshots/network.png) | ![Scan](docs/screenshots/scan.png) |
 
+| Benchmark — score style AnTuTu | Packs de thèmes (Ocean) |
+|---|---|
+| ![Benchmark](docs/screenshots/bench.png) | ![Theme Ocean](docs/screenshots/theme-ocean.png) |
+
 ## 📦 Téléchargement
 
 | Release | Lien |
 |---|---|
-| **v2.1.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.1.0 |
+| **v2.2.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.2.0 |
 | Toutes les releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` est **entièrement statique** (MinGW-w64, ~6 Mo) : aucun runtime, aucune DLL, aucune installation. Il embarque un serveur HTTP et le dashboard liquid-glass (dossier `web/` livré à côté).
@@ -84,7 +88,7 @@ Noir profond + couleur d'accent au choix (6 thèmes dans la barre du haut, persi
 | **RAM** | Graphe d'utilisation, stats committed/cached, top consommateurs, purge honnête de la standby list (avec l'explication de ce qu'elle fait vraiment) |
 | **Stockage** | Disques avec détection du bus NVMe/SATA, barres d'utilisation, fichiers les plus gros |
 | **Démarrage** | Clés Run HKCU/HKLM + dossiers Startup, désactivation en un clic (réversible via stash) |
-| **Benchmark** | Chiffres réellement mesurés : CPU MOPS, RAM Go/s, disque Mo/s, latence réseau — avec historique |
+| **Benchmark** | Score style AnTuTu **sur ~4000** (1000 = machine de référence grand public) : CPU multi/single-cœur, bande passante mémoire, lecture NVMe/HDD, latence — sous-scores pondérés avec barres, deltas entre runs, historique de 20 runs. Le wizard de premier lancement propose un benchmark pour comparer avant/après optimisation |
 | **Logs** | Journal d'activité coloré avec filtre live |
 | **Paramètres** | Couleur d'accent, particules, kill list du Gaming Mode, gestion DNS — persistés dans `config.json` |
 

@@ -1,4 +1,4 @@
-/* OptimizeKit v2.1 — WormGPT design system + Gaming Control Center */
+/* OptimizeKit v2.2 — WormGPT design system + Gaming Control Center */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -131,12 +131,35 @@ async function setTheme(hex, persist) {
   applyAccent(hex);
   if (persist) { await api("/api/settings", { ui_accent: hex }).catch(() => {}); toast("Theme updated"); }
 }
+
+/* ===================== theme packs (full-surface) ===================== */
+const THEME_PACKS = [
+  ["magma",  "#ff3d57", "Magma — deep black + crimson"],
+  ["ocean",  "#38bdf8", "Ocean — abyssal blue"],
+  ["matrix", "#22c55e", "Matrix — terminal green"],
+  ["violet", "#a78bfa", "Violet — neon purple"],
+  ["gold",   "#f59e0b", "Gold — amber elite"],
+  ["steel",  "#94a3b8", "Steel — cold silver"],
+  ["rose",   "#f472b6", "Rose — soft pink"],
+];
+function applyThemePack(name) {
+  const pack = THEME_PACKS.find(([id]) => id === name) || THEME_PACKS[0];
+  document.body.dataset.theme = pack[0];
+  applyAccent(pack[1]);
+  localStorage.setItem("ok_theme", pack[0]);
+  $$(".pack-opt").forEach((o) => o.classList.toggle("on", o.dataset.pack === pack[0]));
+}
+async function setThemePack(name, persist) {
+  applyThemePack(name);
+  if (persist) { await api("/api/settings", { ui_theme: name, ui_accent: THEME_PACKS.find(([id]) => id === name)[1] }).catch(() => {}); toast("Theme pack: " + name); }
+}
 on("#btn-theme", () => $("#theme-flyout").classList.toggle("hidden"));
 document.addEventListener("click", (e) => {
   const fly = $("#theme-flyout");
   if (fly && !fly.classList.contains("hidden") && !e.target.closest("#theme-flyout") && !e.target.closest("#btn-theme")) fly.classList.add("hidden");
 });
-$$("#theme-flyout .theme-opt").forEach((o) => o.addEventListener("click", () => setTheme(o.dataset.accent, true)));
+$$("#theme-flyout .theme-opt").forEach((o) => o.addEventListener("click", () => { applyAccent(o.dataset.accent); api("/api/settings", { ui_accent: o.dataset.accent }).catch(() => {}); }));
+$$(".pack-opt").forEach((o) => o.addEventListener("click", () => setThemePack(o.dataset.pack, true)));
 
 /* ===================== navigation ===================== */
 let currentView = "dashboard";
@@ -246,8 +269,7 @@ async function loadState() {
     $("#st-plan").textContent = s.plan;
     $("#st-gm").textContent = s.gameMode ? "Enabled" : "Disabled";
     $("#st-hags").textContent = s.hags ? "Enabled" : "Disabled";
-    $("#user-name").textContent = s.user;
-    $("#avatar").textContent = (s.user || "U")[0].toUpperCase();
+    if (s.ui_theme) applyThemePack(s.ui_theme);
     const adm = s.admin;
     for (const id of ["admin-pill", "admin-pill-side"])
       $("#" + id).textContent = adm ? "Administrator" : "Standard user";
@@ -736,27 +758,61 @@ async function refreshStartup() {
 on("#btn-startup-refresh", refreshStartup);
 
 /* ===================== benchmark ===================== */
+function fmtNum(v, d = 0) { return (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toFixed(d); }
+function renderBench(b, prev) {
+  const hero = $("#bench-hero"); if (!hero) return;
+  hero.classList.remove("hidden");
+  const tot = b.total ?? null;
+  $("#bh-total").textContent = tot === null ? "—" : tot;
+  $("#bh-class").textContent = b.class ? b.class.toUpperCase() : "—";
+  $("#bh-verdict").textContent = b.verdict || "";
+  const ring = $("#bh-ring");
+  ring.style.setProperty("--p", Math.min(100, (tot || 0) / 40));   // ring out of 4000
+  ring.style.background = `conic-gradient(var(--accent) calc(var(--p)*1%),rgba(255,255,255,.06) 0)`;
+  const SUBS = [["cpuMt","CPU multi-core",40],["cpuSt","CPU single-core",15],["ram","Memory",20],["disk","Storage",25]];
+  $("#bh-subs").innerHTML = (b.subs ? SUBS.map(([k, label, w]) => {
+    const v = b.subs[k];
+    if (v === undefined) return "";
+    const pw = Math.min(100, v / 30);
+    const d = prev && prev.subs && prev.subs[k] !== undefined ? prev.subs[k] - v : null;
+    const dtxt = d === null ? "" : `<span class="bh-delta ${d >= 0 ? "up" : "down"}">${d >= 0 ? "▲" : "▼"} ${Math.abs(d)}</span>`;
+    return `<div class="bh-sub"><span class="bh-l">${label} <em>w ${Math.round(w * 100) / 10}%</em></span>
+      <div class="bh-bar"><i style="width:${pw}%"></i></div><b>${v}</b>${dtxt}</div>`;
+  }).join("") : `<div class="muted" style="font-size:12px">Sub-scores unavailable for this run.</div>`);
+  $("#bh-raw").innerHTML =
+    `<span>CPU ${fmtNum(b.cpu?.score)} ${b.cpu?.unit || "MOPS"}</span><span>ST ${fmtNum(b.cpuSt?.score)} MOPS</span>` +
+    `<span>RAM ${fmtNum(b.ram?.score, 1)} GB/s</span><span>DISK ${fmtNum(b.disk?.score)} MB/s</span>` +
+    `<span>PING ${b.latencyMs > 0 ? fmtNum(b.latencyMs, 1) + " ms" : "—"}</span>`;
+  $("#bench-cards").innerHTML = "";
+}
 async function refreshBenchHistory() {
   try {
     const h = await api("/api/bench/history");
-    $("#bench-history").innerHTML = h.length ? h.slice().reverse().map((b) => `
-      <div class="bench-row"><span class="mono">${new Date(b.timestamp * 1000).toLocaleString()}</span>
-        <span>CPU ${b.cpu.score.toFixed(0)} ${b.cpu.unit}</span>
-        <span>RAM ${b.ram.score.toFixed(1)} ${b.ram.unit}</span>
-        <span>DISK ${b.disk.score.toFixed(0)} ${b.disk.unit}</span>
-        <span>PING ${b.latencyMs > 0 ? b.latencyMs.toFixed(1) + " ms" : "—"}</span></div>`).join("")
-      : `<div class="conv-empty muted" style="padding:14px">No runs yet — hit "Run benchmark".</div>`;
+    if (h.length) renderBench(h[h.length - 1], h.length > 1 ? h[h.length - 2] : null);
+    $("#bench-history").innerHTML = h.length ? h.slice().reverse().map((b, i, arr) => {
+      const prev = arr[i + 1];
+      const d = b.total && prev && prev.total ? b.total - prev.total : null;
+      const dtxt = d === null ? "" : `<span class="bh-delta ${d >= 0 ? "up" : "down"}">${d >= 0 ? "+" : ""}${d}</span>`;
+      return `<div class="bench-row"><span class="mono">${new Date(b.timestamp * 1000).toLocaleString()}</span>
+        <span><b class="bh-tot">${b.total ?? "—"}</b> total ${dtxt}</span>
+        <span>CPU ${fmtNum(b.cpu?.score)} ${b.cpu?.unit || ""}</span>
+        <span>RAM ${fmtNum(b.ram?.score, 1)} ${b.ram?.unit || ""}</span>
+        <span>DISK ${fmtNum(b.disk?.score)} ${b.disk?.unit || ""}</span>
+        <span>PING ${b.latencyMs > 0 ? fmtNum(b.latencyMs, 1) + " ms" : "—"}</span></div>`;
+    }).join("")
+      : `<div class="conv-empty muted" style="padding:14px">No runs yet — hit "Run full benchmark".</div>`;
   } catch (e) { }
 }
 on("#btn-bench-run", async () => {
-  toast("Benchmarking CPU / RAM / disk / latency — ~4 s, freeze expected");
-  const b = await api("/api/bench");
-  $("#bench-cards").innerHTML = `
-    <div class="bench-card"><b>${b.cpu.score.toFixed(0)}</b><span>CPU MOPS</span></div>
-    <div class="bench-card"><b>${b.ram.score.toFixed(1)}</b><span>RAM GB/s</span></div>
-    <div class="bench-card"><b>${b.disk.score.toFixed(0)}</b><span>DISK MB/s</span></div>
-    <div class="bench-card"><b>${b.latencyMs > 0 ? b.latencyMs.toFixed(1) : "—"}</b><span>PING ms</span></div>`;
-  toast("✔ Benchmark done — saved to history");
+  const btn = $("#btn-bench-run"); btn.disabled = true; btn.textContent = "▲ Measuring…";
+  toast("Benchmark running — CPU / RAM / disk under real load, ~4 s");
+  try {
+    const h = await api("/api/bench/history");
+    const b = await api("/api/bench");
+    renderBench(b, h.length ? h[h.length - 1] : null);
+    toast("✔ Benchmark done — saved to history");
+  } catch (e) { toast("✖ benchmark failed: " + e.message); }
+  btn.disabled = false; btn.textContent = "▲ Run full benchmark";
   refreshBenchHistory();
 });
 
@@ -812,6 +868,7 @@ async function loadSettings() {
   try {
     const s = await api("/api/settings");
     $("#set-accent").value = s.ui_accent || "#ff3d57";
+    $("#set-theme").value = s.ui_theme || "magma";
     $("#set-lang").value = s.ui_lang || "en";
     applyLang(s.ui_lang || "en");
     $("#set-anim").checked = s.ui_particles !== false;
@@ -826,6 +883,7 @@ async function loadSettings() {
 on("#btn-set-save", async () => {
   const body = {
     ui_accent: $("#set-accent").value,
+    ui_theme: $("#set-theme").value,
     ui_lang: $("#set-lang").value,
     ui_particles: $("#set-anim").checked,
     ui_glitch: $("#set-glitch").checked,
@@ -835,6 +893,7 @@ on("#btn-set-save", async () => {
     gaming_kill_list: $("#set-killlist").value.split(",").map((x) => x.trim()).filter(Boolean),
   };
   await api("/api/settings", body);
+  applyThemePack(body.ui_theme);
   applyAccent(body.ui_accent);
   applyLang(body.ui_lang);
   $("#set-saved").textContent = "saved ✓";
@@ -912,22 +971,29 @@ on("#btn-esport", toggleEsport);
 
 /* ===================== first-run wizard ===================== */
 function maybeWizard(state) {
+  const skip = new URLSearchParams(location.search).get("wizard") === "0";
   const seen = localStorage.getItem("ok_wizard_done");
-  if (seen || !state) return;
+  if (seen || skip || !state) return;
   const el = document.createElement("div");
   el.id = "wizard";
   el.innerHTML = `
     <div class="wiz-card">
       <div class="wiz-logo"><b>Optimize<span>Kit</span></b></div>
-      <h2>Welcome — three things before you start</h2>
-      <div class="wiz-row"><span class="wiz-n">1</span><div><b>Pick your accent</b><p>The whole UI recolors instantly — sparklines included.</p>
-        <div class="wiz-themes">${["#ff3d57","#a78bfa","#38bdf8","#34d399","#f59e0b","#f472b6"].map(c=>`<div class="theme-opt" data-accent="${c}" style="--c:${c}"></div>`).join("")}</div></div></div>
-      <div class="wiz-row"><span class="wiz-n">2</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit.bat (option 1)</span> for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
-      <div class="wiz-row"><span class="wiz-n">3</span><div><b>Everything is reversible</b><p>Every switch off restores the exact Windows default. Registry backups live in <span class="mono">%LOCALAPPDATA%\\OptimizeKit</span>.</p></div></div>
+      <h2>Welcome — four things before you start</h2>
+      <div class="wiz-row"><span class="wiz-n">1</span><div><b>Pick your theme</b><p>Every pack redefines the whole surface — background, borders, glow, charts.</p>
+        <div class="wiz-themes">${[["magma","#ff3d57"],["ocean","#38bdf8"],["matrix","#22c55e"],["violet","#a78bfa"],["gold","#f59e0b"],["steel","#94a3b8"],["rose","#f472b6"]].map(([id,c])=>`<div class="pack-opt" data-pack="${id}" title="${id}"><i style="--c:${c}"></i><span>${id}</span></div>`).join("")}</div></div></div>
+      <div class="wiz-row"><span class="wiz-n">2</span><div><b>Measure your machine first</b><p>The benchmark scores your CPU, RAM and disk against a reference machine (1000 = mainstream modern build). Run it now — it takes ~4 seconds, saved to history so you can compare after optimizing.</p>
+        <button class="btn sm primary" id="wiz-bench">▲ Run benchmark now</button></div></div>
+      <div class="wiz-row"><span class="wiz-n">3</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit.bat</span> (option 1) for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
+      <div class="wiz-row"><span class="wiz-n">4</span><div><b>Everything is reversible</b><p>Every switch off restores the exact Windows default. Registry backups live in <span class="mono">%LOCALAPPDATA%\\OptimizeKit</span>.</p></div></div>
       <button class="btn primary" id="wiz-done">Let's go</button>
     </div>`;
   document.body.appendChild(el);
-  el.querySelectorAll(".theme-opt").forEach((o) => o.addEventListener("click", () => { applyAccent(o.dataset.accent); api("/api/settings", { ui_accent: o.dataset.accent }).catch(()=>{}); }));
+  el.querySelectorAll(".pack-opt").forEach((o) => o.addEventListener("click", () => setThemePack(o.dataset.pack, true)));
+  $("#wiz-bench").addEventListener("click", async () => {
+    const b = $("#wiz-bench"); b.disabled = true; b.textContent = "▲ Measuring…";
+    try { await api("/api/bench"); b.textContent = "✔ Done — see Benchmark tab"; toast("✔ Benchmark saved"); } catch (e) { b.textContent = "✖ failed"; }
+  });
   $("#wiz-done").addEventListener("click", () => { el.remove(); localStorage.setItem("ok_wizard_done", "1"); });
 }
 
@@ -956,10 +1022,14 @@ function maybeWizard(state) {
   setInterval(loadState, 10000);
   setInterval(updateGamingStatus, 8000);
   updateGamingStatus();
-  // restore last accent without toasting
-  try { const s = await api("/api/settings"); if (s.ui_accent) applyAccent(s.ui_accent); } catch (e) { }
-  const savedAccent = localStorage.getItem("ok_accent");
-  if (savedAccent) applyAccent(savedAccent);
+  // restore last theme pack + accent without toasting; ?theme= overrides (deep link / screenshots)
+  const wantTheme = new URLSearchParams(location.search).get("theme");
+  if (wantTheme && THEME_PACKS.some(([id]) => id === wantTheme)) { applyThemePack(wantTheme); }
+  else {
+    try { const s = await api("/api/settings"); if (s.ui_theme) applyThemePack(s.ui_theme); } catch (e) { }
+    const savedTheme = localStorage.getItem("ok_theme");
+    if (savedTheme) applyThemePack(savedTheme);
+  }
   // deep link: index.html?view=gaming
   const want = new URLSearchParams(location.search).get("view");
   if (want && $(".nav-item[data-view=" + want + "]")) show(want);

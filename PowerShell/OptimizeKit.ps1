@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  OptimizeKit v2.1 - Windows Gaming & Performance Control Center (PowerShell engine)
+  OptimizeKit v2.2 - Windows Gaming & Performance Control Center (PowerShell engine)
 
 .DESCRIPTION
   Full CLI parity with the C++ dashboard: ~48 tweaks, live status, profiles,
@@ -17,7 +17,7 @@
     -Profile gaming|privacy|debloat|full
 
 .NOTES
-  Version 2.1 - cameleonnbss - MIT license
+  Version 2.2 - cameleonnbss - MIT license
 #>
 [CmdletBinding()]
 param(
@@ -436,7 +436,7 @@ function Show-Banner {
     Write-Host " | $$$$$$$/|  $$$$$$/   | $$   | $$ \  $$ | $$$$$$$$| $$$$$$$$" -ForegroundColor Cyan
     Write-Host " |_______/  \______/    |__/   |__/  \__/ |________/|________/" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Windows Gaming & Performance Control Center - engine v2.1" -ForegroundColor DarkGray
+    Write-Host "  Windows Gaming & Performance Control Center - engine v2.2" -ForegroundColor DarkGray
     Write-Host ("  log: {0}" -f $Script:Log) -ForegroundColor DarkGray
     Write-Host ("  mode: {0}   tweaks: {1}" -f $(if (Test-Admin) { 'ADMINISTRATOR' } else { 'user' }), $Script:Tweaks.Count) -ForegroundColor $(if (Test-Admin) { 'Green' } else { 'Yellow' })
     Write-Host ""
@@ -573,7 +573,7 @@ function Invoke-RestoreAll {
 }
 
 # ----------------------------------------------------------------- entry
-Write-Kit ("OptimizeKit engine v2.1 started (admin={0})" -f (Test-Admin)) 'info'
+Write-Kit ("OptimizeKit engine v2.2 started (admin={0})" -f (Test-Admin)) 'info'
 
 if ($RestoreAll) { if (Test-Admin) { Backup-Registry; Invoke-RestoreAll } else { Write-Kit 'admin required for -RestoreAll' 'err' }; exit 0 }
 if ($Status)     { Show-StatusAll; exit 0 }

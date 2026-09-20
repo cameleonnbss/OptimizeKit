@@ -61,7 +61,7 @@
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.1 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.2 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
@@ -79,7 +79,6 @@
           <div class="theme-opt" data-accent="#f472b6" style="--c:#f472b6"></div>
         </div>
         <span class="admin-chip" id="admin-pill">…</span>
-        <div class="user-chip"><span class="user-chip__avatar" id="avatar">U</span><span id="user-name">user</span></div>
       </div>
     </header>
 
@@ -293,10 +292,20 @@
     <!-- ============ BENCHMARK ============ -->
     <section class="view hidden" id="view-bench">
       <div class="sec-head"><h1>Benchmark</h1><div class="spacer"></div>
-        <button class="btn sm primary" id="btn-bench-run">▲ Run benchmark</button></div>
-      <p class="muted" style="font-size:12px;margin:6px 0 14px">Real measured numbers: multithreaded CPU ops, RAM copy bandwidth, C: read speed, average latency to 3 public resolvers. ~3 s total.</p>
+        <button class="btn sm primary" id="btn-bench-run">▲ Run full benchmark</button></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 14px">Everything measured live on this machine — nothing invented. Score 1000 = reference machine (modern 8C/16T, DDR4-3600, NVMe Gen3). ~4 s of heavy load, UI may stutter while measuring.</p>
+      <div class="bench-hero hidden" id="bench-hero">
+        <div class="bh-ring" id="bh-ring"><div class="bh-score"><b id="bh-total">—</b><span>SCORE</span></div></div>
+        <div class="bh-info">
+          <h2 id="bh-class">—</h2>
+          <p id="bh-verdict">—</p>
+          <div class="bh-subs" id="bh-subs"></div>
+          <div class="bh-raw mono" id="bh-raw"></div>
+        </div>
+      </div>
       <div class="stat-row" id="bench-cards"></div>
-      <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">History</h2></div>
+      <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">History</h2><div class="spacer"></div>
+        <span class="muted" style="font-size:11px" id="bench-delta"></span></div>
       <div id="bench-history"></div>
     </section>
 
@@ -322,7 +331,26 @@
       <div class="set-grid">
         <div class="set-card">
           <h3>Appearance</h3>
-          <label class="set-row">Accent color
+          <label class="set-row">Theme pack
+            <select id="set-theme" class="input" style="max-width:160px">
+              <option value="magma">Magma (crimson)</option>
+              <option value="ocean">Ocean (blue)</option>
+              <option value="matrix">Matrix (green)</option>
+              <option value="violet">Violet (purple)</option>
+              <option value="gold">Gold (amber)</option>
+              <option value="steel">Steel (silver)</option>
+              <option value="rose">Rose (pink)</option>
+            </select></label>
+          <div class="pack-grid">
+            <div class="pack-opt" data-pack="magma"  title="Magma — deep black + crimson"><i style="--c:#ff3d57"></i><span>Magma</span></div>
+            <div class="pack-opt" data-pack="ocean"  title="Ocean — abyssal blue"><i style="--c:#38bdf8"></i><span>Ocean</span></div>
+            <div class="pack-opt" data-pack="matrix" title="Matrix — terminal green"><i style="--c:#22c55e"></i><span>Matrix</span></div>
+            <div class="pack-opt" data-pack="violet" title="Violet — neon purple"><i style="--c:#a78bfa"></i><span>Violet</span></div>
+            <div class="pack-opt" data-pack="gold"   title="Gold — amber elite"><i style="--c:#f59e0b"></i><span>Gold</span></div>
+            <div class="pack-opt" data-pack="steel"  title="Steel — cold silver"><i style="--c:#94a3b8"></i><span>Steel</span></div>
+            <div class="pack-opt" data-pack="rose"   title="Rose — soft pink"><i style="--c:#f472b6"></i><span>Rose</span></div>
+          </div>
+          <label class="set-row">Accent color (fine tune)
             <input type="color" id="set-accent" value="#ff3d57"/></label>
           <label class="set-row">Language
             <select id="set-lang" class="input" style="max-width:140px">
@@ -353,7 +381,7 @@
     <!-- ============ ABOUT ============ -->
     <section class="view hidden" id="view-about">
       <div class="profile-hero">
-        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.1</h2>
+        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.2</h2>
         <p>Windows Gaming Control Center — embedded C++ server + WormGPT-style liquid glass UI.<br/>
            Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC-gaming
            community. Every action logged, every key backed up, every tweak reversible.</p>

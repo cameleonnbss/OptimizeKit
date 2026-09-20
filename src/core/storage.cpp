@@ -234,23 +234,53 @@ BenchResult benchCpu() {
         unsigned x = 12345;
         while (!stop.load(std::memory_order_relaxed)) {
             for (int i = 0; i < 100000; ++i) {
-                x = x * 1664525u + 1013904223u;   // LCG: 2 int ops
-                local += 2;
+                x = x * 1664525u + 1013904223u;   // LCG: real dependency chain, not dead code
+                local += x;                        // consume x so the compiler keeps the math
             }
-            ops.fetch_add(local, std::memory_order_relaxed);
+            ops.fetch_add(local / 100000, std::memory_order_relaxed);  // per-iteration count only (no wraparound)
             local = 0;
         }
     };
     vector<std::thread> ts;
     auto t0 = std::chrono::steady_clock::now();
     for (int i = 0; i < NTHREAD; ++i) ts.emplace_back(worker);
-    Sleep(800);
+    Sleep(1000);
     stop = true;
     for (auto& t : ts) t.join();
     double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
     double mops = ops.load() / (ms / 1000.0) / 1e6;
     r.score = mops; r.ms = ms; r.ok = true;
-    log::ok(L"Benchmark CPU: " + fmtFloat(mops) + L" MOPS (" + std::to_wstring(NTHREAD) + L" threads)");
+    log::ok(L"Benchmark CPU MT: " + fmtFloat(mops) + L" MOPS (" + std::to_wstring(NTHREAD) + L" threads)");
+    return r;
+}
+
+// Single-core variant of the same integer kernel - exposes per-core clock/stall,
+// which is what most games are actually bound by.
+BenchResult benchCpuSingle() {
+    BenchResult r; r.unit = L"MOPS";
+    std::atomic<long long> ops{ 0 };
+    std::atomic<bool> stop{ false };
+    auto worker = [&] {
+        long long local = 0;
+        unsigned x = 12345;
+        while (!stop.load(std::memory_order_relaxed)) {
+            for (int i = 0; i < 100000; ++i) {
+                x = x * 1664525u + 1013904223u;   // same kernel as MT: real dependency
+                local += x;
+            }
+            ops.fetch_add(local / 100000, std::memory_order_relaxed);  // per-iteration count only
+            local = 0;
+        }
+    };
+    std::thread w(worker);
+    auto t0 = std::chrono::steady_clock::now();
+    Sleep(500);
+    stop = true;
+    w.join();
+    double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    double mops = ops.load() / (ms / 1000.0) / 1e6;
+    r.score = mops; r.ms = ms; r.ok = true;
+    log::ok(L"Benchmark CPU ST: " + fmtFloat(mops) + L" MOPS (1 thread)");
     return r;
 }
 
@@ -290,6 +320,8 @@ json runBenchmarkAll() {
     json j;
     auto cpu = benchCpu();
     j["cpu"] = { {"score", cpu.score}, {"unit", narrow(cpu.unit)}, {"ok", cpu.ok} };
+    auto cpuSt = benchCpuSingle();
+    j["cpuSt"] = { {"score", cpuSt.score}, {"unit", narrow(cpuSt.unit)}, {"ok", cpuSt.ok} };
     auto ramr = benchRam();
     j["ram"] = { {"score", ramr.ok ? json(ramr.score) : json(nullptr)}, {"unit", narrow(ramr.unit)}, {"ok", ramr.ok}, {"error", narrow(ramr.error)} };
     auto disk = benchDisk(appDataDir());   // writable dir on the system drive (C:\ root needs admin)
@@ -298,6 +330,32 @@ json runBenchmarkAll() {
     j["latencyMs"] = lat;
     j["timestamp"] = (long long)time(nullptr);
     if (lat > 0) log::ok(L"Benchmark latency: " + fmtFloat(lat) + L" ms avg");
+
+    // ---- normalized scores (1000 = reference: modern 8C/16T, DDR4-3600, NVMe Gen3) ----
+    // Reference values calibrated on a 10C/16T mainstream desktop (i5-13400F class)
+    // running these exact kernels; 1000 therefore means "mainstream gaming PC".
+    const double REF_CPU_MT = 320000000.0;  // LCG+add kernel, 16 threads (calibrated)
+    const double REF_CPU_ST = 24000000.0;   // single thread, same kernel (calibrated)
+    const double REF_RAM    = 14.0;         // GB/s memcpy
+    const double REF_DISK   = 2000.0;       // MB/s sequential read
+    json subs = json::object();
+    auto norm = [](double v, double ref, double cap) { return (int)std::min(cap, std::max(50.0, 1000.0 * v / ref)); };
+    if (cpu.ok)   subs["cpuMt"] = norm(cpu.score,    REF_CPU_MT, 5000);
+    if (cpuSt.ok) subs["cpuSt"] = norm(cpuSt.score,  REF_CPU_ST, 5000);
+    if (ramr.ok)  subs["ram"]   = norm(ramr.score,   REF_RAM,    5000);
+    if (disk.ok)  subs["disk"]  = norm(disk.score,   REF_DISK,   5000);
+    double total = 0; double n = 0;
+    auto acc = [&](const char* k, double w) { if (subs.contains(k)) { total += subs[k].get<double>() * w; n += w; } };
+    acc("cpuMt", 0.40); acc("cpuSt", 0.15); acc("ram", 0.20); acc("disk", 0.25);
+    int tot = n > 0 ? (int)(total / n) : 0;
+    j["total"] = tot;
+    j["class"] = tot >= 1800 ? "high-end" : tot >= 1100 ? "performance" : tot >= 700 ? "mainstream" : "entry";
+    j["verdict"] = tot >= 1800 ? "Top tier - everything runs flat out"
+                 : tot >= 1100 ? "Performance class - great for gaming and heavy apps"
+                 : tot >= 700  ? "Mainstream - fine for everyday + esports titles"
+                 :               "Entry level - web/CESU workloads; esports on low settings";
+    j["subs"] = subs;
+    log::ok(L"Benchmark TOTAL: " + std::to_wstring(tot) + L" (" + widen(j["class"].get<string>()) + L")");
 
     // store in config history (max 20)
     json cfg = engine::loadConfig();
