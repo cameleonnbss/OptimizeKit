@@ -35,7 +35,7 @@
 <!-- ============ APP ============ -->
 <div id="screen-app" class="screen">
   <aside class="side">
-    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.5</span></div>
+    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.6</span></div>
     <button class="side-search" id="btn-palette" type="button"><span class="ss-ico">⌕</span><span>Search anything…</span><kbd>Ctrl K</kbd></button>
     <nav id="nav">
       <div class="nav-item active" data-view="dashboard"><span class="ni-ico">◉</span><span>Dashboard</span></div>
@@ -55,6 +55,8 @@
       <div class="nav-item" data-view="power"><span class="ni-ico">⚡</span><span>Power &amp; thermals</span></div>
       <div class="nav-item" data-view="debloat"><span class="ni-ico">🧹</span><span>Debloat &amp; boot</span></div>
       <div class="nav-sep">System</div>
+      <div class="nav-item" data-view="reducer"><span class="ni-ico">⏬</span><span>Process Reducer</span><span class="nav-badge hidden" id="nav-red-count"></span></div>
+      <div class="nav-item" data-view="security"><span class="ni-ico">🛡</span><span>Security Scan</span><span class="nav-badge hidden" id="nav-sec-count"></span></div>
       <div class="nav-item" data-view="network"><span class="ni-ico">⇄</span><span>Network</span></div>
       <div class="nav-item" data-view="ram"><span class="ni-ico">▤</span><span>RAM</span></div>
       <div class="nav-item" data-view="storage"><span class="ni-ico">▤</span><span>Storage</span></div>
@@ -73,7 +75,7 @@
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.5 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.6 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
@@ -270,6 +272,7 @@
       <div class="sec-head"><h1>Game <span style="color:var(--accent)">Library</span></h1>
         <input class="input" id="lib-search" placeholder="search a title…" style="width:190px"/>
         <select class="input" id="lib-sort" style="width:160px">
+          <option value="top">Top played first</option>
           <option value="az">A → Z</option>
           <option value="za">Z → A</option>
           <option value="genre">by genre</option>
@@ -429,11 +432,59 @@
       <div class="proc-card"><div class="proc-head"><h3>Top memory consumers</h3></div><div id="ram-procs"></div></div>
     </section>
 
-    <!-- ============ STORAGE ============ -->
+    <!-- ============ PROCESS REDUCER ============ -->
+    <section class="view hidden" id="view-reducer">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="red-num">—</span><small>PROCESSES REDUCED</small></div>
+        <div class="gc-hero-txt">
+          <h1>Process <span>Reducer</span></h1>
+          <p id="red-summary">reading the live process table…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="btn-red-eco-all">⏬ Eco everything &gt; 1% CPU</button>
+            <button class="btn" id="btn-red-eco-all2">⏬ Eco everything running</button>
+            <button class="btn danger" id="btn-red-undo-all">↺ Undo all</button>
+            <button class="btn" id="btn-red-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="red-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:6px 0 12px;max-width:1000px">Each <b>Eco</b> button puts a process on Windows' documented Efficiency-mode path (below-normal priority + EcoQoS power throttling) — exactly what Task Manager's “Efficiency mode” does, and everything is restored by <b>Undo all</b> or when OptimizeKit closes. Nothing is killed unless you press Kill on one row.</p>
+      <div id="red-list"></div>
+    </section>
+
+    <!-- ============ SECURITY SCAN ============ -->
+    <section class="view hidden" id="view-security">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="sec-num">—</span><small>RISK FINDINGS</small></div>
+        <div class="gc-hero-txt">
+          <h1>Security <span>Scan</span></h1>
+          <p id="sec-summary">read-only audit — press scan to run it</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="btn-sec-run">🛡 Run full security scan</button>
+            <button class="btn" id="btn-sec-defender" title="opens Windows Security">Open Windows Security</button>
+            <button class="btn" id="btn-sec-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="sec-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:6px 0 12px;max-width:1000px">What is audited: antivirus real-time state, firewall per profile, <b>every listening port and outbound connection with its owning process</b> (RAT / bind-shell ports flagged), Run/RunOnce + Startup-folder + scheduled persistence (TEMP launchers, hidden PowerShell, IFEO debugger hijacks), executables staged in %TEMP%, double-extension droppers in Downloads, shadow-copy tampering, UAC. The scan is read-only; <b>Revoke</b> quarantines one entry and can put it back.</p>
+      <div id="sec-list"></div>
+    </section>
+
+    <!-- ============ STORAGE (DiskScope) ============ -->
     <section class="view hidden" id="view-storage">
       <div class="sec-head"><h1>Storage</h1><div class="spacer"></div>
+        <select class="input" id="disk-pick" style="width:110px"></select>
+        <button class="btn sm" id="btn-disk-scope">▦ Analyse folders</button>
+        <button class="btn sm" id="btn-disk-dupes">⧉ Find duplicates</button>
         <button class="btn sm primary" id="btn-clean2">🧹 Clean junk now</button></div>
       <div id="drives-grid" class="drives-grid"></div>
+      <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">SAFE cleanup targets — measured live</h2><span class="muted" style="font-size:11px" id="disk-cleanup-total"></span></div>
+      <div id="disk-cleanup" class="quick-grid"></div>
+      <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">What eats this drive</h2><span class="muted" style="font-size:11px" id="disk-folders-note"></span></div>
+      <div id="disk-folders"></div>
+      <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">Duplicates — SHA-256, &gt; 32 MB files</h2><span class="muted" style="font-size:11px" id="disk-dupes-note"></span></div>
+      <div id="disk-dupes" class="conv-empty muted" style="padding:14px">press “Find duplicates” — bounded scan, nothing is deleted</div>
       <div class="sec-head" style="margin-top:16px"><h2 style="font-size:15px">Largest files on C:</h2></div>
       <div id="largest-files" class="conv-empty muted" style="padding:14px">loading…</div>
     </section>
@@ -605,11 +656,11 @@
     <!-- ============ ABOUT ============ -->
     <section class="view hidden" id="view-about">
       <div class="profile-hero">
-        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.5</h2>
+        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.6</h2>
         <p>Windows Gaming Control Center — one static exe, embedded C++ HTTP server, liquid-glass dashboard.<br/>
-           32 modules · 49 reversible tweaks · 12 full themes · a Game Library of 100+ covered titles
-           plus a built-in database of known PC games · a command palette (Ctrl+K) over every module,
-           tweak, tool, pack and game · no driver, no injection, no kernel component.<br/>
+           34 modules · 49 reversible tweaks · 12 full themes · a Game Library of 200+ covered titles
+           plus a built-in database of known PC games · a Process Reducer (EcoQoS) and a read-only
+           Security Scan · a command palette (Ctrl+K) over everything · no driver, no injection, no kernel component.<br/>
            Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC-gaming
            community. Every action logged, every key backed up, every tweak reversible.</p>
         <div style="display:flex;gap:10px;margin-top:8px">

@@ -743,6 +743,1095 @@
    "family": "rpg",
    "pack": "esport",
    "cover": "wukong.jpg"
+  },
+  {
+   "key": "steam_counter_strike_2",
+   "name": "Counter-Strike 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_counter_strike_2.jpg",
+   "source": "steam-top",
+   "rank": 1,
+   "peak": 0
+  },
+  {
+   "key": "steam_dota_2",
+   "name": "Dota 2",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "steam_dota_2.jpg",
+   "source": "steam-top",
+   "rank": 2,
+   "peak": 0
+  },
+  {
+   "key": "steam_pubg_battlegrounds",
+   "name": "PUBG: BATTLEGROUNDS",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_pubg_battlegrounds.jpg",
+   "source": "steam-top",
+   "rank": 3,
+   "peak": 0
+  },
+  {
+   "key": "steam_wallpaper_engine",
+   "name": "Wallpaper Engine",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_wallpaper_engine.jpg",
+   "source": "steam-top",
+   "rank": 4,
+   "peak": 0
+  },
+  {
+   "key": "steam_wardogs",
+   "name": "WARDOGS",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_wardogs.jpg",
+   "source": "steam-top",
+   "rank": 5,
+   "peak": 0
+  },
+  {
+   "key": "steam_apex_legends",
+   "name": "Apex Legends™",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_apex_legends.jpg",
+   "source": "steam-top",
+   "rank": 6,
+   "peak": 0
+  },
+  {
+   "key": "steam_valheim",
+   "name": "Valheim",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_valheim.jpg",
+   "source": "steam-top",
+   "rank": 7,
+   "peak": 0
+  },
+  {
+   "key": "steam_grand_theft_auto_v_legacy",
+   "name": "Grand Theft Auto V Legacy",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "steam_grand_theft_auto_v_legacy.jpg",
+   "source": "steam-top",
+   "rank": 8,
+   "peak": 0
+  },
+  {
+   "key": "steam_marvel_rivals",
+   "name": "Marvel Rivals",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_marvel_rivals.jpg",
+   "source": "steam-top",
+   "rank": 9,
+   "peak": 0
+  },
+  {
+   "key": "steam_fivem",
+   "name": "FiveM",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_fivem.jpg",
+   "source": "steam-top",
+   "rank": 10,
+   "peak": 0
+  },
+  {
+   "key": "steam_aniimo",
+   "name": "Aniimo",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_aniimo.jpg",
+   "source": "steam-top",
+   "rank": 11,
+   "peak": 0
+  },
+  {
+   "key": "steam_tom_clancy_s_rainbow_six_siege",
+   "name": "Tom Clancy's Rainbow Six Siege",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_tom_clancy_s_rainbow_six_siege.jpg",
+   "source": "steam-top",
+   "rank": 12,
+   "peak": 0
+  },
+  {
+   "key": "steam_slay_the_spire_2",
+   "name": "Slay the Spire 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_slay_the_spire_2.jpg",
+   "source": "steam-top",
+   "rank": 13,
+   "peak": 0
+  },
+  {
+   "key": "steam_overwatch",
+   "name": "Overwatch®",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_overwatch.jpg",
+   "source": "steam-top",
+   "rank": 14,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_binding_of_isaac_rebirth",
+   "name": "The Binding of Isaac: Rebirth",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_the_binding_of_isaac_rebirth.jpg",
+   "source": "steam-top",
+   "rank": 15,
+   "peak": 0
+  },
+  {
+   "key": "steam_war_thunder",
+   "name": "War Thunder",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "steam_war_thunder.jpg",
+   "source": "steam-top",
+   "rank": 16,
+   "peak": 0
+  },
+  {
+   "key": "steam_helldivers_2",
+   "name": "HELLDIVERS™ 2",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_helldivers_2.jpg",
+   "source": "steam-top",
+   "rank": 17,
+   "peak": 0
+  },
+  {
+   "key": "steam_geometry_dash",
+   "name": "Geometry Dash",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_geometry_dash.jpg",
+   "source": "steam-top",
+   "rank": 18,
+   "peak": 0
+  },
+  {
+   "key": "steam_dead_by_daylight",
+   "name": "Dead by Daylight",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "steam_dead_by_daylight.jpg",
+   "source": "steam-top",
+   "rank": 19,
+   "peak": 0
+  },
+  {
+   "key": "steam_grand_theft_auto_v_enhanced",
+   "name": "Grand Theft Auto V Enhanced",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "steam_grand_theft_auto_v_enhanced.jpg",
+   "source": "steam-top",
+   "rank": 20,
+   "peak": 0
+  },
+  {
+   "key": "steam_terraria",
+   "name": "Terraria",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_terraria.jpg",
+   "source": "steam-top",
+   "rank": 21,
+   "peak": 0
+  },
+  {
+   "key": "steam_deadlock",
+   "name": "Deadlock",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "steam_deadlock.jpg",
+   "source": "steam-top",
+   "rank": 22,
+   "peak": 0
+  },
+  {
+   "key": "steam_stardew_valley",
+   "name": "Stardew Valley",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_stardew_valley.jpg",
+   "source": "steam-top",
+   "rank": 23,
+   "peak": 0
+  },
+  {
+   "key": "steam_ea_sports_fc_26",
+   "name": "EA SPORTS FC™ 26",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "steam_ea_sports_fc_26.jpg",
+   "source": "steam-top",
+   "rank": 24,
+   "peak": 0
+  },
+  {
+   "key": "steam_limbus_company",
+   "name": "Limbus Company",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "steam_limbus_company.jpg",
+   "source": "steam-top",
+   "rank": 25,
+   "peak": 0
+  },
+  {
+   "key": "steam_rust",
+   "name": "Rust",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_rust.jpg",
+   "source": "steam-top",
+   "rank": 26,
+   "peak": 0
+  },
+  {
+   "key": "steam_battlefield_6",
+   "name": "Battlefield™ 6",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_battlefield_6.jpg",
+   "source": "steam-top",
+   "rank": 27,
+   "peak": 0
+  },
+  {
+   "key": "steam_palworld",
+   "name": "Palworld",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_palworld.jpg",
+   "source": "steam-top",
+   "rank": 28,
+   "peak": 0
+  },
+  {
+   "key": "steam_delta_force",
+   "name": "Delta Force",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_delta_force.jpg",
+   "source": "steam-top",
+   "rank": 29,
+   "peak": 0
+  },
+  {
+   "key": "steam_warframe",
+   "name": "Warframe",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "steam_warframe.jpg",
+   "source": "steam-top",
+   "rank": 30,
+   "peak": 0
+  },
+  {
+   "key": "steam_project_zomboid",
+   "name": "Project Zomboid",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_project_zomboid.jpg",
+   "source": "steam-top",
+   "rank": 31,
+   "peak": 0
+  },
+  {
+   "key": "steam_team_fortress_2",
+   "name": "Team Fortress 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_team_fortress_2.jpg",
+   "source": "steam-top",
+   "rank": 32,
+   "peak": 0
+  },
+  {
+   "key": "steam_baldur_s_gate_3",
+   "name": "Baldur's Gate 3",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_baldur_s_gate_3.jpg",
+   "source": "steam-top",
+   "rank": 33,
+   "peak": 0
+  },
+  {
+   "key": "steam_left_4_dead_2",
+   "name": "Left 4 Dead 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_left_4_dead_2.jpg",
+   "source": "steam-top",
+   "rank": 34,
+   "peak": 0
+  },
+  {
+   "key": "steam_euro_truck_simulator_2",
+   "name": "Euro Truck Simulator 2",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "steam_euro_truck_simulator_2.jpg",
+   "source": "steam-top",
+   "rank": 35,
+   "peak": 0
+  },
+  {
+   "key": "steam_vrchat",
+   "name": "VRChat",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_vrchat.jpg",
+   "source": "steam-top",
+   "rank": 36,
+   "peak": 0
+  },
+  {
+   "key": "steam_how_to_fish",
+   "name": "How to Fish",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_how_to_fish.jpg",
+   "source": "steam-top",
+   "rank": 37,
+   "peak": 0
+  },
+  {
+   "key": "steam_peak",
+   "name": "PEAK",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_peak.jpg",
+   "source": "steam-top",
+   "rank": 38,
+   "peak": 0
+  },
+  {
+   "key": "steam_monster_hunter_wilds",
+   "name": "Monster Hunter Wilds",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_monster_hunter_wilds.jpg",
+   "source": "steam-top",
+   "rank": 39,
+   "peak": 0
+  },
+  {
+   "key": "steam_r_e_p_o",
+   "name": "R.E.P.O.",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_r_e_p_o.jpg",
+   "source": "steam-top",
+   "rank": 40,
+   "peak": 0
+  },
+  {
+   "key": "steam_red_dead_redemption_2",
+   "name": "Red Dead Redemption 2",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "steam_red_dead_redemption_2.jpg",
+   "source": "steam-top",
+   "rank": 41,
+   "peak": 0
+  },
+  {
+   "key": "steam_hearts_of_iron_iv",
+   "name": "Hearts of Iron IV",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "steam_hearts_of_iron_iv.jpg",
+   "source": "steam-top",
+   "rank": 42,
+   "peak": 0
+  },
+  {
+   "key": "steam_cyberpunk_2077",
+   "name": "Cyberpunk 2077",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_cyberpunk_2077.jpg",
+   "source": "steam-top",
+   "rank": 43,
+   "peak": 0
+  },
+  {
+   "key": "steam_no_man_s_sky",
+   "name": "No Man's Sky",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "steam_no_man_s_sky.jpg",
+   "source": "steam-top",
+   "rank": 44,
+   "peak": 0
+  },
+  {
+   "key": "steam_elden_ring",
+   "name": "ELDEN RING",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_elden_ring.jpg",
+   "source": "steam-top",
+   "rank": 45,
+   "peak": 0
+  },
+  {
+   "key": "steam_call_of_duty",
+   "name": "Call of Duty®",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_call_of_duty.jpg",
+   "source": "steam-top",
+   "rank": 46,
+   "peak": 0
+  },
+  {
+   "key": "steam_beamng_drive",
+   "name": "BeamNG.drive",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_beamng_drive.jpg",
+   "source": "steam-top",
+   "rank": 47,
+   "peak": 0
+  },
+  {
+   "key": "steam_naraka_bladepoint",
+   "name": "NARAKA: BLADEPOINT",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_naraka_bladepoint.jpg",
+   "source": "steam-top",
+   "rank": 48,
+   "peak": 0
+  },
+  {
+   "key": "steam_garry_s_mod",
+   "name": "Garry's Mod",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_garry_s_mod.jpg",
+   "source": "steam-top",
+   "rank": 49,
+   "peak": 0
+  },
+  {
+   "key": "steam_don_t_starve_together",
+   "name": "Don't Starve Together",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_don_t_starve_together.jpg",
+   "source": "steam-top",
+   "rank": 50,
+   "peak": 0
+  },
+  {
+   "key": "steam_rocket_league",
+   "name": "Rocket League®",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "steam_rocket_league.jpg",
+   "source": "steam-top",
+   "rank": 51,
+   "peak": 0
+  },
+  {
+   "key": "steam_yu_gi_oh_master_duel",
+   "name": "Yu-Gi-Oh! Master Duel",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_yu_gi_oh_master_duel.jpg",
+   "source": "steam-top",
+   "rank": 52,
+   "peak": 0
+  },
+  {
+   "key": "steam_path_of_exile_2",
+   "name": "Path of Exile 2",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "steam_path_of_exile_2.jpg",
+   "source": "steam-top",
+   "rank": 53,
+   "peak": 0
+  },
+  {
+   "key": "steam_forza_horizon_6",
+   "name": "Forza Horizon 6",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_forza_horizon_6.jpg",
+   "source": "steam-top",
+   "rank": 54,
+   "peak": 0
+  },
+  {
+   "key": "steam_diablo_iv",
+   "name": "Diablo® IV",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "steam_diablo_iv.jpg",
+   "source": "steam-top",
+   "rank": 55,
+   "peak": 0
+  },
+  {
+   "key": "steam_efootball",
+   "name": "eFootball™",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "steam_efootball.jpg",
+   "source": "steam-top",
+   "rank": 56,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_sims_4",
+   "name": "The Sims™ 4",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_the_sims_4.jpg",
+   "source": "steam-top",
+   "rank": 57,
+   "peak": 0
+  },
+  {
+   "key": "steam_tbh_task_bar_hero",
+   "name": "TBH: Task Bar Hero",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_tbh_task_bar_hero.jpg",
+   "source": "steam-top",
+   "rank": 58,
+   "peak": 0
+  },
+  {
+   "key": "steam_tmodloader",
+   "name": "tModLoader",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_tmodloader.jpg",
+   "source": "steam-top",
+   "rank": 59,
+   "peak": 0
+  },
+  {
+   "key": "steam_farming_simulator_25",
+   "name": "Farming Simulator 25",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "steam_farming_simulator_25.jpg",
+   "source": "steam-top",
+   "rank": 60,
+   "peak": 0
+  },
+  {
+   "key": "steam_street_fighter_6",
+   "name": "Street Fighter™ 6",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "steam_street_fighter_6.jpg",
+   "source": "steam-top",
+   "rank": 61,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_elder_scrolls_v_skyrim_special_editi",
+   "name": "The Elder Scrolls V: Skyrim Special Edition",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_the_elder_scrolls_v_skyrim_special_editi.jpg",
+   "source": "steam-top",
+   "rank": 62,
+   "peak": 0
+  },
+  {
+   "key": "steam_sid_meier_s_civilization_vi",
+   "name": "Sid Meier’s Civilization® VI",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "steam_sid_meier_s_civilization_vi.jpg",
+   "source": "steam-top",
+   "rank": 63,
+   "peak": 0
+  },
+  {
+   "key": "steam_wuthering_waves",
+   "name": "Wuthering Waves",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "steam_wuthering_waves.jpg",
+   "source": "steam-top",
+   "rank": 64,
+   "peak": 0
+  },
+  {
+   "key": "steam_arena_breakout_infinite",
+   "name": "Arena Breakout: Infinite",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_arena_breakout_infinite.jpg",
+   "source": "steam-top",
+   "rank": 65,
+   "peak": 0
+  },
+  {
+   "key": "steam_total_war_warhammer_iii",
+   "name": "Total War: WARHAMMER III",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "steam_total_war_warhammer_iii.jpg",
+   "source": "steam-top",
+   "rank": 66,
+   "peak": 0
+  },
+  {
+   "key": "steam_obs_studio",
+   "name": "OBS Studio",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_obs_studio.jpg",
+   "source": "steam-top",
+   "rank": 67,
+   "peak": 0
+  },
+  {
+   "key": "steam_assetto_corsa",
+   "name": "Assetto Corsa",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_assetto_corsa.jpg",
+   "source": "steam-top",
+   "rank": 68,
+   "peak": 0
+  },
+  {
+   "key": "steam_bongo_cat",
+   "name": "Bongo Cat",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_bongo_cat.jpg",
+   "source": "steam-top",
+   "rank": 69,
+   "peak": 0
+  },
+  {
+   "key": "steam_arc_raiders",
+   "name": "ARC Raiders",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_arc_raiders.jpg",
+   "source": "steam-top",
+   "rank": 70,
+   "peak": 0
+  },
+  {
+   "key": "steam_dayz",
+   "name": "DayZ",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "steam_dayz.jpg",
+   "source": "steam-top",
+   "rank": 71,
+   "peak": 0
+  },
+  {
+   "key": "steam_brawlhalla",
+   "name": "Brawlhalla",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_brawlhalla.jpg",
+   "source": "steam-top",
+   "rank": 72,
+   "peak": 0
+  },
+  {
+   "key": "steam_crosshair_x",
+   "name": "Crosshair X",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_crosshair_x.jpg",
+   "source": "steam-top",
+   "rank": 73,
+   "peak": 0
+  },
+  {
+   "key": "steam_hunt_showdown_1896",
+   "name": "Hunt: Showdown 1896",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_hunt_showdown_1896.jpg",
+   "source": "steam-top",
+   "rank": 74,
+   "peak": 0
+  },
+  {
+   "key": "steam_mount_blade_ii_bannerlord",
+   "name": "Mount & Blade II: Bannerlord",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_mount_blade_ii_bannerlord.jpg",
+   "source": "steam-top",
+   "rank": 75,
+   "peak": 0
+  },
+  {
+   "key": "steam_7_days_to_die",
+   "name": "7 Days to Die",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "steam_7_days_to_die.jpg",
+   "source": "steam-top",
+   "rank": 76,
+   "peak": 0
+  },
+  {
+   "key": "steam_onimusha_way_of_the_sword",
+   "name": "Onimusha: Way of the Sword",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_onimusha_way_of_the_sword.jpg",
+   "source": "steam-top",
+   "rank": 77,
+   "peak": 0
+  },
+  {
+   "key": "steam_age_of_empires_ii_definitive_edition",
+   "name": "Age of Empires II: Definitive Edition",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "steam_age_of_empires_ii_definitive_edition.jpg",
+   "source": "steam-top",
+   "rank": 78,
+   "peak": 0
+  },
+  {
+   "key": "steam_rimworld",
+   "name": "RimWorld",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_rimworld.jpg",
+   "source": "steam-top",
+   "rank": 79,
+   "peak": 0
+  },
+  {
+   "key": "steam_monster_hunter_world",
+   "name": "Monster Hunter: World",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_monster_hunter_world.jpg",
+   "source": "steam-top",
+   "rank": 80,
+   "peak": 0
+  },
+  {
+   "key": "steam_bodycam",
+   "name": "Bodycam",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_bodycam.jpg",
+   "source": "steam-top",
+   "rank": 81,
+   "peak": 0
+  },
+  {
+   "key": "steam_phasmophobia",
+   "name": "Phasmophobia",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "steam_phasmophobia.jpg",
+   "source": "steam-top",
+   "rank": 82,
+   "peak": 0
+  },
+  {
+   "key": "steam_crimson_desert_enhanced",
+   "name": "Crimson Desert Enhanced",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_crimson_desert_enhanced.jpg",
+   "source": "steam-top",
+   "rank": 83,
+   "peak": 0
+  },
+  {
+   "key": "steam_runescape_dragonwilds",
+   "name": "RuneScape: Dragonwilds",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_runescape_dragonwilds.jpg",
+   "source": "steam-top",
+   "rank": 84,
+   "peak": 0
+  },
+  {
+   "key": "steam_aimlabs",
+   "name": "Aimlabs",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_aimlabs.jpg",
+   "source": "steam-top",
+   "rank": 85,
+   "peak": 0
+  },
+  {
+   "key": "steam_ready_or_not",
+   "name": "Ready or Not",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_ready_or_not.jpg",
+   "source": "steam-top",
+   "rank": 86,
+   "peak": 0
+  },
+  {
+   "key": "steam_warhammer_40_000_space_marine_2",
+   "name": "Warhammer 40,000: Space Marine 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_warhammer_40_000_space_marine_2.jpg",
+   "source": "steam-top",
+   "rank": 87,
+   "peak": 0
+  },
+  {
+   "key": "steam_among_us",
+   "name": "Among Us",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "steam_among_us.jpg",
+   "source": "steam-top",
+   "rank": 88,
+   "peak": 0
+  },
+  {
+   "key": "steam_rv_there_yet",
+   "name": "RV There Yet?",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_rv_there_yet.jpg",
+   "source": "steam-top",
+   "rank": 89,
+   "peak": 0
+  },
+  {
+   "key": "steam_football_manager_26",
+   "name": "Football Manager 26",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "steam_football_manager_26.jpg",
+   "source": "steam-top",
+   "rank": 90,
+   "peak": 0
+  },
+  {
+   "key": "steam_meccha_chameleon",
+   "name": "MECCHA CHAMELEON",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_meccha_chameleon.jpg",
+   "source": "steam-top",
+   "rank": 91,
+   "peak": 0
+  },
+  {
+   "key": "steam_once_human",
+   "name": "Once Human",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "steam_once_human.jpg",
+   "source": "steam-top",
+   "rank": 92,
+   "peak": 0
+  },
+  {
+   "key": "steam_resident_evil_4",
+   "name": "Resident Evil 4",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "steam_resident_evil_4.jpg",
+   "source": "steam-top",
+   "rank": 93,
+   "peak": 0
+  },
+  {
+   "key": "steam_bloons_td_6",
+   "name": "Bloons TD 6",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_bloons_td_6.jpg",
+   "source": "steam-top",
+   "rank": 94,
+   "peak": 0
+  },
+  {
+   "key": "steam_elden_ring_nightreign",
+   "name": "ELDEN RING NIGHTREIGN",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_elden_ring_nightreign.jpg",
+   "source": "steam-top",
+   "rank": 95,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_finals",
+   "name": "THE FINALS",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_the_finals.jpg",
+   "source": "steam-top",
+   "rank": 96,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_blood_of_dawnwalker",
+   "name": "The Blood of Dawnwalker",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_the_blood_of_dawnwalker.jpg",
+   "source": "steam-top",
+   "rank": 97,
+   "peak": 0
+  },
+  {
+   "key": "steam_crusader_kings_iii",
+   "name": "Crusader Kings III",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "steam_crusader_kings_iii.jpg",
+   "source": "steam-top",
+   "rank": 98,
+   "peak": 0
+  },
+  {
+   "key": "steam_the_witcher_3_wild_hunt_complete_edition",
+   "name": "The Witcher 3: Wild Hunt - Complete Edition",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "steam_the_witcher_3_wild_hunt_complete_edition.jpg",
+   "source": "steam-top",
+   "rank": 99,
+   "peak": 0
+  },
+  {
+   "key": "steam_black_myth_wukong",
+   "name": "Black Myth: Wukong",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "steam_black_myth_wukong.jpg",
+   "source": "steam-top",
+   "rank": 100,
+   "peak": 0
+  },
+  {
+   "key": "epic_zenless_zone_zero",
+   "name": "Zenless Zone Zero",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "epic_zenless_zone_zero.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_ea_sports_fc_25",
+   "name": "EA SPORTS FC 25",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_ea_sports_fc_25.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_alan_wake_2",
+   "name": "Alan Wake 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_alan_wake_2.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_control_ultimate_edition",
+   "name": "Control Ultimate Edition",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_control_ultimate_edition.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_borderlands_3",
+   "name": "Borderlands 3",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_borderlands_3.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_kingdom_come_deliverance",
+   "name": "Kingdom Come: Deliverance",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_kingdom_come_deliverance.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_sifu",
+   "name": "Sifu",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_sifu.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_death_stranding",
+   "name": "Death Stranding",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_death_stranding.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_metro_exodus",
+   "name": "Metro Exodus",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_metro_exodus.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_civilization_vi",
+   "name": "Civilization VI",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "epic_civilization_vi.jpg",
+   "source": "epic-top"
+  },
+  {
+   "key": "epic_dead_by_daylight",
+   "name": "Dead by Daylight",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "epic_dead_by_daylight.jpg",
+   "source": "epic-top"
   }
- ]
+ ],
+ "charts_note": "keys with source=steam-top carry rank (Steam most-played position) and peak (concurrent players at fetch time)"
 }

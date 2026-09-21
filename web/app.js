@@ -1,4 +1,4 @@
-/* OptimizeKit v2.5 — Windows Gaming Control Center
+/* OptimizeKit v2.6 — Windows Gaming Control Center
    Shell: grouped rail + command bar · 32 modules · 12 themes · Ctrl+K palette
    Games: every store + every fixed drive, matched against the built-in game database;
    Library: cover art plus that database, installed titles badged with their real icon. */
@@ -202,7 +202,11 @@ async function setThemePack(name, persist = true) {
     toast("Theme: " + pack[0]);
   }
 }
-on("#btn-theme", () => $("#theme-flyout").classList.toggle("hidden"));
+on("#btn-theme", () => {
+  const fly = $("#theme-flyout");
+  fly.classList.toggle("hidden");
+  if (!fly.classList.contains("hidden")) fly.classList.add("fly-in");   // animation hook
+});
 document.addEventListener("click", (e) => {
   const fly = $("#theme-flyout");
   if (fly && !fly.classList.contains("hidden") && !e.target.closest("#theme-flyout") && !e.target.closest("#btn-theme")) fly.classList.add("hidden");
@@ -210,8 +214,11 @@ document.addEventListener("click", (e) => {
 $$("#theme-flyout .theme-opt").forEach((o) => o.addEventListener("click", () => {
   applyAccent(o.dataset.accent);                       // keeps the current pack, only refines its accent
   rememberAccent(currentTheme, o.dataset.accent);
+  o.classList.add("picked");                           // pick feedback before the flyout closes
+  setTimeout(() => o.classList.remove("picked"), 450);
   api("/api/settings", { ui_accent: o.dataset.accent }).catch(() => {});
   toast("Accent " + o.dataset.accent + " for " + currentTheme);
+  setTimeout(() => $("#theme-flyout").classList.add("hidden"), 280);
 }));
 $$(".pack-opt").forEach((o) => o.addEventListener("click", () => setThemePack(o.dataset.pack, true)));
 
@@ -237,6 +244,8 @@ function show(view) {
   if (view === "diag") refreshDiag();
   if (view === "smart") refreshSmart();
   if (view === "packs") renderPacks();
+  if (view === "reducer") refreshReducer();
+  if (view === "security") refreshSecurity(false);
   if (view === "bios") renderBios();
   if (view === "library") renderLibrary();
   if (view === "themes") renderThemes();
@@ -848,7 +857,136 @@ on("#btn-ram-trim", async () => {
   refreshRam();
 });
 
-/* ===================== storage ===================== */
+/* ===================== PROCESS REDUCER (EcoQoS) ===================== */
+let redCache = null;
+async function refreshReducer() {
+  try {
+    redCache = await api("/api/reducer");
+    renderReducer();
+  } catch (e) { }
+}
+function renderReducer() {
+  if (!redCache) return;
+  const procs = redCache.procs || [];
+  const reduced = redCache.reduced || 0;
+  const ring = $("#view-reducer .gc-ring");
+  ring.style.setProperty("--p", Math.min(100, reduced * 8));
+  $("#red-num").textContent = reduced;
+  const busy = procs.filter((p) => p.cpu >= 1).length;
+  $("#red-summary").innerHTML = reduced
+    ? `<b style="color:var(--ok)">${reduced} process(es) in Eco mode</b> — Undo all puts back their original priority.`
+    : `${procs.length} candidate processes · <b>${busy}</b> above 1% CPU right now. Eco the noisy ones.`;
+  const badge = $("#nav-red-count");
+  if (badge) { badge.textContent = reduced || ""; badge.classList.toggle("hidden", !reduced); }
+  $("#red-stats").innerHTML = [
+    { t: "candidates", v: procs.length, n: "your user processes, critical ones excluded" },
+    { t: "> 1% cpu", v: busy, n: "worth an Eco pass" },
+    { t: "in eco", v: reduced, n: "below-normal priority + EcoQoS" },
+    { t: "killed (session)", v: redCache.killed || 0, n: "explicit kills only, never bulk" },
+  ].map((c) => `<div class="stat-card"><small>${c.t}</small><b>${c.v}</b><span>${esc(c.n)}</span></div>`).join("");
+  $("#red-list").innerHTML = procs.map((p) => `
+    <div class="red-row ${p.eco ? "eco" : ""}">
+      <b class="red-name" title="pid ${p.pid}">${esc(p.name)}</b>
+      <span class="red-cpu mono">${p.cpu >= 10 ? Math.round(p.cpu) : p.cpu.toFixed(1)}%</span>
+      <span class="red-ram mono">${p.ramMB} MB</span>
+      <span class="red-cls">${esc(p.cls)}${p.eco ? " · ECO" : ""}</span>
+      <span class="red-act">
+        <button class="btn sm ${p.eco ? "" : "primary"}" data-act="${p.eco ? "undo" : "eco"}" data-pid="${p.pid}">${p.eco ? "↺ Undo" : "⏬ Eco"}</button>
+        <button class="btn sm" data-act="boost" data-pid="${p.pid}" title="above-normal priority">⚡</button>
+        <button class="btn sm danger" data-act="kill" data-pid="${p.pid}" title="terminate this process">✕</button>
+      </span>
+    </div>`).join("") || `<div class="conv-empty muted" style="padding:14px">nothing to show</div>`;
+  $$("#red-list .btn").forEach((b) => b.addEventListener("click", async () => {
+    const r = await api("/api/reducer/act", { action: b.dataset.act, pid: +b.dataset.pid });
+    toast(r.ok ? (b.dataset.act === "kill" ? "✕ killed " + b.dataset.pid : b.dataset.act === "eco" ? "⏬ Eco applied to " + b.dataset.pid : "process updated") : "✖ " + r.error, 3200);
+    refreshReducer();
+  }));
+}
+on("#btn-red-eco-all", async () => {
+  overlay.show("Process Reducer", "Eco (EcoQoS + below-normal priority) on everything above 1% CPU");
+  const r = await api("/api/reducer/act", { action: "eco-all", minCpu: 1 });
+  await overlay.done(true, r.n + " processes reduced — Undo all restores them");
+  refreshReducer();
+});
+on("#btn-red-eco-all2", async () => {
+  overlay.show("Process Reducer", "Eco on every candidate process");
+  const r = await api("/api/reducer/act", { action: "eco-all", minCpu: 0 });
+  await overlay.done(true, r.n + " processes reduced");
+  refreshReducer();
+});
+on("#btn-red-undo-all", async () => {
+  const r = await api("/api/reducer/act", { action: "undo-all" });
+  toast("↺ " + r.n + " processes restored");
+  refreshReducer();
+});
+on("#btn-red-refresh", refreshReducer);
+
+/* ===================== SECURITY SCAN ===================== */
+let secCache = null;
+async function refreshSecurity(auto) {
+  if (!secCache) { $("#sec-list").innerHTML = `<div class="conv-empty muted" style="padding:14px">Press “Run full security scan” — read-only, a few seconds.</div>`; return; }
+  renderSecurity();
+}
+function renderSecurity() {
+  if (!secCache) return;
+  const f = secCache.findings || [];
+  const s = secCache.summary || { high: 0, med: 0, low: 0, ok: 0 };
+  const risk = s.high * 10 + s.med * 4 + s.low;
+  $("#sec-num").textContent = s.high + s.med + s.low;
+  const ring = $("#view-security .gc-ring");
+  ring.style.setProperty("--p", Math.max(4, Math.min(100, 100 - risk)));
+  $("#sec-summary").innerHTML = s.high
+    ? `<b style="color:var(--err)">${s.high} high-risk finding(s)</b> — review them below, each row says what and where.`
+    : s.med ? `<b style="color:var(--warn)">No high findings, ${s.med} worth attention.</b>`
+    : `<b style="color:var(--ok)">Clean bill.</b> ${s.ok} checks passed.`;
+  const badge = $("#nav-sec-count");
+  if (badge) { const n = s.high + s.med; badge.textContent = n || ""; badge.classList.toggle("hidden", !n); }
+  $("#sec-stats").innerHTML = [
+    { t: "high", v: s.high, n: "act today", cls: s.high ? "high" : "" },
+    { t: "medium", v: s.med, n: "worth a look", cls: s.med ? "med" : "" },
+    { t: "low", v: s.low, n: "informational", cls: "" },
+    { t: "passed", v: s.ok, n: "checks green", cls: "good" },
+  ].map((c) => `<div class="stat-card ${c.cls}"><small>${c.t}</small><b>${c.v}</b><span>${esc(c.n)}</span></div>`).join("");
+  const SEVIC = { high: "high", med: "medium", low: "low", ok: "info", info: "info" };
+  $("#sec-list").innerHTML = f.map((x) => `
+    <div class="finding sec-finding sev-anim" style="animation-delay:${Math.min((x.sev === "high" ? 0 : 20) + f.indexOf(x) * 26, 900)}ms">
+      <span class="sev ${SEVIC[x.sev] || "info"}"></span>
+      <div class="fbody">
+        <b>${esc(x.title)}</b>
+        <p>${esc(x.detail)}</p>
+        <p class="mono" style="font-size:10px;opacity:.75">${esc(x.where)}</p>
+      </div>
+      <span class="fx">
+        ${x.id ? `<button class="btn sm danger" data-id="${esc(x.id)}">Revoke</button>` : ""}
+      </span>
+    </div>`).join("");
+  $$("#sec-list .btn[data-id]").forEach((b) => b.addEventListener("click", async () => {
+    const r = await api("/api/security/revoke", { id: b.dataset.id });
+    toast(r.ok ? "✖ entry revoked (stashed — Restore possible)" : "✖ " + r.error, 3600);
+    runSecurityScan();
+  }));
+}
+async function runSecurityScan() {
+  overlay.show("Security scan", "ports, connections, persistence, disk artifacts — read-only");
+  overlay.step("antivirus + firewall"); overlay.progress(15);
+  const p = api("/api/security/scan").then((r) => { overlay.progress(70); return r; });
+  // the scan takes a few seconds; keep the overlay honest with steps
+  overlay.step("listening ports + connections"); overlay.progress(45);
+  overlay.step("persistence keys + startup"); overlay.progress(65);
+  overlay.step("disk artifacts + UAC"); overlay.progress(85);
+  try {
+    secCache = await p;
+    (secCache.findings || []).filter((x) => x.sev === "high").slice(0, 5).forEach((x) => overlay.step("✖ " + x.title, "er"));
+    const s = secCache.summary;
+    await overlay.done(true, `${s.high} high · ${s.med} medium · ${s.low} low`);
+  } catch (e) { await overlay.done(false, String(e)); }
+  renderSecurity();
+}
+on("#btn-sec-run", runSecurityScan);
+on("#btn-sec-refresh", () => secCache ? renderSecurity() : runSecurityScan());
+on("#btn-sec-defender", () => api("/api/tools", { tool: "ms-settings:windowsdefender" }));
+
+/* ===================== DiskScope storage ===================== */
 async function refreshStorage() {
   try {
     const s = await api("/api/storage");
@@ -862,12 +1000,64 @@ async function refreshStorage() {
         <div class="d-sub">${fmtB(d.total - d.free)} used of ${fmtB(d.total)} · ${fmtB(d.free)} free</div>
       </div>`;
     }).join("");
+    const pick = $("#disk-pick");
+    if (pick && !pick.options.length) {
+      pick.innerHTML = s.drives.map((d) => `<option>${esc(d.letter)}</option>`).join("");
+      pick.addEventListener("change", () => scopeFolders());
+    }
+    scopeFolders();
+    cleanupTargets();
     const files = await api("/api/storage/files", { root: "C:\\", top: 12 });
     $("#largest-files").classList.remove("conv-empty");
     $("#largest-files").innerHTML = files.map((f) =>
       `<div class="file-row"><span class="fp">${esc(f.path)}</span><span class="fs">${esc(f.pretty)}</span></div>`).join("");
   } catch (e) { }
 }
+async function scopeFolders() {
+  const drive = ($("#disk-pick")?.value || "C:").replace(/[:\\]/g, "");
+  const box = $("#disk-folders");
+  if (!box) return;
+  box.innerHTML = `<div class="conv-empty muted" style="padding:14px">measuring ${esc(drive)}\ top folders…</div>`;
+  try {
+    const r = await api("/api/disk/folders", { drive, top: 16 });
+    const max = Math.max(...r.folders.map((f) => f.bytes), 1);
+    $("#disk-folders-note").textContent = r.truncated ? "measurement budget reached — partial view" : "full first-level pass";
+    box.innerHTML = r.folders.map((f, i) => `
+      <div class="dsz-row" style="animation-delay:${Math.min(i * 40, 600)}ms">
+        <span class="dsz-name" title="${esc(f.path)}">${esc(f.path.split("\\").pop() || f.path)}</span>
+        <span class="dsz-bar"><i style="width:${Math.max(2, Math.round(f.bytes / max * 100))}%"></i></span>
+        <b class="dsz-bytes mono">${fmtB(f.bytes)}</b>
+        <span class="muted mono" style="font-size:10px;width:70px;text-align:right">${f.files} files</span>
+      </div>`).join("");
+  } catch (e) { box.innerHTML = `<div class="conv-empty muted" style="padding:14px">folder measurement failed</div>`; }
+}
+on("#btn-disk-scope", scopeFolders);
+async function cleanupTargets() {
+  try {
+    const r = await api("/api/disk/cleanup");
+    const t = r.targets.filter((x) => x.exists).sort((a, b) => b.bytes - a.bytes);
+    $("#disk-cleanup-total").textContent = fmtB(r.total) + " reclaimable across " + t.length + " targets";
+    $("#disk-cleanup").innerHTML = t.map((x) => `
+      <div class="k-panel dsz-card">
+        <b style="font-size:12px">${esc(x.path.split("\\").slice(-2).join("\\"))}</b>
+        <span class="muted" style="font-size:11px">${esc(x.reason)}</span>
+        <div class="dsz-foot"><b class="mono" style="color:var(--accent)">${fmtB(x.bytes)}</b><span class="muted mono" style="font-size:10px">${x.files} files</span></div>
+      </div>`).join("") || `<div class="conv-empty muted" style="padding:14px">every cache is already clean 🎉</div>`;
+  } catch (e) { }
+}
+on("#btn-disk-dupes", async () => {
+  const box = $("#disk-dupes");
+  box.innerHTML = `<div class="conv-empty muted" style="padding:14px">hashing files &gt; 32 MB (SHA-256, bounded)…</div>`;
+  try {
+    const r = await api("/api/disk/duplicates", { root: "C:\\Users", max: 3000 });
+    $("#disk-dupes-note").textContent = `${r.scanned} big files scanned · ${r.hashed} hashed · ${fmtB(r.wasted)} wasted`;
+    box.innerHTML = r.groups.length ? r.groups.map((g) => `
+      <div class="dupe-group">
+        <div class="dupe-head"><b>${g.count} × same content</b><span class="mono">${fmtB(g.size)} each</span><b style="color:var(--warn)">${fmtB(g.wasted)} wasted</b></div>
+        ${g.paths.map((p) => `<div class="file-row"><span class="fp">${esc(p)}</span></div>`).join("")}
+      </div>`).join("") : `<div class="conv-empty muted" style="padding:14px">no duplicates found in the scanned set 🎉</div>`;
+  } catch (e) { box.innerHTML = `<div class="conv-empty muted" style="padding:14px">duplicate scan failed</div>`; }
+});
 
 /* ===================== startup ===================== */
 async function refreshStartup() {
@@ -1597,6 +1787,7 @@ const FAMILY_LABEL = {
 };
 // The cover library (manifest) plus every title the exe knows about: the database is the
 // source of truth for names + genres, so a game only needs art to get a pretty tile.
+// Steam most-played entries carry g.rank (1..100) and g.peak — surfaced as a badge.
 async function ensureLibrary(force) {
   if (libGames && !force) return libGames;
   const out = [], seen = new Set();
@@ -1613,6 +1804,7 @@ async function ensureLibrary(force) {
       out.push({ key: r.exe, name: r.name, family: r.family, pack: FAMILY_PACK[r.family] || "esport", cover: "" });
     }
   } catch (e) { }
+  out.sort((a, b) => (a.rank || 999) - (b.rank || 999) || a.name.localeCompare(b.name));
   libGames = out;
   return libGames;
 }
@@ -1667,7 +1859,8 @@ async function renderLibrary(force) {
   else if (libSort === "genre") list.sort((a, b) => (a.family || "").localeCompare(b.family || "") || byInst(a, b));
   else if (libSort === "installed") list.sort(byInst);
   else if (libSort === "covers") list.sort((a, b) => (b.cover ? 1 : 0) - (a.cover ? 1 : 0) || byInst(a, b));
-  else list.sort(byName);
+  else if (libSort === "top") list.sort((a, b) => (a.rank || 999) - (b.rank || 999) || (b.cover ? 1 : 0) - (a.cover ? 1 : 0) || byName(a, b));
+  else list.sort((a, b) => (a.rank || 999) - (b.rank || 999) || byName(a, b));
   grid.innerHTML = list.map((g, i) => `
     <div class="lib-card ${g._inst ? "inst" : ""}" data-key="${esc(g.key)}" style="animation-delay:${Math.min(i * 8, 320)}ms">
       ${g.cover
@@ -1675,6 +1868,7 @@ async function renderLibrary(force) {
       : `<div class="lib-ph"><b>${esc(initials(g.name))}</b><span>${esc(FAMILY_LABEL[g.family] || g.family || "PC")}</span></div>`}
       ${g._inst && g._inst.icon ? `<img class="lib-inst-ico" src="/api/game-icon/${encodeURIComponent(g._inst.icon)}" alt=""/>` : ""}
       ${g._inst ? `<span class="lib-badge inst">INSTALLED</span>` : ""}
+      ${g.rank ? `<span class="lib-badge rank" title="Steam most-played chart — ${esc(String(g.peak || ""))} concurrent">#${g.rank}</span>` : ""}
       <div class="lib-meta"><b>${esc(g.name)}</b><span>${esc(FAMILY_LABEL[g.family] || g.family)} · ${esc(PACK_LABEL[g.pack] || g.pack)}</span></div>
     </div>`).join("");
   $("#lib-count").textContent = `${list.length} of ${all.length} titles · ${instN} installed here`;

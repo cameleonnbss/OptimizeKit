@@ -4,6 +4,39 @@ All notable changes to OptimizeKit are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] — 2026-09-21
+
+The "know your machine" release: a process reducer, a full local security scan,
+a DiskScope-powered storage view, real Steam/Epic cover art in the Game Library
+and a polished, animated dashboard.
+
+### Added
+
+- **Process Reducer** — live CPU/RAM table of everything running, with per-process
+  eco mode (below-normal priority + power throttling), one-click end, an "eco all
+  background" sweep and a full state restore. Endpoints: `/api/reducer`,
+  `/api/reducer/act`.
+- **Security scan** — evidence-based local audit: active antivirus + signature age
+  (SecurityCenter2), firewall per profile (INetFwPolicy2), every listening port
+  with its owning process, established outbound connections with remote IPs,
+  autostart persistence entries and ransomware-pattern file checks. Each finding
+  ships a one-click fix or open-action. Endpoints: `/api/security/scan`,
+  `/api/security/revoke`.
+- **DiskScope storage tools** — duplicate finder, space-hog cleanup targets and
+  folder size analysis, built with assets and concepts from the
+  [DiskScope-CLI](https://github.com/cameleonnbss/DiskScope-CLI) project.
+  Endpoints: `/api/disk/folders`, `/api/disk/cleanup`, `/api/disk/duplicates`.
+- **Real cover art** — the Game Library now pulls box art for the top-played Steam
+  and Epic titles straight from the store CDNs, so most tiles show the actual
+  jacket instead of a placeholder.
+- **Dashboard polish** — accent-color flyout in the top-left is fully functional,
+  view transitions and hover states animated throughout.
+
+### Fixed
+
+- Firewall COM query used a wrong interface IID and always fell back to "unknown".
+- Process reducer reported killed counts but the UI read a different field.
+
 ## [2.5.0] — 2026-09-21
 
 The "every game, every drive" release: a built-in database of known PC titles, a

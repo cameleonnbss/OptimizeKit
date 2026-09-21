@@ -15,13 +15,23 @@
 
 `C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation` · `aucun driver, aucune injection`
 
-[⬇️ **Télécharger v2.5.0**](../../releases/tag/v2.5.0) · [Nouveautés](#-nouveautés-de-la-250) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.6.0**](../../releases/tag/v2.6.0) · [Nouveautés](#-nouveautés-de-la-260) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
 
 </div>
 
 ---
 
-## 🆕 Nouveautés de la 2.5.0
+## 🆕 Nouveautés de la 2.6.0
+
+| | |
+|---|---|
+| **Réducteur de processus** | Table live CPU/RAM de tout ce qui tourne — mode éco par processus (priorité basse + power throttling), kill, nettoyage du fond, restauration complète |
+| **Analyse sécurité** | Uniquement des preuves réelles : antivirus + âge des signatures, pare-feu par profil, chaque port en écoute et son propriétaire, connexions sortantes avec IP distantes, persistance au démarrage, fichiers à motifs ransomware — chaque constat a son correctif en un clic |
+| **Outils DiskScope** | Doublons, cibles de nettoyage et tailles de dossiers, construits avec les assets du projet [DiskScope-CLI](https://github.com/cameleonnbss/DiskScope-CLI) |
+| **Vraies jaquettes** | La bibliothèque récupère les jaquettes des titres Steam et Epic les plus joués depuis les CDN des stores — la plupart des tuiles montrent la vraie pochette |
+| **Interface peaufinée** | Le sélecteur de couleur d'accent en haut à gauche est pleinement fonctionnel ; transitions et survols animés partout |
+
+### Toujours valable depuis la 2.5.0
 
 | | |
 |---|---|
@@ -70,7 +80,7 @@ Détail complet dans [CHANGELOG.md](CHANGELOG.md).
 
 | Release | Lien |
 |---|---|
-| **v2.3.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.3.0 |
+| **v2.6.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.6.0 |
 | Toutes les releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 
 `OptimizeKit.exe` est **entièrement statique** (MinGW-w64, ~6 Mo) : aucun runtime, aucune DLL, aucune installation. Il embarque un serveur HTTP et le dashboard liquid-glass (dossier `web/` livré à côté).

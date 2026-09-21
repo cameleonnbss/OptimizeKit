@@ -35,6 +35,7 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     src\core\monitor.cpp src\core\netprofile.cpp src\core\scan.cpp ^
     src\core\games.cpp src\core\ram.cpp src\core\storage.cpp src\core\logging2.cpp ^
     src\core\diagnostics.cpp ^
+    src\core\reducer.cpp src\core\security.cpp src\core\diskscope.cpp ^
     src\server\server.cpp ^
     src\ui\ui.cpp src\ui\webframe.cpp ^
     build\OptimizeKit.res ^
@@ -42,7 +43,7 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     -Ithird_party\webview2\include ^
     -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 ^
     -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi ^
-    -lpdh -lwininet -luuid -lntdll ^
+    -lpdh -lwininet -luuid -lntdll -lwintrust ^
     -static -static-libgcc -static-libstdc++
 if errorlevel 1 exit /b 1
 

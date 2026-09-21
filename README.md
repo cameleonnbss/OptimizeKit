@@ -16,13 +16,23 @@
 
 `C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install` · `no driver, no injection`
 
-[⬇️ **Download v2.5.0**](../../releases/tag/v2.5.0) · [What's new](#-whats-new-in-250) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.6.0**](../../releases/tag/v2.6.0) · [What's new](#-whats-new-in-260) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
 ---
 
-## 🆕 What's new in 2.5.0
+## 🆕 What's new in 2.6.0
+
+| | |
+|---|---|
+| **Process Reducer** | Live CPU/RAM table of everything running — set any process to eco (lower priority + power throttling), end it, sweep all background noise, restore everything |
+| **Security scan** | Real evidence only: antivirus + signature age, firewall per profile, every listening port and its owner, outbound connections with remote IPs, autostart persistence, ransomware-pattern files — each finding has a one-click fix |
+| **DiskScope tools** | Duplicate finder, space-hog cleanup targets and folder sizes, built with assets from the [DiskScope-CLI](https://github.com/cameleonnbss/DiskScope-CLI) project |
+| **Real cover art** | The Game Library pulls box art for the top-played Steam and Epic titles from the store CDNs — most tiles show the actual jacket |
+| **Dashboard polish** | The accent-color flyout in the top-left is fully functional; view transitions and hover states animated throughout |
+
+### Still from 2.5.0
 
 | | |
 |---|---|
@@ -75,7 +85,7 @@ Full detail in [CHANGELOG.md](CHANGELOG.md).
 
 | Release | Link |
 |---|---|
-| **v2.5.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.5.0 |
+| **v2.6.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.6.0 |
 | v2.4.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.4.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |

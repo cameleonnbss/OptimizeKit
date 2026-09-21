@@ -509,7 +509,7 @@ input[type=range].ok-range::-webkit-slider-thumb:active{cursor:grabbing;transfor
 
 /* ---------- misc v2.1 ---------- */
 .tw-hidden{display:none!important}
-.view-anim{animation:viewin .38s var(--ease) both}
+.view-anim{animation:view-rise .42s var(--ease) both}   /* v2.6 overrides the v2.2 rule below */
 @keyframes viewin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .tw2-undo{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(8px);z-index:99;display:flex;gap:12px;align-items:center;padding:10px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(11,13,19,.96);backdrop-filter:blur(16px);box-shadow:0 16px 44px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;font-size:12px}
 .tw2-undo.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
@@ -928,3 +928,62 @@ body.glitch .brand b,body.glitch .dh-main h1,body.glitch .gc-hero-txt h1,body.gl
 .game-card .g-meta span{text-transform:none;letter-spacing:.02em}
 .game-card.sel{box-shadow:0 0 0 1px var(--accent),0 0 24px rgba(var(--accent-rgb),.28)}
 .games-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+
+/* ==========================================================================
+   v2.6 — KHADAFI-GRADE MOTION PASS + new modules
+   ========================================================================== */
+/* ---------- accent flyout: real animation + picked feedback ---------- */
+#theme-flyout{transform-origin:top right;transition:transform .28s var(--ease),opacity .28s var(--ease)}
+#theme-flyout.fly-in{animation:fly-pop .32s var(--ease) both}
+@keyframes fly-pop{from{opacity:0;transform:scale(.86) translateY(-6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.theme-opt{transition:transform .18s var(--ease),box-shadow .18s}
+.theme-opt:hover{transform:scale(1.18)}
+.theme-opt.picked{animation:swatch-pick .45s var(--ease) both}
+@keyframes swatch-pick{0%{transform:scale(1)}40%{transform:scale(1.45);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.35),0 0 18px rgba(var(--accent-rgb),.55)}100%{transform:scale(1)}}
+
+/* ---------- views breathe in like the rest of the shell ---------- */
+.view-anim{animation:view-rise .42s var(--ease) both}
+@keyframes view-rise{from{opacity:0;transform:translateY(14px) scale(.995);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.gc-hero .btn,.sec-head .btn{transition:transform .16s var(--ease),box-shadow .22s}
+.gc-hero .btn:hover,.sec-head .btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(var(--accent-rgb),.28)}
+.stat-card{transition:transform .22s var(--ease),border-color .22s}
+.stat-card:hover{transform:translateY(-3px)}
+.nav-item{transition:padding-left .22s var(--ease),background .2s,border-color .2s}
+.nav-item:hover{padding-left:16px}
+
+/* ---------- process reducer ---------- */
+.red-row{display:flex;gap:12px;align-items:center;border-radius:var(--radius);border:1px solid var(--border);
+  background:linear-gradient(160deg,rgba(18,15,20,.5),rgba(9,10,15,.62));backdrop-filter:blur(20px);
+  padding:10px 14px;margin-bottom:8px;max-width:1100px;animation:dg-fade-up 380ms var(--ease) both;transition:border-color .2s,box-shadow .3s}
+.red-row:hover{border-color:rgba(var(--accent-rgb),.4)}
+.red-row.eco{border-color:rgba(61,214,140,.45);background:linear-gradient(160deg,rgba(20,30,24,.5),rgba(8,14,10,.6))}
+.red-name{flex:0 0 240px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.red-cpu{flex:0 0 70px;text-align:right;font-variant-numeric:tabular-nums;color:var(--warn)}
+.red-ram{flex:0 0 80px;text-align:right;color:var(--muted);font-size:11px}
+.red-cls{flex:0 0 110px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2)}
+.red-row.eco .red-cls{color:var(--ok)}
+.red-act{margin-left:auto;display:flex;gap:6px}
+@media(max-width:1000px){.red-cls{display:none}.red-name{flex:1}}
+
+/* ---------- security scan ---------- */
+.sev-anim{animation:dg-fade-up 420ms var(--ease) both}
+.sec-finding p{white-space:pre-line}
+.finding .sev.high{background:var(--err)}
+.lib-badge.rank{position:absolute;top:8px;right:44px;z-index:2;background:rgba(245,165,36,.94);color:#1c1204;
+  font-size:8.5px;font-weight:750;letter-spacing:.12em;padding:3px 8px;border-radius:99px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+
+/* ---------- diskscope rows ---------- */
+.dsz-row{display:flex;gap:12px;align-items:center;padding:7px 12px;border-radius:10px;border:1px solid var(--border);
+  background:linear-gradient(160deg,rgba(18,15,20,.45),rgba(9,10,15,.6));margin-bottom:6px;max-width:1100px;
+  animation:dg-fade-up 360ms var(--ease) both}
+.dsz-name{flex:0 0 200px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsz-bar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.dsz-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(var(--accent-rgb),.55),var(--accent));
+  box-shadow:0 0 10px rgba(var(--accent-rgb),.45);transition:width .7s var(--ease)}
+.dsz-bytes{flex:0 0 84px;text-align:right;font-size:12px}
+.dsz-card{display:flex;flex-direction:column;gap:4px;padding:12px 14px;min-width:0}
+.dsz-foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px}
+.dupe-group{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;max-width:1100px;
+  background:linear-gradient(160deg,rgba(24,18,20,.5),rgba(9,10,15,.6));animation:dg-fade-up 380ms var(--ease) both}
+.dupe-head{display:flex;gap:16px;align-items:baseline;margin-bottom:8px}
+.dupe-head .mono{color:var(--muted);font-size:11px}

@@ -7,6 +7,9 @@
 #include "games.h"
 #include "ram.h"
 #include "storage.h"
+#include "reducer.h"
+#include "security.h"
+#include "diskscope.h"
 #include "logging2.h"
 #include "diagnostics.h"
 #include "webassets.h"
@@ -101,6 +104,7 @@ static json jsonPingAll() {
 int serve(unsigned short preferredPort) {
     httplib::Server svr;
     g_svr = &svr;
+    atexit([]() { reducer::restoreAll(); });   // never leave a machine throttled
 
     // ------------- embedded dashboard fallback (exe works with zero files on disk) -------------
     const bool diskWeb = fs::exists(webRoot());
@@ -451,6 +455,63 @@ int serve(unsigned short preferredPort) {
         json body;
         try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
         res.set_content(storage::folderSizes(widen(body.value("root", "C:\\")), body.value("top", 12)).dump(), "application/json");
+    });
+
+    // ============ v2.6: process reducer ============
+    svr.Get("/api/reducer", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(reducer::listJson().dump(), "application/json");
+    });
+    svr.Get("/api/reducer/state", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(reducer::stateJson().dump(), "application/json");
+    });
+    svr.Post("/api/reducer/act", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        string action = body.value("action", "");
+        DWORD pid = (DWORD)body.value("pid", 0);
+        wstring err;
+        json out;
+        if (action == "eco")          out["ok"] = reducer::eco(pid, err);
+        else if (action == "boost")   out["ok"] = reducer::boost(pid, err);
+        else if (action == "undo")    out["ok"] = reducer::undo(pid, err);
+        else if (action == "kill")    out["ok"] = reducer::kill(pid, err);
+        else if (action == "eco-all") out["ok"] = true, out["n"] = reducer::ecoAll(body.value("minCpu", 1.0), err);
+        else if (action == "undo-all")out["ok"] = true, out["n"] = reducer::undoAll(err);
+        else { res.status = 400; return; }
+        out["error"] = narrow(err);
+        res.set_content(out.dump(), "application/json");
+    });
+
+    // ============ v2.6: security scan ============
+    svr.Get("/api/security/scan", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(secscan::runScan().dump(), "application/json");
+    });
+    svr.Post("/api/security/revoke", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        wstring err;
+        bool okb = body.value("restore", false) ? secscan::restoreEntry(widen(body.value("id", "")), err)
+                                                : secscan::revokeEntry(widen(body.value("id", "")), err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2.6: DiskScope storage ============
+    svr.Post("/api/disk/folders", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        res.set_content(diskscope::driveAndFolders(widen(body.value("drive", "C:")),
+                                                   body.value("top", 20), body.value("budgetMs", 15000)).dump(),
+                        "application/json");
+    });
+    svr.Get("/api/disk/cleanup", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(diskscope::cleanupTargets().dump(), "application/json");
+    });
+    svr.Post("/api/disk/duplicates", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        res.set_content(diskscope::duplicates(widen(body.value("root", "C:\\Users")),
+                                              body.value("max", 3000), body.value("budgetMs", 30000)).dump(),
+                        "application/json");
     });
 
     // ============ v2: benchmark ============
