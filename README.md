@@ -12,17 +12,27 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**Live monitoring** · **Gaming score** · **Smart Optimize** · **49 reversible tweaks** · **5 tuning centers** · **106-title game library** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K command palette** · **12 full themes** · **EN/FR** · **Full activity log**
+**Live monitoring** · **Gaming score** · **Smart Optimize** · **49 reversible tweaks** · **5 tuning centers** · **300-title game database + 106 covers** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K command palette** · **12 full themes** · **EN/FR** · **Full activity log**
 
 `C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install` · `no driver, no injection`
 
-[⬇️ **Download v2.4.0**](../../releases/tag/v2.4.0) · [What's new](#-whats-new-in-240) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.5.0**](../../releases/tag/v2.5.0) · [What's new](#-whats-new-in-250) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
 ---
 
-## 🆕 What's new in 2.4.0
+## 🆕 What's new in 2.5.0
+
+| | |
+|---|---|
+| **Game database** | ~300 known PC titles with their exe stems, aliases and genres — a game installed outside any store is still recognised, named and given a suggested set |
+| **Detect everything** | Six new scans (Battle.net, Ubisoft, EA, itch.io, per-user keys, Xbox paths) **plus a survey of every fixed drive**; Steam on `D:` is found through the registry |
+| **Icons for all** | One batch pass extracts the icon of *every* detected game from its own exe — not the first twelve |
+| **More buttons** | Launch, boost, gaming mode, extract icon, open folder, copy path, library preset, boost all, extract all, random, per-store shortcuts |
+| **Library ×2** | Cover art + database merged, genre/installed/cover filters, five sort orders, INSTALLED badges with the real icon |
+
+### Still from 2.4.0
 
 | | |
 |---|---|
@@ -65,7 +75,8 @@ Full detail in [CHANGELOG.md](CHANGELOG.md).
 
 | Release | Link |
 |---|---|
-| **v2.4.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.4.0 |
+| **v2.5.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.5.0 |
+| v2.4.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.4.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
@@ -105,8 +116,8 @@ Deep black + your accent color (accent picker in the top bar), **12 full theme p
 | **Gaming Center** | Gaming score ring, category score cards, grouped ON/OFF switches, Gaming Mode enter/exit |
 | **Tweaks** | All 49 tweaks as switch cards: instant apply / instant restore, search, category filters, ADMIN/USER badges, impact bars, live count in the sidebar |
 | **Smart Optimize** | Ranks the whole catalog against a goal (Gaming / Latency / Privacy / Balanced) from the machine's **real** state, with a weight and a "why" per item, per-item checkboxes and one apply |
-| **Games** | Steam + Epic + Riot + GOG + registry detection, real icons extracted from the executables, per-game boost (IFEO persistent priority) and Gaming Mode |
-| **Game Library** | 106 covers grouped by genre — pick a title and apply the set that fits it, with the exact tweak list shown first (see below) |
+| **Games** | Nine stores + a survey of every fixed drive, a built-in database to name and classify what it finds, real icons extracted from the executables, one-click launch / reveal, per-game boost (IFEO persistent priority), boost-all, Gaming Mode and store shortcuts |
+| **Game Library** | Cover art merged with the built-in database — pick a title and apply the set that fits its genre, with the exact tweak list shown first; installed titles are badged with their real icon (see below) |
 | **Packs** | Six ready-made bundles (Esport, Low latency, Play & stream, Laptop/thermals, Fast clean boot, Privacy) with a live progress bar, Apply/Restore in one click and "What's inside" resolving the real tweak names |
 | **Input Lag** | 14 settings on the hand-to-pixel path (timer, foreground quantum, MSI mode, interrupt affinity, USB/PCIe power states, network stack) + an explicit **Measure** button for the DPC/ISR and jitter sample |
 | **Rendering & FPS** | Hardware GPU scheduling, MPO, fullscreen flips, windowed-game optimizations, VRR, Auto-HDR, per-app GPU preference, Game Bar/DVR — with the live HAGS state and driver version as measured cards |
@@ -133,7 +144,9 @@ Press **Ctrl+K** anywhere for the command palette (modules, tweaks, tools, packs
 
 ## 🎮 Game Library
 
-106 titles with their cover art, grouped by genre (Competitive FPS, MMO, Co-op, Sandbox, Racing, Fighting, Horror…). Pick a cover and OptimizeKit resolves the set that fits that genre, shows **exactly** which tweaks it contains, then applies/restores them through the normal snapshot path. Nothing hidden, nothing irreversible.
+Two sources, one grid: **106 titles with real cover art** (imported box art) and a **built-in database of ~300 known PC games** (`src/core/gamedb.h`) that supplies the name, the genre and the suggested set for everything else. Titles the database knows but that have no art get a generated tile instead of breaking the grid.
+
+Pick a cover and OptimizeKit resolves the set that fits that genre, shows **exactly** which tweaks it contains, then applies/restores them through the normal snapshot path. Games detected on this machine are badged `INSTALLED` with their real extracted icon, and can be launched or revealed in Explorer straight from the library. Filters: genre, installed, cover art. Sorts: A→Z, Z→A, genre, installed first, cover art. There is also a **Surprise me** button. Nothing hidden, nothing irreversible.
 
 The covers are imported from the Khadafi optimizer's `assets/gamelogos` folder — thumbnails only, and deliberately **not** embedded in the exe (they are third-party box art):
 
@@ -149,13 +162,18 @@ Multi-provider scanner — no single-store lock-in:
 
 | Provider | Source |
 |---|---|
-| **Steam** | `libraryfolders.vdf` → `appmanifest_*.acf` (all libraries, all drives) |
+| **Steam** | registry `SteamPath`/`InstallPath` → `libraryfolders.vdf` → `appmanifest_*.acf` (all libraries, all drives) |
 | **Epic** | `%PROGRAMDATA%\Epic\EpicGamesLauncher\Data\Manifests\*.item` |
 | **Riot** | `HKLM\SOFTWARE\Riot Games, Inc.\*` (VALORANT, LoL…) |
 | **GOG** | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\*` |
-| **Registry** | Uninstall keys under Epic/Riot/GOG/Battle.net/Ubisoft/EA/Xbox/Rockstar dirs |
+| **Battle.net** | `HKLM\SOFTWARE[(WOW6432Node)\]Blizzard Entertainment\*` → `InstallLocation` (WoW, Overwatch, Diablo…) |
+| **Ubisoft** | `…\Ubisoft\Launcher\Installs\*` → `InstallDir` |
+| **EA** | `…\Electronic Arts\EA Games\*` → `Install Dir` |
+| **itch.io** | `%APPDATA%\itch\apps\*` |
+| **Registry** | Uninstall keys (machine **and** user) under Epic/Riot/GOG/Battle.net/Blizzard/Ubisoft/EA/Xbox/Rockstar/Amazon/itch/Wargaming dirs |
+| **Every drive** | `\Games`, `\Game`, `\Jeux`, `\GOG Games`, `\Epic Games`, `\Riot Games`, `\Rockstar Games`, `\XboxGames`, `\Battle.net`, `\Program Files (x86)`, `\SteamLibrary\steamapps\common` … — only folders the built-in database recognises are opened |
 
-Plus per-game profiles (persistent high priority via IFEO), gaming mode per game, and real icon extraction (`SHDefExtractIconW` → PNG cache).
+Every candidate exe is matched against the **built-in game database** (`src/core/gamedb.h`, ~300 titles with exe stems + aliases + genre), so a game gets its real name and family even with no launcher manifest. Then: per-game profiles (persistent high priority via IFEO), gaming mode per game, `POST /api/games/launch`, `POST /api/games/boost-all`, and real icon extraction (`SHDefExtractIconW` → PNG cache, in batch via `POST /api/games/icons`).
 
 ## 🖥️ CLI
 

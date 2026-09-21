@@ -4,6 +4,7 @@
 #include "games.h"
 #include "engine.h"
 #include "gameboost.h"
+#include "gamedb.h"
 #include "tweaks.h"
 #include "sysinfo.h"
 #include <shellapi.h>
@@ -12,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <algorithm>
+#include <chrono>
 
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
@@ -64,6 +66,91 @@ wstring safeIconId(const wstring& id) {
         else s += c;
     }
     return s;
+}
+
+// ------------------------------------------------- launcher / exe discovery
+// Guess the store a folder belongs to from its path (last resort: standalone).
+static wstring launcherFromPath(const wstring& path) {
+    wstring l = lower(path);
+    struct { const wchar_t* needle; const wchar_t* name; } map[] = {
+        { L"steamlibrary", L"Steam" }, { L"steamapps", L"Steam" }, { L"\\steam\\", L"Steam" },
+        { L"epic games", L"Epic" },
+        { L"riot games", L"Riot" },
+        { L"gog", L"GOG" },
+        { L"battle.net", L"Battle.net" }, { L"blizzard", L"Battle.net" },
+        { L"ubisoft", L"Ubisoft" },
+        { L"ea games", L"EA" }, { L"electronic arts", L"EA" }, { L"origin games", L"EA" },
+        { L"rockstar", L"Rockstar" },
+        { L"xboxgames", L"Xbox" }, { L"modifiablewindowsapps", L"Xbox" }, { L"windowsapps", L"Xbox" },
+        { L"amazon games", L"Amazon" },
+        { L"itch", L"itch.io" },
+    };
+    for (auto& m : map) if (l.find(m.needle) != wstring::npos) return m.name;
+    return L"Standalone";
+}
+
+// Best executable inside a game folder: the database's own exe first, then the biggest
+// non-helper one, then (depth > 0) the usual Unreal/Unity sub-layouts.
+static wstring pickExe(const wstring& dir, const wstring& preferStem, int depth = 1) {
+    wstring exact, best, bestAny;
+    uint64_t bestSz = 0, anySz = 0;
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW((dir + L"\\*.exe").c_str(), &fd);
+    if (h != INVALID_HANDLE_VALUE) {
+        do {
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
+            ULARGE_INTEGER sz{ fd.nFileSizeLow, fd.nFileSizeHigh };
+            if (sz.QuadPart > anySz) { anySz = sz.QuadPart; bestAny = dir + L"\\" + fd.cFileName; }
+            if (!preferStem.empty() && lower(fd.cFileName) == lower(preferStem) + L".exe")
+                exact = dir + L"\\" + fd.cFileName;
+            if (!helperExe(fd.cFileName) && sz.QuadPart > bestSz) { bestSz = sz.QuadPart; best = dir + L"\\" + fd.cFileName; }
+        } while (FindNextFileW(h, &fd));
+        FindClose(h);
+    }
+    if (!exact.empty()) return exact;
+    if (!best.empty()) return best;
+    if (depth > 0) {
+        static const wchar_t* subs[] = {
+            L"Binaries\\Win64", L"bin\\x64", L"bin", L"Bin", L"bin64", L"Win64", L"x64",
+            L"Game\\Binaries\\Win64", L"_retail_", L"_classic_", L"_classic_era_", L"retail",
+            L"ShooterGame\\Binaries\\Win64", L"live",
+        };
+        for (auto* s : subs) {
+            wstring d = dir + L"\\" + s;
+            if (GetFileAttributesW(d.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+            if (wstring e = pickExe(d, preferStem, depth - 1); !e.empty()) return e;
+        }
+    }
+    return bestAny;
+}
+
+// Largest exe anywhere under `dir`, bounded by depth and by the number of folders visited.
+static wstring deepLargestExe(const wstring& dir, int depth, int& budget) {
+    if (depth <= 0 || budget <= 0) return L"";
+    wstring bestAny;
+    uint64_t anySz = 0;
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW((dir + L"\\*.exe").c_str(), &fd);
+    if (h != INVALID_HANDLE_VALUE) {
+        do {
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
+            ULARGE_INTEGER sz{ fd.nFileSizeLow, fd.nFileSizeHigh };
+            if (!helperExe(fd.cFileName) && sz.QuadPart > anySz) { anySz = sz.QuadPart; bestAny = dir + L"\\" + fd.cFileName; }
+        } while (FindNextFileW(h, &fd));
+        FindClose(h);
+    }
+    if (!bestAny.empty()) return bestAny;
+    HANDLE d = FindFirstFileW((dir + L"\\*").c_str(), &fd);
+    if (d == INVALID_HANDLE_VALUE) return L"";
+    wstring found;
+    do {
+        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) continue;
+        if (fd.cFileName[0] == L'.') continue;
+        if (--budget <= 0) break;
+        if (wstring e = deepLargestExe(dir + L"\\" + fd.cFileName, depth - 1, budget); !e.empty()) { found = e; break; }
+    } while (FindNextFileW(d, &fd));
+    FindClose(d);
+    return found;
 }
 
 // ------------------------------------------------------------------ icons
@@ -170,27 +257,50 @@ static void addGame(vector<Game>& out, const Game& g) {
 
 static void scanSteam(vector<Game>& out) {
     // Steam library folders -> appmanifest_*_.acf -> name + install dir; icon: steam/cache or exe
+    // Root discovery: the registry first (Steam often lives on another drive), then the defaults.
+    vector<wstring> candidates;
+    wchar_t sp[512] = L""; DWORD szv = sizeof(sp);
+    if (RegGetValueW(HKEY_CURRENT_USER, L"SOFTWARE\\Valve\\Steam", L"SteamPath", RRF_RT_REG_SZ, nullptr, sp, &szv) == ERROR_SUCCESS && sp[0])
+        candidates.push_back(sp);
+    szv = sizeof(sp);
+    if (RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Valve\\Steam", L"InstallPath", RRF_RT_REG_SZ, nullptr, sp, &szv) == ERROR_SUCCESS && sp[0])
+        candidates.push_back(sp);
     wchar_t* p = nullptr;
-    if (SHGetKnownFolderPath(FOLDERID_ProgramFilesX86, 0, nullptr, &p) != S_OK) return;
-    wstring steamRoot = wstring(p) + L"\\Steam";
-    CoTaskMemFree(p);
+    if (SHGetKnownFolderPath(FOLDERID_ProgramFilesX86, 0, nullptr, &p) == S_OK) {
+        candidates.push_back(wstring(p) + L"\\Steam");
+        CoTaskMemFree(p);
+    }
+    if (SHGetKnownFolderPath(FOLDERID_ProgramFiles, 0, nullptr, &p) == S_OK) {
+        candidates.push_back(wstring(p) + L"\\Steam");
+        CoTaskMemFree(p);
+    }
 
-    wstring libFile = steamRoot + L"\\steamapps\\libraryfolders.vdf";
-    std::ifstream f(libFile.c_str());
     vector<wstring> libs;
-    if (f) {
-        // cheap VDF: collect "path" values (UTF-8 file)
-        std::string line;
-        while (std::getline(f, line)) {
-            if (line.find("\"path\"") != string::npos) {
-                auto q1 = line.find('"', line.find("\"path\"") + 6);
-                auto q2 = line.find('"', q1 + 1);
-                if (q1 != string::npos && q2 != string::npos)
-                    libs.push_back(widen(line.substr(q1 + 1, q2 - q1 - 1)));
+    for (auto& root : candidates) {
+        if (!fs::exists(root + L"\\steamapps")) continue;
+        std::ifstream f((root + L"\\steamapps\\libraryfolders.vdf").c_str());
+        if (f) {
+            // cheap VDF: collect "path" values (UTF-8 file)
+            std::string line;
+            while (std::getline(f, line)) {
+                if (line.find("\"path\"") != string::npos) {
+                    auto q1 = line.find('"', line.find("\"path\"") + 6);
+                    auto q2 = line.find('"', q1 + 1);
+                    if (q1 != string::npos && q2 != string::npos)
+                        libs.push_back(widen(line.substr(q1 + 1, q2 - q1 - 1)));
+                }
             }
         }
+        libs.push_back(root);
     }
-    if (libs.empty()) libs.push_back(steamRoot);
+    // dedupe (a library is listed by every Steam install that knows it)
+    vector<wstring> uniq;
+    for (auto& l : libs) {
+        bool dup = false;
+        for (auto& u : uniq) if (lower(u) == lower(l)) { dup = true; break; }
+        if (!dup) uniq.push_back(l);
+    }
+    libs.swap(uniq);
 
     for (auto& lib : libs) {
         wstring dir = lib + L"\\steamapps";
@@ -340,28 +450,33 @@ static void scanGog(vector<Game>& out) {
 
 static void scanRegistryApps(vector<Game>& out) {
     // Uninstall keys: DisplayName + InstallLocation + DisplayIcon -> real games with icons
-    const wchar_t* keys[] = {
-        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-        L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+    struct RootKey { HKEY hive; const wchar_t* path; };
+    const RootKey keys[] = {
+        { HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall" },
+        { HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall" },
+        { HKEY_CURRENT_USER,  L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall" },
     };
     const wchar_t* launchers[] = {
-        L"Epic Games", L"Riot Games", L"GOG.com", L"Battle.net", L"Ubisoft Connect",
-        L"EA Games", L"Xbox Games", L"Rockstar Games", L"Bethesda", L"Paradox Interactive",
+        L"Epic Games", L"Riot Games", L"GOG.com", L"Battle.net", L"Blizzard Entertainment",
+        L"Ubisoft", L"EA Games", L"Electronic Arts", L"Xbox Games", L"Rockstar Games",
+        L"Bethesda", L"Paradox Interactive", L"Amazon Games", L"WindowsApps",
+        L"ModifiableWindowsApps", L"itch.io", L"Wargaming", L"Perfect World",
     };
-    for (auto& root : keys) {
+    for (auto& rk : keys) {
         HKEY k;
-        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, root, 0, KEY_READ, &k) != ERROR_SUCCESS) continue;
+        if (RegOpenKeyExW(rk.hive, rk.path, 0, KEY_READ, &k) != ERROR_SUCCESS) continue;
         DWORD idx = 0; wchar_t sub[256]; DWORD subLen = 256;
         while (RegEnumKeyExW(k, idx++, sub, &subLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
             subLen = 256;
+            wstring keyPath = wstring(rk.path) + L"\\" + sub;
             wchar_t name[256] = L"", loc[512] = L"", icon[512] = L"";
             DWORD sz = sizeof(name);
-            if (RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(root) + L"\\" + sub).c_str(), L"DisplayName", RRF_RT_REG_SZ, nullptr, name, &sz) != ERROR_SUCCESS)
+            if (RegGetValueW(rk.hive, keyPath.c_str(), L"DisplayName", RRF_RT_REG_SZ, nullptr, name, &sz) != ERROR_SUCCESS)
                 continue;
             sz = sizeof(loc);
-            RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(root) + L"\\" + sub).c_str(), L"InstallLocation", RRF_RT_REG_SZ, nullptr, loc, &sz);
+            RegGetValueW(rk.hive, keyPath.c_str(), L"InstallLocation", RRF_RT_REG_SZ, nullptr, loc, &sz);
             sz = sizeof(icon);
-            RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(root) + L"\\" + sub).c_str(), L"DisplayIcon", RRF_RT_REG_SZ, nullptr, icon, &sz);
+            RegGetValueW(rk.hive, keyPath.c_str(), L"DisplayIcon", RRF_RT_REG_SZ, nullptr, icon, &sz);
 
             // keep only entries that live under a known launcher dir (avoids catching every app)
             wstring l = lower(loc);
@@ -370,7 +485,19 @@ static void scanRegistryApps(vector<Game>& out) {
                 if (l.find(lower(ln)) != wstring::npos) { launcher = ln; break; }
             }
             if (launcher == L"Standalone") continue;
+            if (launcher == L"WindowsApps" || launcher == L"ModifiableWindowsApps") launcher = L"Xbox";
             if (lower(name).find(L"launcher") != wstring::npos) continue;   // launcher app, not a game
+            // ... and the store clients themselves, which are not games (exact names only,
+            // so a title like "SteamWorld Dig" is never caught by a substring rule)
+            static const wchar_t* notGames[] = {
+                L"riot client", L"battle.net", L"steam", L"epic games", L"gog galaxy",
+                L"ubisoft connect", L"ea app", L"xbox", L"itch", L"origin",
+            };
+            wstring lname = lower(name);
+            while (!lname.empty() && (lname.back() == L' ' || lname.back() == L'\t')) lname.pop_back();
+            bool isClient = false;
+            for (auto* ng : notGames) if (lname == ng) { isClient = true; break; }
+            if (isClient) continue;
 
             // exe: from DisplayIcon, else the biggest exe in InstallLocation
             wstring exe = icon;
@@ -382,17 +509,7 @@ static void scanRegistryApps(vector<Game>& out) {
                 // search InstallLocation
                 exe.clear();
                 if (!loc[0]) continue;
-                WIN32_FIND_DATAW fd;
-                HANDLE h2 = FindFirstFileW((wstring(loc) + L"\\*.exe").c_str(), &fd);
-                uint64_t best = 0;
-                if (h2 != INVALID_HANDLE_VALUE) {
-                    do {
-                        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
-                        ULARGE_INTEGER s2{ fd.nFileSizeLow, fd.nFileSizeHigh };
-                        if (s2.QuadPart > best) { best = s2.QuadPart; exe = wstring(loc) + L"\\" + fd.cFileName; }
-                    } while (FindNextFileW(h2, &fd));
-                    FindClose(h2);
-                }
+                exe = pickExe(loc, L"", 1);
             }
             if (exe.empty()) continue;
             Game g;
@@ -406,17 +523,218 @@ static void scanRegistryApps(vector<Game>& out) {
     }
 }
 
+// ------------------------------------------------------- extra store scanners
+// Blizzard: HKLM\SOFTWARE[(WOW6432Node)\]Blizzard Entertainment\<game> -> InstallLocation
+static void scanBlizzard(vector<Game>& out) {
+    const wchar_t* bases[] = {
+        L"SOFTWARE\\WOW6432Node\\Blizzard Entertainment",
+        L"SOFTWARE\\Blizzard Entertainment",
+    };
+    for (auto* base : bases) {
+        HKEY k;
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, base, 0, KEY_READ, &k) != ERROR_SUCCESS) continue;
+        DWORD idx = 0; wchar_t sub[256]; DWORD subLen = 256;
+        while (RegEnumKeyExW(k, idx++, sub, &subLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
+            subLen = 256;
+            wstring nm = sub;
+            if (lower(nm).find(L"launcher") != wstring::npos || lower(nm) == L"battle.net") continue;
+            wchar_t loc[512] = L""; DWORD sz = sizeof(loc);
+            if (RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(base) + L"\\" + sub).c_str(), L"InstallLocation",
+                             RRF_RT_REG_SZ, nullptr, loc, &sz) != ERROR_SUCCESS || !loc[0])
+                continue;
+            const auto* e = gamedb::lookup(nm);
+            wstring exe = pickExe(loc, e ? e->exe : L"", 1);
+            if (exe.empty()) continue;
+            Game g;
+            g.name = nm;
+            g.exePath = exe;
+            g.launcher = L"Battle.net";
+            g.id = lower(niceName(exe));
+            addGame(out, g);
+        }
+        RegCloseKey(k);
+    }
+}
+
+// Ubisoft Connect: HKLM\SOFTWARE\WOW6432Node\Ubisoft\Launcher\Installs\<id> -> InstallDir
+static void scanUbisoft(vector<Game>& out) {
+    HKEY k;
+    const wchar_t* base = L"SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs";
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, base, 0, KEY_READ, &k) != ERROR_SUCCESS) return;
+    DWORD idx = 0; wchar_t sub[256]; DWORD subLen = 256;
+    while (RegEnumKeyExW(k, idx++, sub, &subLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
+        subLen = 256;
+        wstring key = wstring(base) + L"\\" + sub;
+        wchar_t loc[512] = L"", nm[256] = L"";
+        DWORD sz = sizeof(loc);
+        if (RegGetValueW(HKEY_LOCAL_MACHINE, key.c_str(), L"InstallDir", RRF_RT_REG_SZ, nullptr, loc, &sz) != ERROR_SUCCESS)
+            continue;
+        sz = sizeof(nm);
+        RegGetValueW(HKEY_LOCAL_MACHINE, key.c_str(), L"Uplay_InstallName", RRF_RT_REG_SZ, nullptr, nm, &sz);
+        wstring folder = wstring(loc);
+        size_t p = folder.find_last_of(L"\\/");
+        if (p != wstring::npos) folder = folder.substr(p + 1);
+        if (!nm[0]) wcscpy_s(nm, folder.c_str());
+        const auto* e = gamedb::lookup(folder);
+        wstring exe = pickExe(loc, e ? e->exe : L"", 1);
+        if (exe.empty()) continue;
+        Game g;
+        g.name = nm;
+        g.exePath = exe;
+        g.launcher = L"Ubisoft";
+        g.id = lower(niceName(exe));
+        addGame(out, g);
+    }
+    RegCloseKey(k);
+}
+
+// EA app / Origin: HKLM\SOFTWARE(\WOW6432Node)\Electronic Arts\EA Games\<game> -> Install Dir
+static void scanEA(vector<Game>& out) {
+    const wchar_t* bases[] = {
+        L"SOFTWARE\\WOW6432Node\\Electronic Arts\\EA Games",
+        L"SOFTWARE\\Electronic Arts\\EA Games",
+    };
+    for (auto* base : bases) {
+        HKEY k;
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, base, 0, KEY_READ, &k) != ERROR_SUCCESS) continue;
+        DWORD idx = 0; wchar_t sub[256]; DWORD subLen = 256;
+        while (RegEnumKeyExW(k, idx++, sub, &subLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
+            subLen = 256;
+            wchar_t loc[512] = L""; DWORD sz = sizeof(loc);
+            if (RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(base) + L"\\" + sub).c_str(), L"Install Dir",
+                             RRF_RT_REG_SZ, nullptr, loc, &sz) != ERROR_SUCCESS || !loc[0]) {
+                sz = sizeof(loc);
+                if (RegGetValueW(HKEY_LOCAL_MACHINE, (wstring(base) + L"\\" + sub).c_str(), L"InstallLocation",
+                                 RRF_RT_REG_SZ, nullptr, loc, &sz) != ERROR_SUCCESS || !loc[0])
+                    continue;
+            }
+            const auto* e = gamedb::lookup(sub);
+            wstring exe = pickExe(loc, e ? e->exe : L"", 1);
+            if (exe.empty()) continue;
+            Game g;
+            g.name = sub;
+            g.exePath = exe;
+            g.launcher = L"EA";
+            g.id = lower(niceName(exe));
+            addGame(out, g);
+        }
+        RegCloseKey(k);
+    }
+}
+
+// itch.io: %APPDATA%\itch\apps\<game>\... (no manifests, so walk a little)
+static void scanItch(vector<Game>& out) {
+    wchar_t* ad = nullptr;
+    if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &ad) != S_OK) return;
+    wstring dir = wstring(ad) + L"\\itch\\apps";
+    CoTaskMemFree(ad);
+    if (GetFileAttributesW(dir.c_str()) == INVALID_FILE_ATTRIBUTES) return;
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW((dir + L"\\*").c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return;
+    int seen = 0;
+    do {
+        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || fd.cFileName[0] == L'.') continue;
+        if (++seen > 300) break;
+        int budget = 60;
+        const auto* e = gamedb::lookup(fd.cFileName);
+        wstring exe = pickExe(dir + L"\\" + fd.cFileName, e ? e->exe : L"", 1);
+        if (exe.empty()) exe = deepLargestExe(dir + L"\\" + fd.cFileName, 3, budget);
+        if (exe.empty()) continue;
+        Game g;
+        g.name = e ? e->name : wstring();       // the DB names it; detect() falls back to the folder
+        g.exePath = exe;
+        g.launcher = L"itch.io";
+        g.id = lower(niceName(exe));
+        addGame(out, g);
+    } while (FindNextFileW(h, &fd));
+    FindClose(h);
+}
+
+// ------------------------------------------------ broad survey of every drive
+// Games installed outside a store still sit in the usual places: <drive>\Games,
+// <drive>\Program Files (x86)\Blizzard... Unlike a full disk walk this is a handful of
+// directory reads per drive, and only folders the database recognises are opened.
+static const wchar_t* kGameRoots[] = {
+    L"\\Games", L"\\Game", L"\\Jeux", L"\\GOG Games", L"\\Epic Games", L"\\Riot Games",
+    L"\\Rockstar Games", L"\\XboxGames", L"\\Battle.net", L"\\Ubisoft",
+    L"\\Ubisoft Game Launcher\\games", L"\\Electronic Arts", L"\\EA Games",
+    L"\\Amazon Games", L"\\Bethesda.net Launcher\\games", L"\\Perfect World Entertainment",
+    L"\\Program Files", L"\\Program Files (x86)",
+    L"\\SteamLibrary\\steamapps\\common", L"\\Steam\\steamapps\\common", L"\\SteamGames\\steamapps\\common",
+};
+
+static void scanInstallRoots(vector<Game>& out) {
+    const DWORD mask = GetLogicalDrives();
+    for (int i = 0; i < 26; ++i) {
+        if (!(mask & (1u << i))) continue;
+        wstring drive = wstring(1, (wchar_t)(L'A' + i)) + L":";
+        if (GetDriveTypeW((drive + L"\\").c_str()) != DRIVE_FIXED) continue;
+        for (auto* root : kGameRoots) {
+            wstring base = drive + root;
+            if (GetFileAttributesW(base.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+            WIN32_FIND_DATAW fd;
+            HANDLE h = FindFirstFileW((base + L"\\*").c_str(), &fd);
+            if (h == INVALID_HANDLE_VALUE) continue;
+            int seen = 0;
+            do {
+                if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || fd.cFileName[0] == L'.') continue;
+                if (++seen > 500) break;
+                const auto* e = gamedb::lookupStrict(fd.cFileName);   // exact hits only here
+                if (!e) continue;                       // unknown folder: leave it alone
+                wstring dir = base + L"\\" + fd.cFileName;
+                wstring exe = pickExe(dir, e->exe, 1);
+                if (exe.empty()) continue;
+                if (!lower(exe).empty() && lower(exe).rfind(L".exe") == wstring::npos) continue;
+                Game g;
+                g.exePath = exe;
+                g.launcher = launcherFromPath(dir);
+                g.id = lower(niceName(exe));
+                addGame(out, g);                        // enriched with the DB name below
+            } while (FindNextFileW(h, &fd));
+            FindClose(h);
+        }
+    }
+}
+
+// Name + genre from the built-in database (exe stem, then launcher title, then folder).
+static void enrichFromDb(Game& g) {
+    const gamedb::Entry* e = g.name.empty() ? nullptr : gamedb::lookup(g.name);
+    if (!e) e = gamedb::lookup(g.id);
+    if (!e) {
+        wstring dir = g.exePath;
+        size_t p = dir.find_last_of(L"\\/");
+        if (p != wstring::npos) {
+            wstring up = dir.substr(0, p);
+            size_t q = up.find_last_of(L"\\/");
+            if (q != wstring::npos && q + 1 < up.size()) e = gamedb::lookup(up.substr(q + 1));
+        }
+    }
+    if (e) {
+        g.matched = e->name;
+        g.family = widen(e->family);
+        if (g.name.empty()) g.name = e->name;
+    }
+    if (g.name.empty()) g.name = niceName(g.exePath);
+}
+
 vector<Game> detect() {
     vector<Game> out;
     scanSteam(out);
     scanEpic(out);
     scanRiot(out);
     scanGog(out);
+    scanBlizzard(out);
+    scanUbisoft(out);
+    scanEA(out);
+    scanItch(out);
     scanRegistryApps(out);
+    scanInstallRoots(out);
 
-    // running? compare against process list
+    // running? + database name/genre + cached icon
     auto running = gameboost::listProcesses();
     for (auto& g : out) {
+        enrichFromDb(g);
         wstring exeName = lower(g.exePath.substr(g.exePath.rfind(L'\\') + 1));
         for (auto& r : running)
             if (lower(r.name) == exeName) { g.running = true; break; }
@@ -424,6 +742,63 @@ vector<Game> detect() {
         wstring cache = iconCacheDir() + L"\\" + safeIconId(g.id) + L".png";
         if (fs::exists(cache)) g.iconPath = safeIconId(g.id);
     }
+    return out;
+}
+
+// ------------------------------------------------------------------ actions
+int extractMissingIcons(vector<Game>& games, int budgetMs) {
+    auto t0 = std::chrono::steady_clock::now();
+    int n = 0;
+    for (auto& g : games) {
+        wstring cache = iconCacheDir() + L"\\" + safeIconId(g.id) + L".png";
+        if (fs::exists(cache)) {
+            if (g.iconPath.empty()) g.iconPath = safeIconId(g.id);
+            continue;
+        }
+        if (wstring p = extractIcon(g); !p.empty()) { g.iconPath = safeIconId(g.id); ++n; }
+        if (budgetMs > 0) {
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                          std::chrono::steady_clock::now() - t0).count();
+            if (ms > budgetMs) break;
+        }
+    }
+    if (n) log::ok(L"Extracted " + std::to_wstring(n) + L" game icons");
+    return n;
+}
+
+bool launch(const Game& g, wstring& err) {
+    if (g.exePath.empty() || !fs::exists(g.exePath)) {
+        err = L"executable not found: " + g.exePath;
+        return false;
+    }
+    size_t p = g.exePath.find_last_of(L"\\/");
+    wstring dir = p == wstring::npos ? wstring() : g.exePath.substr(0, p);
+    HINSTANCE r = ShellExecuteW(nullptr, L"open", g.exePath.c_str(), nullptr,
+                                dir.empty() ? nullptr : dir.c_str(), SW_SHOWNORMAL);
+    if ((INT_PTR)r <= 32) {
+        err = L"Windows refused to launch " + g.exePath + L" (code " + std::to_wstring((INT_PTR)r) + L")";
+        log::fail(err);
+        return false;
+    }
+    log::ok(L"Launched " + (g.name.empty() ? g.id : g.name));
+    return true;
+}
+
+bool revealInExplorer(const Game& g, wstring& err) {
+    if (g.exePath.empty() || !fs::exists(g.exePath)) {
+        err = L"executable not found: " + g.exePath;
+        return false;
+    }
+    wstring args = L"/select,\"" + g.exePath + L"\"";
+    HINSTANCE r = ShellExecuteW(nullptr, L"open", L"explorer.exe", args.c_str(), nullptr, SW_SHOWNORMAL);
+    if ((INT_PTR)r <= 32) { err = L"could not open Explorer"; return false; }
+    return true;
+}
+
+vector<CatalogEntry> catalog() {
+    vector<CatalogEntry> out;
+    out.reserve(gamedb::kCount);
+    for (const auto& e : gamedb::kGames) out.push_back({ e.exe, e.name, e.family });
     return out;
 }
 

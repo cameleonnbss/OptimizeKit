@@ -278,16 +278,63 @@ int serve(unsigned short preferredPort) {
     });
 
     // ============ v2: games ============
-    svr.Get("/api/games", [](const httplib::Request&, httplib::Response& res) {
+    // ?icons=1 also extracts the missing icons (a few hundred ms) so the grid fills in one pass.
+    svr.Get("/api/games", [](const httplib::Request& req, httplib::Response& res) {
+        auto found = games::detect();
+        if (req.has_param("icons") && req.get_param_value("icons") != "0")
+            games::extractMissingIcons(found, 20000);
         json arr = json::array();
-        for (auto& g : games::detect()) {
+        for (auto& g : found) {
             arr.push_back({
                 {"id", narrow(g.id)}, {"name", narrow(g.name)},
                 {"launcher", narrow(g.launcher)}, {"exe", narrow(g.exePath)},
                 {"running", g.running}, {"icon", narrow(g.iconPath)},
+                {"family", narrow(g.family)}, {"matched", narrow(g.matched)},
             });
         }
         res.set_content(arr.dump(), "application/json");
+    });
+
+    // the built-in game database, so the Game Library can list far more than the cover art
+    svr.Get("/api/games/catalog", [](const httplib::Request&, httplib::Response& res) {
+        json arr = json::array();
+        for (auto& c : games::catalog())
+            arr.push_back({ {"exe", narrow(c.exe)}, {"name", narrow(c.name)}, {"family", c.family} });
+        res.set_content(arr.dump(), "application/json");
+    });
+
+    // batch icon extraction: {"all":true} or {"ids":["..."]}
+    svr.Post("/api/games/icons", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        auto found = games::detect();
+        vector<wstring> wanted;
+        if (body.contains("ids") && body["ids"].is_array())
+            for (auto& id : body["ids"]) wanted.push_back(widen(id.get<string>()));
+        vector<games::Game> target;
+        for (auto& g : found) {
+            if (wanted.empty()) { target.push_back(g); continue; }
+            for (auto& w : wanted) if (w == g.id) { target.push_back(g); break; }
+        }
+        int n = games::extractMissingIcons(target, 45000);
+        res.set_content(json({ {"ok", true}, {"extracted", n}, {"total", (int)found.size()} }).dump(),
+                        "application/json");
+    });
+
+    // launch a detected game / reveal it in Explorer
+    svr.Post("/api/games/launch", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { res.status = 400; return; }
+        string id = body.value("id", "");
+        wstring err;
+        for (auto& g : games::detect()) {
+            if (narrow(g.id) != id) continue;
+            bool okb = body.value("reveal", false) ? games::revealInExplorer(g, err) : games::launch(g, err);
+            res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+            return;
+        }
+        res.status = 404;
+        res.set_content(json({ {"ok", false}, {"error", "game not found"} }).dump(), "application/json");
     });
     svr.Get(R"(/api/game-icon/(.*))", [](const httplib::Request& req, httplib::Response& res) {
         // req.matches[1] = game id (already [\w-]+ by our pattern); build cache path safely
@@ -323,6 +370,32 @@ int serve(unsigned short preferredPort) {
         else
             okb = games::saveProfile(widen(body.value("id", "")), body.value("profile", json::object()));
         res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // one click for the whole library: save + apply a high-priority profile per detected game
+    svr.Post("/api/games/boost-all", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        const bool on = body.value("on", true);
+        const int limit = body.value("limit", 40);
+        int n = 0, seen = 0;
+        json errs = json::array();
+        for (auto& g : games::detect()) {
+            if (++seen > limit) break;
+            wstring err;
+            if (on && g.running) continue;
+            if (on) {
+                games::saveProfile(g.id, json({ {"priority", "high"}, {"disable_fso", false},
+                                                {"game", narrow(g.name)} }));
+                if (games::applyProfile(g.id, err)) n++;
+                else if (errs.size() < 6) errs.push_back(narrow(g.name + L": " + err));
+            } else {
+                if (games::clearProfile(g.id, err)) n++;
+                else if (errs.size() < 6) errs.push_back(narrow(g.name + L": " + err));
+            }
+        }
+        log2::info(L"GAMES", L"boost-all " + wstring(on ? L"on" : L"off") + L": " + std::to_wstring(n) + L" games");
+        res.set_content(json({ {"ok", true}, {"applied", n}, {"errors", errs} }).dump(), "application/json");
     });
 
     // ============ v2: gaming mode ============
@@ -497,6 +570,14 @@ int serve(unsigned short preferredPort) {
         else if (what == "log") shellOpen(logPath());
         else if (what == "devmgmt") { string o; runCapture(L"devmgmt.msc", o); }
         else if (what == "dxdiag") { string o; runCapture(L"dxdiag.exe", o); }
+        // command palette: jump straight into a store's own library
+        else if (what == "steam") shellOpen(L"steam://open/games");
+        else if (what == "epic") shellOpen(L"com.epicgames.launcher://apps");
+        else if (what == "battlenet") shellOpen(L"battlenet://");
+        else if (what == "gog") shellOpen(L"goggalaxy://openAppLibrary");
+        else if (what == "ubisoft") shellOpen(L"uplay://");
+        else if (what == "ea") shellOpen(L"origin://launch");
+        else if (what == "xbox") shellOpen(L"msxbox://");
         res.set_content("{\"ok\":true}", "application/json");
     });
 

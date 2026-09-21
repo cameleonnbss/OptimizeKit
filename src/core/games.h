@@ -11,8 +11,10 @@ struct Game {
     wstring id;          // stable id (exe name lowercased)
     wstring name;        // display name
     wstring exePath;     // full path
-    wstring launcher;    // Steam / Epic / Xbox / Riot / GOG / Battle.net / Ubisoft / EA / Standalone
+    wstring launcher;    // Steam / Epic / Xbox / Riot / GOG / Battle.net / Ubisoft / EA / itch.io / Standalone
     wstring iconPath;    // cached PNG path ("" if none) - served as /api/game-icon/<id>
+    wstring family;      // genre family from the built-in database ("" when unknown)
+    wstring matched;     // canonical database title when the exe/folder name was recognised
     bool running = false;
 };
 
@@ -22,6 +24,18 @@ vector<Game> detect();
 // Extract the game's real icon from its exe into the icon cache (PNG, 96px).
 // Returns the relative cache path or "" on failure. Cheap after first extraction.
 wstring extractIcon(const Game& g);
+
+// Extract icons for every game that has none yet, stopping after `budgetMs` (0 = no limit).
+// Returns how many new PNGs were written.
+int extractMissingIcons(vector<Game>& games, int budgetMs = 0);
+
+// Launch the game / reveal its exe in Explorer.
+bool launch(const Game& g, wstring& err);
+bool revealInExplorer(const Game& g, wstring& err);
+
+// Built-in game database rows (the Game Library module merges these with its cover art).
+struct CatalogEntry { wstring exe; wstring name; string family; };
+vector<CatalogEntry> catalog();
 
 // Per-game profile stored in config.json under "game_profiles".
 // Actions are REAL engine actions: persistent priority, GPU preference, FSO flag.

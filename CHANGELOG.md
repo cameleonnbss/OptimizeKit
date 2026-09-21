@@ -4,6 +4,43 @@ All notable changes to OptimizeKit are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] — 2026-09-21
+
+The "every game, every drive" release: a built-in database of known PC titles, a
+detection pass that no longer depends on a store being installed, batch icon
+extraction and a lot more buttons to act on the result.
+
+### Added
+
+- **Built-in game database** (`src/core/gamedb.h`) — ~300 known PC titles with their
+  executable stems, alternative exe/folder aliases and a genre family. It names a
+  detected game, tells the Game Library what set fits it, and recognises titles
+  installed outside any store. `GET /api/games/catalog` serves it to the dashboard.
+- **Detection beyond the stores** — six new scans: Blizzard/Battle.net,
+  Ubisoft Connect, the EA app, itch.io, per-user Uninstall keys, an Xbox/Game Pass
+  path, and a survey of the usual game folders on **every fixed drive**
+  (`\Games`, `\Program Files (x86)`, `\XboxGames`, `\SteamLibrary\steamapps\common`…).
+  Steam root discovery now reads the registry, so a Steam installed on `D:` is found.
+  Recognised games get their real name and genre instead of an exe basename.
+- **Batch icons** — `POST /api/games/icons` extracts every missing icon in one pass
+  (45 s budget, cached as PNG); `GET /api/games?icons=1` does it inline. The Games
+  view fills the whole grid with real icons instead of the first twelve.
+- **Game actions** — `POST /api/games/launch` (launch, or reveal in Explorer),
+  `POST /api/games/boost-all` (persistent high priority for every detected game,
+  reversible). New buttons: launch, boost this game, gaming mode, extract icon,
+  open folder, copy path, library preset, boost all, extract all icons, random,
+  store shortcuts, plus launcher chips and a stats row.
+- **Library doubles** — the cover art (106 titles) now merges with the database, so
+  titles without art get a generated tile. New filters (genre, installed, cover art),
+  sorts (A→Z, Z→A, genre, installed first, cover art), installed badges with the
+  real extracted icon, launch/open-folder for installed titles, and a Surprise me
+  button.
+
+### Changed
+
+- Splash and boot copy mention the new detection surface; the library paragraph is
+  generated from the real counts instead of a hard-coded "106".
+
 ## [2.4.0] — 2026-09-21
 
 The "more modules, better looks" release: 10 new views, a real theme engine, a
@@ -95,6 +132,7 @@ command palette and a working CI.
 ### Added
 - Initial release: C++ dashboard plus PowerShell engine.
 
+[2.5.0]: https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.5.0
 [2.4.0]: https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.4.0
 [2.3.0]: https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.3.0
 [2.2.0]: https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.2.0

@@ -1,5 +1,7 @@
-/* OptimizeKit v2.4 — Windows Gaming Control Center
-   Shell: grouped rail + command bar · 32 modules · 12 themes · Ctrl+K palette */
+/* OptimizeKit v2.5 — Windows Gaming Control Center
+   Shell: grouped rail + command bar · 32 modules · 12 themes · Ctrl+K palette
+   Games: every store + every fixed drive, matched against the built-in game database;
+   Library: cover art plus that database, installed titles badged with their real icon. */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -562,69 +564,156 @@ async function refreshGamingCenter() {
 }
 on("#btn-gc-refresh", async () => { window.__netStatus = null; await updateTweakState(true); refreshGamingCenter(); toast("↻ re-analyzed"); });
 
-/* ===================== games ===================== */
-let gamesCache = [];
+/* ===================== games (every store + every drive) ===================== */
+let gamesCache = [], gamesQuery = "", gamesLauncher = "all", gamesSel = "";
+const FAMILY_PACK = {
+  fps: "esport", br: "esport", fighting: "esport", sports: "esport", racing: "esport",
+  rpg: "esport", openworld: "esport", moba: "lowlatency", mmo: "lowlatency",
+  coop: "lowlatency", horror: "lowlatency", party: "cleanboot", sandbox: "cleanboot",
+  survival: "cleanboot", strategy: "cleanboot", sim: "cleanboot", roguelike: "cleanboot",
+};
+const normKey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const initials = (s) => String(s || "?").replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean)
+  .slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
+
 async function loadGames() {
   const grid = $("#games-grid");
-  grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">scanning launcher libraries…</div>`;
+  if (grid) grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">scanning Steam · Epic · Riot · GOG · Battle.net · Ubisoft · EA · Xbox · itch.io · every fixed drive…</div>`;
   try {
     gamesCache = await api("/api/games");
-    if (!gamesCache.length) {
-      grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">No games found — install one via Steam/Epic/Xbox, or add a game manually to a launcher library folder.</div>`;
-      return;
+    renderGames();
+    // one batch pass fills in every icon we do not have yet (bounded server-side)
+    if (gamesCache.some((g) => !g.icon)) {
+      const r = await api("/api/games/icons", { all: true }).catch(() => null);
+      if (r && r.extracted) { gamesCache = await api("/api/games"); renderGames(); }
     }
-    grid.innerHTML = gamesCache.map((g, i) => `
-      <div class="game-card" data-i="${i}">
-        ${g.icon ? `<img src="/api/game-icon/${encodeURIComponent(g.icon)}" alt=""/>` : `<span class="gph">☰</span>`}
-        <div class="g-meta"><b>${esc(g.name)}</b><span>${esc(g.launcher)}</span></div>
-        ${g.running ? `<span class="g-run" title="running"></span>` : ""}
-      </div>`).join("");
-    $$("#games-grid .game-card").forEach((c) => c.addEventListener("click", () => selectGame(+c.dataset.i)));
-    const noIcon = gamesCache.filter((g) => !g.icon).slice(0, 12);
-    for (const g of noIcon) {
-      await api("/api/games/icon", { id: g.id }).catch(() => { });
-    }
-    if (noIcon.length) loadGamesIcons();
+    toast("☰ " + gamesCache.length + " games detected", 3000);
   } catch (e) {
-    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">game detection failed</div>`;
+    if (grid) grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">game detection failed</div>`;
   }
 }
-async function loadGamesIcons() {
-  gamesCache = await api("/api/games");
-  $$("#games-grid .game-card").forEach((c) => {
-    const g = gamesCache[+c.dataset.i];
-    if (g && g.icon) c.querySelector(".gph")?.replaceWith(Object.assign(document.createElement("img"), { src: "/api/game-icon/" + encodeURIComponent(g.icon) }));
-  });
+function renderGames() {
+  const grid = $("#games-grid"); if (!grid) return;
+  const launchers = {};
+  for (const g of gamesCache) launchers[g.launcher] = (launchers[g.launcher] || 0) + 1;
+  const chips = $("#games-launchers");
+  if (chips) chips.innerHTML =
+    `<span class="chip ${gamesLauncher === "all" ? "on" : ""}" data-l="all">All · ${gamesCache.length}</span>` +
+    Object.keys(launchers).sort((a, b) => launchers[b] - launchers[a]).map((l) =>
+      `<span class="chip ${gamesLauncher === l ? "on" : ""}" data-l="${esc(l)}">${esc(l)} · ${launchers[l]}</span>`).join("");
+  const stats = $("#games-stats");
+  if (stats) stats.innerHTML = [
+    { t: "detected", v: gamesCache.length, n: "every store + every fixed drive" },
+    { t: "with icon", v: gamesCache.filter((g) => g.icon).length, n: "extracted from the real .exe" },
+    { t: "genres known", v: new Set(gamesCache.map((g) => g.family).filter(Boolean)).size, n: "matched in the game database" },
+    { t: "running now", v: gamesCache.filter((g) => g.running).length, n: "matched against the live process list" },
+  ].map((c) => `<div class="stat-card"><small>${c.t}</small><b>${c.v}</b><span>${esc(c.n)}</span></div>`).join("");
+  const q = gamesQuery.toLowerCase();
+  const list = gamesCache.filter((g) => (gamesLauncher === "all" || g.launcher === gamesLauncher) &&
+    (!q || (g.name + " " + g.launcher + " " + (g.family || "") + " " + (g.matched || "")).toLowerCase().includes(q)));
+  if (!list.length) {
+    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">${gamesCache.length
+      ? "no game matches this filter"
+      : "No games found — install one via Steam/Epic/Xbox/Battle.net/GOG, or drop it in a games folder on any drive."}</div>`;
+    return;
+  }
+  grid.innerHTML = list.map((g) => `
+    <div class="game-card ${gamesSel === g.id ? "sel" : ""}" data-id="${esc(g.id)}">
+      ${g.icon ? `<img src="/api/game-icon/${encodeURIComponent(g.icon)}" alt=""/>` : `<span class="gph">${esc((g.launcher || "?")[0])}</span>`}
+      <div class="g-meta"><b>${esc(g.name)}</b><span>${esc(g.launcher)}${g.family ? " · " + esc(g.family) : ""}</span></div>
+      ${g.running ? `<span class="g-run" title="running"></span>` : ""}
+    </div>`).join("");
+  $$("#games-grid .game-card").forEach((c) => c.addEventListener("click", () => selectGame(c.dataset.id)));
 }
+$("#games-search").addEventListener("input", (e) => { gamesQuery = e.target.value; renderGames(); });
+$("#games-launchers").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  gamesLauncher = chip.dataset.l; renderGames();
+});
 on("#btn-games-refresh", loadGames);
-function selectGame(i) {
-  const g = gamesCache[i]; if (!g) return;
-  $$("#games-grid .game-card").forEach((c, j) => c.classList.toggle("sel", i === j));
+on("#btn-games-icons", async () => {
+  toast("🖼 extracting icons for every detected game…", 4000);
+  const r = await api("/api/games/icons", { all: true });
+  gamesCache = await api("/api/games"); renderGames();
+  toast("🖼 " + (r.extracted || 0) + " new icons — " + gamesCache.filter((g) => g.icon).length + "/" + gamesCache.length + " games have one", 3800);
+});
+on("#btn-games-boost", async () => {
+  if (!window.confirm("Give every detected game a persistent High priority profile (via IFEO)? You can undo it with the same button's Clear pass.")) return;
+  const r = await api("/api/games/boost-all", { on: true, limit: 40 });
+  toast("⚡ " + (r.applied || 0) + " games boosted" + ((r.errors || []).length ? " — " + r.errors.length + " need admin" : ""), 4000);
+});
+on("#btn-games-gmode", async () => {
+  const r = await api("/api/gaming/enter", {});
+  toast(r.ok ? "▶ gaming mode active — power plan & priorities will be restored" : "✖ " + r.error);
+  updateGamingStatus();
+});
+on("#btn-games-random", () => {
+  if (!gamesCache.length) return toast("☰ detect games first");
+  selectGame(gamesCache[Math.floor(Math.random() * gamesCache.length)].id);
+});
+function libFindByGame(g) {
+  if (!libGames || !libGames.length) return null;
+  const keys = [normKey(g.name), normKey(g.matched)].filter((k) => k.length > 3);
+  if (!keys.length) return null;
+  return libGames.find((x) => keys.includes(normKey(x.name))) ||
+    libGames.find((x) => { const k = normKey(x.name); return k.length > 5 && keys.some((y) => y.length > 5 && (k.includes(y) || y.includes(k))); }) || null;
+}
+function selectGame(id) {
+  const g = gamesCache.find((x) => x.id === id); if (!g) return;
+  gamesSel = id;
+  $$("#games-grid .game-card").forEach((c) => c.classList.toggle("sel", c.dataset.id === id));
   const el = $("#game-profile");
   el.classList.remove("hidden");
+  const lg = libFindByGame(g);
   el.innerHTML = `
     <div class="profile-hero">
       <h2>${esc(g.name)} <span style="color:var(--accent)">profile</span></h2>
-      <p>${esc(g.exe)}</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-        <button class="btn primary" id="gp-apply">Boost this game (high priority + gaming flags)</button>
+      <p class="mono" style="font-size:11px;word-break:break-all">${esc(g.exe)}</p>
+      <p class="muted" style="font-size:11.5px">${esc(g.launcher)}${g.family ? " · " + esc(g.family) : ""}${g.matched ? " · known title: " + esc(g.matched) : ""}${g.running ? " · <b style=\"color:var(--ok)\">running</b>" : ""}</p>
+      <div class="g-actions">
+        <button class="btn primary" id="gp-launch">▶ Launch</button>
+        <button class="btn" id="gp-apply">⚡ Boost this game</button>
         <button class="btn" id="gp-gmode">▶ Start in Gaming Mode</button>
+        <button class="btn" id="gp-icon">🖼 Extract icon</button>
+        <button class="btn" id="gp-folder">📂 Open folder</button>
+        <button class="btn" id="gp-copy">⧉ Copy path</button>
+        ${lg ? `<button class="btn" id="gp-lib">▦ Library: ${esc(lg.name)}</button>` : ""}
         <button class="btn danger" id="gp-clear">↺ Clear boost</button>
       </div>
     </div>`;
+  const note = (msg, ok) => toast((ok === false ? "✖ " : "✔ ") + msg, 3400);
+  $("#gp-launch").addEventListener("click", async () => {
+    const r = await api("/api/games/launch", { id: g.id });
+    note(r.ok ? "launching " + g.name : r.error, r.ok);
+  });
   $("#gp-apply").addEventListener("click", async () => {
+    await api("/api/games/profile", { id: g.id, action: "save", profile: { priority: "high", disable_fso: true, game: g.name } });
     const r = await api("/api/games/profile", { id: g.id, action: "apply" });
-    toast(r.ok ? "✔ " + g.name + " boosted" : "✖ " + r.error);
+    note(r.ok ? g.name + " boosted (persistent high priority)" : r.error, r.ok);
   });
   $("#gp-gmode").addEventListener("click", async () => {
     const r = await api("/api/gaming/enter", { game: g.id });
-    toast(r.ok ? "▶ Gaming mode for " + g.name : "✖ " + r.error);
+    note(r.ok ? "gaming mode for " + g.name : r.error, r.ok);
     updateGamingStatus();
   });
+  $("#gp-icon").addEventListener("click", async () => {
+    const r = await api("/api/games/icon", { id: g.id });
+    gamesCache = await api("/api/games"); renderGames();
+    note(r.ok ? "icon extracted" : "no icon available", r.ok);
+  });
+  $("#gp-folder").addEventListener("click", async () => {
+    const r = await api("/api/games/launch", { id: g.id, reveal: true });
+    note(r.ok ? "folder opened" : r.error, r.ok);
+  });
+  $("#gp-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(g.exe); note("path copied"); } catch (e) { toast(g.exe, 5000); }
+  });
+  if (lg) $("#gp-lib").addEventListener("click", () => { show("library"); setTimeout(() => selectLibGame(lg.key), 180); });
   $("#gp-clear").addEventListener("click", async () => {
     await api("/api/games/profile", { id: g.id, action: "clear" });
     toast("↺ boost cleared");
   });
+  if (!libGames) ensureLibrary().then(() => { if (gamesSel === id) selectGame(id); });
 }
 
 /* ===================== gaming mode ===================== */
@@ -1493,43 +1582,111 @@ document.addEventListener("click", (e) => {
   else centerBulk(key, m[2]);
 });
 
-/* ===================== GAME LIBRARY (Khadafi covers) ===================== */
-let libGames = null, libFilter = "all", libQuery = "";
+/* ============ GAME LIBRARY (cover art + the built-in game database) ============ */
+let libGames = null, libFilter = "all", libQuery = "", libSort = "az", libInstalledOnly = false;
 const FAMILY_LABEL = {
   fps: "Competitive FPS", br: "Battle royale", moba: "MOBA", mmo: "MMO / live service",
   coop: "Co-op / PvE", rpg: "Single-player RPG", openworld: "Open world", racing: "Racing & sim",
   fighting: "Fighting & arena", sports: "Sports", horror: "Horror", sandbox: "Sandbox", party: "Party",
+  strategy: "Strategy", sim: "Sim & management", survival: "Survival", roguelike: "Roguelike",
 };
+// The cover library (manifest) plus every title the exe knows about: the database is the
+// source of truth for names + genres, so a game only needs art to get a pretty tile.
+async function ensureLibrary(force) {
+  if (libGames && !force) return libGames;
+  const out = [], seen = new Set();
+  try {
+    const m = await api("/assets/gamelogos/manifest.json");
+    for (const g of (m && m.games) || []) { out.push(g); seen.add(normKey(g.name)); }
+  } catch (e) { }
+  try {
+    const db = await api("/api/games/catalog");
+    for (const r of db || []) {
+      const k = normKey(r.name);
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push({ key: r.exe, name: r.name, family: r.family, pack: FAMILY_PACK[r.family] || "esport", cover: "" });
+    }
+  } catch (e) { }
+  libGames = out;
+  return libGames;
+}
+function libDetectedMap() {
+  const m = new Map();
+  for (const g of gamesCache)
+    for (const k of [normKey(g.name), normKey(g.matched)])
+      if (k.length > 3) m.set(k, g);
+  return m;
+}
+function libIsInstalled(g, det) {
+  const k = normKey(g.name);
+  if (!k) return null;
+  if (det.has(k)) return det.get(k);
+  for (const [dk, dg] of det)
+    if (dk.length > 5 && k.length > 5 && (dk.includes(k) || k.includes(dk))) return dg;
+  return null;
+}
 async function renderLibrary(force) {
   const grid = $("#lib-grid"); if (!grid) return;
   if (libGames === null || force) {
-    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">loading the cover library…</div>`;
-    try {
-      const m = await api("/assets/gamelogos/manifest.json");
-      libGames = (m && m.games) || [];
-    } catch (e) {
-      libGames = [];
-    }
+    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">loading cover art + the built-in game database…</div>`;
+    await ensureLibrary(true);
   }
   if (!libGames.length) {
-    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">Cover library not found. It lives in <span class="mono">web/assets/gamelogos</span> — run <span class="mono">python tools/import_gamelogos.py</span> then rebuild, or drop the covers in next to the exe.</div>`;
+    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">Library unavailable — the built-in database ships inside the exe (<span class="mono">/api/games/catalog</span>) and the cover art lives in <span class="mono">web/assets/gamelogos</span>.</div>`;
     return;
   }
+  const det = libDetectedMap();
+  const all = libGames.map((g) => ({ ...g, _inst: libIsInstalled(g, det) }));
+  const instN = all.filter((g) => g._inst).length;
+  const covN = all.filter((g) => g.cover).length;
   const fams = {};
-  for (const g of libGames) fams[g.family] = (fams[g.family] || 0) + 1;
-  $("#lib-families").innerHTML = `<span class="chip ${libFilter === "all" ? "on" : ""}" data-fam="all">All · ${libGames.length}</span>` +
+  for (const g of all) fams[g.family] = (fams[g.family] || 0) + 1;
+  $("#lib-families").innerHTML =
+    `<span class="chip ${libFilter === "all" ? "on" : ""}" data-fam="all">All · ${all.length}</span>` +
+    `<span class="chip ${libFilter === "_installed" ? "on" : ""}" data-fam="_installed">🖥 Installed · ${instN}</span>` +
+    `<span class="chip ${libFilter === "_covers" ? "on" : ""}" data-fam="_covers">🖼 Cover art · ${covN}</span>` +
     Object.keys(fams).sort((a, b) => fams[b] - fams[a]).map((f) =>
       `<span class="chip ${libFilter === f ? "on" : ""}" data-fam="${f}">${FAMILY_LABEL[f] || f} · ${fams[f]}</span>`).join("");
-  const q = libQuery.toLowerCase();
-  const list = libGames.filter((g) => (libFilter === "all" || g.family === libFilter) &&
-    (!q || (g.name + " " + g.family).toLowerCase().includes(q)));
+  const q = libQuery.trim().toLowerCase();
+  const list = all.filter((g) => {
+    const okFam = libFilter === "all" || g.family === libFilter ||
+      (libFilter === "_installed" && !!g._inst) || (libFilter === "_covers" && !!g.cover);
+    const okInst = !libInstalledOnly || !!g._inst;
+    const okQ = !q || (g.name + " " + g.family + " " + (FAMILY_LABEL[g.family] || "") + " " + g.pack).toLowerCase().includes(q);
+    return okFam && okInst && okQ;
+  });
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const byInst = (a, b) => (b._inst ? 1 : 0) - (a._inst ? 1 : 0) || byName(a, b);
+  if (libSort === "za") list.sort((a, b) => -byName(a, b));
+  else if (libSort === "genre") list.sort((a, b) => (a.family || "").localeCompare(b.family || "") || byInst(a, b));
+  else if (libSort === "installed") list.sort(byInst);
+  else if (libSort === "covers") list.sort((a, b) => (b.cover ? 1 : 0) - (a.cover ? 1 : 0) || byInst(a, b));
+  else list.sort(byName);
   grid.innerHTML = list.map((g, i) => `
-    <div class="lib-card" data-key="${esc(g.key)}" style="animation-delay:${Math.min(i * 12, 300)}ms">
-      <img loading="lazy" src="/assets/gamelogos/${esc(g.cover)}" alt="${esc(g.name)}"/>
+    <div class="lib-card ${g._inst ? "inst" : ""}" data-key="${esc(g.key)}" style="animation-delay:${Math.min(i * 8, 320)}ms">
+      ${g.cover
+      ? `<img loading="lazy" src="/assets/gamelogos/${esc(g.cover)}" alt="${esc(g.name)}"/>`
+      : `<div class="lib-ph"><b>${esc(initials(g.name))}</b><span>${esc(FAMILY_LABEL[g.family] || g.family || "PC")}</span></div>`}
+      ${g._inst && g._inst.icon ? `<img class="lib-inst-ico" src="/api/game-icon/${encodeURIComponent(g._inst.icon)}" alt=""/>` : ""}
+      ${g._inst ? `<span class="lib-badge inst">INSTALLED</span>` : ""}
       <div class="lib-meta"><b>${esc(g.name)}</b><span>${esc(FAMILY_LABEL[g.family] || g.family)} · ${esc(g.pack)}</span></div>
     </div>`).join("");
-  $("#lib-count").textContent = `${list.length} of ${libGames.length} titles`;
+  $("#lib-count").textContent = `${list.length} of ${all.length} titles · ${instN} installed here`;
+  const desc = $("#lib-desc");
+  if (desc) desc.innerHTML = `<b>${all.length} titles</b> — ${covN} with cover art, the rest from the built-in database. <b>${instN}</b> are installed on this machine and show their real icon. Pick one and OptimizeKit prepares the set that fits its genre: you see the exact tweak list before anything is written, and one click puts it all back.`;
   $$("#lib-grid .lib-card").forEach((c) => c.addEventListener("click", () => selectLibGame(c.dataset.key)));
+  // first visit: learn what is installed so the INSTALLED badges can appear (no icon pass here)
+  if (!gamesCache.length && !window.__libAutoScan) {
+    window.__libAutoScan = true;
+    const st = $("#lib-scan-state");
+    if (st) st.textContent = "looking for installed titles…";
+    api("/api/games").then((g) => {
+      gamesCache = g || [];
+      if (st) st.textContent = `${gamesCache.length} games on this PC`;
+      renderLibrary();
+    }).catch(() => { if (st) st.textContent = ""; });
+  }
 }
 function selectLibGame(key) {
   const g = (libGames || []).find((x) => x.key === key); if (!g) return;
@@ -1539,23 +1696,43 @@ function selectLibGame(key) {
   el.classList.remove("hidden");
   const known = pack.ids.filter((id) => tweaksCache.some((t) => t.id === id));
   const on = known.filter((id) => tweaksCache.find((t) => t.id === id)?.applied).length;
+  const inst = libIsInstalled(g, libDetectedMap());
   el.innerHTML = `
     <div class="lib-hero">
-      <img src="/assets/gamelogos/${esc(g.cover)}" alt=""/>
+      ${g.cover
+      ? `<img src="/assets/gamelogos/${esc(g.cover)}" alt=""/>`
+      : `<div class="lib-hero-ph"><b>${esc(initials(g.name))}</b><span>${esc(FAMILY_LABEL[g.family] || g.family || "PC")}</span></div>`}
       <div>
-        <h2>${esc(g.name)}</h2>
-        <p class="muted" style="font-size:12px">${esc(FAMILY_LABEL[g.family] || g.family)} · suggested set <b style="color:var(--accent)">${esc(pack.name)}</b> — ${esc(pack.desc)}</p>
+        <h2>${esc(g.name)}${inst ? ` <span class="lib-badge inst" style="position:static">INSTALLED</span>` : ""}</h2>
+        <p class="muted" style="font-size:12px">${esc(FAMILY_LABEL[g.family] || g.family)} · suggested set <b style="color:var(--accent)">${esc(pack.name)}</b> — ${esc(pack.desc)}${inst ? `<br/>found on this PC as <b>${esc(inst.name)}</b> (${esc(inst.launcher)})${inst.icon ? " — real icon loaded" : ""}` : ""}</p>
         <div class="lib-progress"><i style="width:${known.length ? Math.round(on / known.length * 100) : 0}%"></i></div>
         <span class="muted" style="font-size:11px">${on}/${known.length} of this set already active</span>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <div class="g-actions">
           <button class="btn primary" id="lib-apply">⚡ Prepare this game</button>
+          ${inst ? `<button class="btn" id="lib-launch">▶ Launch</button>` : ""}
+          ${inst ? `<button class="btn" id="lib-folder">📂 Open folder</button>` : ""}
           <button class="btn" id="lib-inside">What's inside</button>
+          <button class="btn" id="lib-pick">🎲 Surprise me</button>
           <button class="btn danger" id="lib-restore">↺ Restore</button>
           <button class="btn" id="lib-games">Detected on this PC →</button>
         </div>
       </div>
     </div>`;
   $("#lib-games").addEventListener("click", () => show("games"));
+  $("#lib-pick").addEventListener("click", () => {
+    const pool = (libGames || []); if (!pool.length) return;
+    selectLibGame(pool[Math.floor(Math.random() * pool.length)].key);
+  });
+  if (inst) {
+    $("#lib-launch").addEventListener("click", async () => {
+      const r = await api("/api/games/launch", { id: inst.id });
+      toast(r.ok ? "▶ launching " + inst.name : "✖ " + r.error);
+    });
+    $("#lib-folder").addEventListener("click", async () => {
+      const r = await api("/api/games/launch", { id: inst.id, reveal: true });
+      toast(r.ok ? "📂 folder opened" : "✖ " + r.error);
+    });
+  }
   $("#lib-inside").addEventListener("click", () => { show("packs"); setTimeout(() => showPack(pack), 120); });
   $("#lib-restore").addEventListener("click", async (e) => { e.target.disabled = true; await api("/api/tweaks/restore", pack.ids); await updateTweakState(true); selectLibGame(key); toast("↺ " + pack.name + " restored"); });
   $("#lib-apply").addEventListener("click", async (e) => {
@@ -1574,9 +1751,43 @@ function selectLibGame(key) {
   });
 }
 $("#lib-search").addEventListener("input", (e) => { libQuery = e.target.value; renderLibrary(); });
+if ($("#lib-sort")) $("#lib-sort").addEventListener("change", (e) => { libSort = e.target.value; renderLibrary(); });
 $("#lib-families").addEventListener("click", (e) => {
   const chip = e.target.closest(".chip"); if (!chip) return;
   libFilter = chip.dataset.fam; renderLibrary();
+});
+on("#lib-random", () => {
+  const cards = $$("#lib-grid .lib-card");
+  if (!cards.length) return toast("▦ nothing to pick — clear the filters");
+  selectLibGame(cards[Math.floor(Math.random() * cards.length)].dataset.key);
+});
+on("#lib-toggle-installed", (e) => {
+  libInstalledOnly = !libInstalledOnly;
+  e.currentTarget.classList.toggle("on", libInstalledOnly);
+  e.currentTarget.textContent = libInstalledOnly ? "▲ Installed only: ON" : "▲ Installed only";
+  renderLibrary();
+});
+on("#lib-clear", () => {
+  libFilter = "all"; libQuery = ""; libInstalledOnly = false;
+  if ($("#lib-search")) $("#lib-search").value = "";
+  const b = $("#lib-toggle-installed"); if (b) { b.classList.remove("on"); b.textContent = "▲ Installed only"; }
+  renderLibrary();
+});
+on("#lib-scan", async () => {
+  const st = $("#lib-scan-state");
+  if (st) st.textContent = "scanning every store + every drive…";
+  await loadGames();
+  renderLibrary();
+  if (st) st.textContent = `${gamesCache.length} games on this PC · ${gamesCache.filter((g) => g.icon).length} icons`;
+});
+on("#btn-lib-icons", async () => {
+  const st = $("#lib-scan-state");
+  if (st) st.textContent = "extracting icons…";
+  const r = await api("/api/games/icons", { all: true });
+  gamesCache = await api("/api/games");
+  renderLibrary();
+  if (st) st.textContent = `${r.extracted || 0} new icons`;
+  toast("🖼 " + (r.extracted || 0) + " new icons", 3200);
 });
 
 /* ===================== quick BOOST (topbar) ===================== */
@@ -1719,12 +1930,9 @@ async function palOpen() {
   inp.value = ""; inp.focus(); palSel = 0;
   palItems = palSources();
   palRender("");
-  if (libGames === null) {           // the game library joins the palette once its manifest is known
-    try {
-      const m = await api("/assets/gamelogos/manifest.json");
-      libGames = (m && m.games) || [];
-      palItems = palSources(); palRender(inp.value);
-    } catch (e) { libGames = []; }
+  if (libGames === null) {           // the game library joins the palette once it is loaded
+    await ensureLibrary();
+    palItems = palSources(); palRender(inp.value);
   }
 }
 function palClose() {

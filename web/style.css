@@ -895,3 +895,36 @@ body.glitch .brand b,body.glitch .dh-main h1,body.glitch .gc-hero-txt h1,body.gl
 .btn:focus-visible,.nav-item:focus-visible,.side-search:focus-visible,.cmdbar:focus-visible,.pal-row:focus-visible{outline:2px solid rgba(var(--accent-rgb),.6);outline-offset:2px}
 .sec-head h1{letter-spacing:-.035em}
 .sec-head{margin-bottom:14px}
+
+/* ==========================================================================
+   v2.5 — GAME LIBRARY MEETS THE BUILT-IN DATABASE
+   Placeholder covers for database-only titles, installed badges with the real
+   extracted icon, chip rows and action bars for the new buttons.
+   ========================================================================== */
+.lib-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+.g-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.lib-ph{width:100%;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:
+    radial-gradient(120% 90% at 20% 0%,rgba(var(--accent-rgb),.30),transparent 60%),
+    linear-gradient(150deg,rgba(28,20,30,.95),rgba(7,8,12,.98) 72%);
+  transition:transform .4s var(--ease),filter .25s}
+.lib-ph b{font-size:27px;font-weight:800;letter-spacing:-.04em;color:rgba(255,255,255,.92)}
+.lib-ph span{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;padding:0 10px}
+.lib-card:hover .lib-ph{transform:scale(1.04);filter:saturate(1.15)}
+.lib-hero-ph{width:232px;aspect-ratio:16/9;border-radius:12px;flex:0 0 auto;border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 12px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:radial-gradient(120% 90% at 25% 0%,rgba(var(--accent-rgb),.32),transparent 60%),linear-gradient(150deg,#1c1420,#07080c 72%)}
+.lib-hero-ph b{font-size:34px;font-weight:800;letter-spacing:-.04em;color:rgba(255,255,255,.92)}
+.lib-hero-ph span{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.lib-badge{position:absolute;top:8px;left:8px;z-index:2;font-size:8.5px;font-weight:750;letter-spacing:.14em;
+  text-transform:uppercase;padding:3px 8px;border-radius:99px;background:rgba(var(--accent-rgb),.92);color:#fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.45)}
+.lib-badge.inst{background:rgba(61,214,140,.94);color:#04170d}
+.lib-inst-ico{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:9px;z-index:2;object-fit:cover;
+  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.5);box-shadow:0 6px 16px rgba(0,0,0,.55)}
+.lib-card.inst{border-color:rgba(61,214,140,.38)}
+.lib-card.inst::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(61,214,140,.10),transparent 42%)}
+.game-card .g-meta span{text-transform:none;letter-spacing:.02em}
+.game-card.sel{box-shadow:0 0 0 1px var(--accent),0 0 24px rgba(var(--accent-rgb),.28)}
+.games-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}

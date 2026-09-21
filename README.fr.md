@@ -11,21 +11,31 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 
-**Monitoring live** · **Score gaming** · **Optimisation intelligente** · **49 tweaks réversibles** · **5 centres de réglage** · **Bibliothèque de 106 jeux** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes complets** · **EN/FR** · **Journal d'activité complet**
+**Monitoring live** · **Score gaming** · **Optimisation intelligente** · **49 tweaks réversibles** · **5 centres de réglage** · **Base de ~300 jeux + 106 jaquettes** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes complets** · **EN/FR** · **Journal d'activité complet**
 
 `C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation` · `aucun driver, aucune injection`
 
-[⬇️ **Télécharger v2.4.0**](../../releases/tag/v2.4.0) · [Nouveautés](#-nouveautés-de-la-240) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.5.0**](../../releases/tag/v2.5.0) · [Nouveautés](#-nouveautés-de-la-250) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
 
 </div>
 
 ---
 
-## 🆕 Nouveautés de la 2.4.0
+## 🆕 Nouveautés de la 2.5.0
 
 | | |
 |---|---|
-| **Bibliothèque de jeux** | 106 jaquettes classées par genre — tu choisis un titre, tu vois exactement le set qui sera appliqué, puis applique ou restaure en un clic |
+| **Base de jeux intégrée** | ~300 titres PC connus avec leurs exe, alias et genres — un jeu installé hors de tout store est reconnu, nommé et reçoit son set suggéré |
+| **Tout détecter** | Six nouveaux scans (Battle.net, Ubisoft, EA, itch.io, clés utilisateur, chemins Xbox) **et un balayage de chaque disque fixe** ; un Steam installé sur `D:` est trouvé via le registre |
+| **Icônes partout** | Une seule passe extrait l'icône de **chaque** jeu détecté depuis son propre exe — plus seulement les douze premiers |
+| **Plein de boutons** | Lancer, booster, gaming mode, extraire l'icône, ouvrir le dossier, copier le chemin, preset de bibliothèque, tout booster, toutes les icônes, aléatoire, raccourcis de store |
+| **Bibliothèque ×2** | Jaquettes + base fusionnées, filtres genre/installés/jaquettes, cinq tris, badge `INSTALLED` avec la vraie icône |
+
+### Toujours valable depuis la 2.4.0
+
+| | |
+|---|---|
+| **Bibliothèque de jeux** | 106 jaquettes **+ la base intégrée de ~300 titres**, classées par genre — tu choisis un titre, tu vois exactement le set qui sera appliqué, puis applique ou restaure en un clic |
 | **5 centres de réglage** | Latence d'entrée · Rendu & FPS · Charge de fond · Énergie & thermique · Débloat & démarrage — état du catalogue + cartes mesurées sur ta machine, marquées `· LIVE` |
 | **Palette Ctrl+K** | Atteindre n'importe quel module, tweak, outil, pack ou jeu ; les tweaks s'appliquent depuis la palette avec leur état affiché |
 | **12 thèmes** | Thèmes complets avec mémoire d'accent par thème, présentés en galerie — Magma, Khadafi, Carbon, Discord, Fusion, Acid, Ocean, Matrix, Violet, Gold, Steel, Rose |
@@ -98,7 +108,7 @@ Noir profond + couleur d'accent au choix (6 thèmes dans la barre du haut, persi
 | **Dashboard** | CPU / RAM / GPU / disque live avec sparklines 60 s, débit réseau, processus top (2,5 s) |
 | **Gaming Center** | Anneau de score gaming, cartes par catégorie, interrupteurs groupés, Gaming Mode |
 | **Tweaks** | Les 49 tweaks en cartes interrupteur : application / restauration instantanée, recherche, filtres, badges ADMIN/USER, barres d'impact, compteur live dans la sidebar |
-| **Jeux** | Détection Steam + Epic + Riot + GOG + registre, vraies icônes extraites des exécutables, boost par jeu (priorité persistante via IFEO) et Gaming Mode |
+| **Jeux** | Neuf stores + balayage de chaque disque fixe, base de jeux intégrée pour nommer et classer ce qui est trouvé, vraies icônes extraites des exécutables, lancer/afficher en un clic, boost par jeu (IFEO), tout booster, Gaming Mode et raccourcis de store |
 | **Scan PC** | Scan complet : fichiers temporaires, état des tweaks, réseau, plan d'alimentation, démarrage, pilotes, jeux — chaque résultat a son bouton Apply |
 | **Optimize** | Profils un clic (SAFE / GAMING / PRIVACY / RESTORE ALL) avec snapshot → application → vérification |
 | **Réseau** | État des adaptateurs (autotuning, RSC, RSS, DNS, MTU), profils, **slider MTU** avec préréglages (Ethernet/PPPoE/VPN/Jumbo), moniteur de latence, ping rapide |
@@ -117,13 +127,20 @@ Scanner multi-provider — pas de verrouillage sur un seul store :
 
 | Provider | Source |
 |---|---|
-| **Steam** | `libraryfolders.vdf` → `appmanifest_*.acf` (toutes bibliothèques, tous disques) |
+| **Steam** | registre `SteamPath`/`InstallPath` → `libraryfolders.vdf` → `appmanifest_*.acf` (toutes bibliothèques, tous disques) |
 | **Epic** | `%PROGRAMDATA%\Epic\EpicGamesLauncher\Data\Manifests\*.item` |
 | **Riot** | `HKLM\SOFTWARE\Riot Games, Inc.\*` (VALORANT, LoL…) |
 | **GOG** | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\*` |
-| **Registre** | Clés Uninstall sous les dossiers Epic/Riot/GOG/Battle.net/Ubisoft/EA/Xbox/Rockstar |
+| **Battle.net** | `HKLM\SOFTWARE[(WOW6432Node)\]Blizzard Entertainment\*` → `InstallLocation` (WoW, Overwatch, Diablo…) |
+| **Ubisoft** | `…\Ubisoft\Launcher\Installs\*` → `InstallDir` |
+| **EA** | `…\Electronic Arts\EA Games\*` → `Install Dir` |
+| **itch.io** | `%APPDATA%\itch\apps\*` |
+| **Registre** | Clés Uninstall (machine **et** utilisateur) sous Epic/Riot/GOG/Battle.net/Blizzard/Ubisoft/EA/Xbox/Rockstar/Amazon/itch/Wargaming |
+| **Tous les disques** | `\Games`, `\Game`, `\Jeux`, `\GOG Games`, `\Epic Games`, `\Riot Games`, `\XboxGames`, `\Battle.net`, `\Program Files (x86)`, `\SteamLibrary\steamapps\common`… — seuls les dossiers reconnus par la base intégrée sont ouverts |
 
-Plus les profils par jeu (priorité haute persistante via IFEO), le gaming mode par jeu et l'extraction des vraies icônes (`SHDefExtractIconW` → cache PNG).
+**Bibliothèque** : la grille fusionne les jaquettes et la base. Les titres sans jaquette reçoivent une vignette générée au lieu de casser la grille, les jeux installés sont badgés `INSTALLED` avec leur vraie icône extraite et peuvent être lancés depuis la bibliothèque (filtres genre / installés / jaquettes, cinq tris, bouton Surprise me).
+
+Chaque exe candidat est comparé à la **base de jeux intégrée** (`src/core/gamedb.h`, ~300 titres avec exe + alias + genre) : un jeu reçoit son vrai nom et sa famille même sans manifest de launcher. Puis : profils par jeu (priorité haute persistante via IFEO), gaming mode par jeu, `POST /api/games/launch`, `POST /api/games/boost-all`, et extraction des vraies icônes (`SHDefExtractIconW` → cache PNG, en lot via `POST /api/games/icons`).
 
 ## 🖥️ CLI
 

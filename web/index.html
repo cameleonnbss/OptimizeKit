@@ -35,7 +35,7 @@
 <!-- ============ APP ============ -->
 <div id="screen-app" class="screen">
   <aside class="side">
-    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.4</span></div>
+    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.5</span></div>
     <button class="side-search" id="btn-palette" type="button"><span class="ss-ico">⌕</span><span>Search anything…</span><kbd>Ctrl K</kbd></button>
     <nav id="nav">
       <div class="nav-item active" data-view="dashboard"><span class="ni-ico">◉</span><span>Dashboard</span></div>
@@ -73,7 +73,7 @@
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.4 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.5 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
@@ -248,9 +248,19 @@
 
     <!-- ============ GAMES ============ -->
     <section class="view hidden" id="view-games">
-      <div class="sec-head"><h1>Games</h1><div class="spacer"></div>
-        <button class="btn sm primary" id="btn-games-refresh">↻ Detect games</button></div>
-      <p class="muted" style="font-size:12px;margin:6px 0 14px">Steam, Epic, Riot, GOG, Battle.net, Ubisoft, EA, Xbox — real icons extracted from the game executables.</p>
+      <div class="sec-head">
+        <h1>Games</h1>
+        <input class="input" id="games-search" placeholder="filter games…" style="width:160px"/>
+        <div class="spacer"></div>
+        <button class="btn sm primary" id="btn-games-refresh">↻ Detect games</button>
+        <button class="btn sm" id="btn-games-icons">🖼 Extract all icons</button>
+        <button class="btn sm" id="btn-games-boost">⚡ Boost all detected</button>
+        <button class="btn sm" id="btn-games-gmode">▶ Gaming Mode</button>
+        <button class="btn sm" id="btn-games-random">🎲 Random</button>
+      </div>
+      <div class="chips" id="games-launchers" style="margin:6px 0 10px"></div>
+      <div class="stat-row" id="games-stats"></div>
+      <p class="muted" style="font-size:12px;margin:2px 0 14px;max-width:1020px">Every store on this machine — Steam, Epic, Riot, GOG, Battle.net, Ubisoft, EA, Xbox/Game Pass, itch.io — plus a survey of <b>every fixed drive</b>, matched against a built-in database of known titles so each game gets its real name and genre. Icons are extracted from the actual executables.</p>
       <div id="games-grid" class="games-grid"><div class="conv-empty muted" style="padding:14px">Press "Detect games"…</div></div>
       <div id="game-profile" class="hidden"></div>
     </section>
@@ -259,10 +269,25 @@
     <section class="view hidden" id="view-library">
       <div class="sec-head"><h1>Game <span style="color:var(--accent)">Library</span></h1>
         <input class="input" id="lib-search" placeholder="search a title…" style="width:190px"/>
+        <select class="input" id="lib-sort" style="width:160px">
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="genre">by genre</option>
+          <option value="installed">installed first</option>
+          <option value="covers">with cover art</option>
+        </select>
         <div class="spacer"></div>
         <span class="muted" style="font-size:11px" id="lib-count"></span></div>
-      <div class="chips" id="lib-families" style="margin:6px 0 14px"></div>
-      <p class="muted" style="font-size:12px;margin:0 0 16px;max-width:1020px">106 covers, grouped by genre. Pick a title and OptimizeKit prepares the set that fits it — you see the exact tweak list before anything is written, and one click puts it all back. Covers come from the Khadafi library; the tweaks behind them are OptimizeKit's own.</p>
+      <div class="chips" id="lib-families" style="margin:6px 0 10px"></div>
+      <div class="lib-actions">
+        <button class="btn sm" id="lib-random">🎲 Surprise me</button>
+        <button class="btn sm" id="lib-toggle-installed">▲ Installed only</button>
+        <button class="btn sm" id="lib-scan">↻ Scan this PC</button>
+        <button class="btn sm" id="btn-lib-icons">🖼 Icons for installed titles</button>
+        <button class="btn sm" id="lib-clear">✕ Clear filters</button>
+        <span class="muted" style="font-size:11px" id="lib-scan-state"></span>
+      </div>
+      <p class="muted" style="font-size:12px;margin:0 0 16px;max-width:1020px" id="lib-desc">Pick a title and OptimizeKit prepares the set that fits its genre — you see the exact tweak list before anything is written, and one click puts it all back. Titles found on this machine are badged with their real icon.</p>
       <div id="lib-grid" class="lib-grid"></div>
       <div id="lib-detail" class="hidden"></div>
     </section>
@@ -580,9 +605,10 @@
     <!-- ============ ABOUT ============ -->
     <section class="view hidden" id="view-about">
       <div class="profile-hero">
-        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.4</h2>
+        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.5</h2>
         <p>Windows Gaming Control Center — one static exe, embedded C++ HTTP server, liquid-glass dashboard.<br/>
-           32 modules · 49 reversible tweaks · 12 full themes · a command palette (Ctrl+K) over every module,
+           32 modules · 49 reversible tweaks · 12 full themes · a Game Library of 100+ covered titles
+           plus a built-in database of known PC games · a command palette (Ctrl+K) over every module,
            tweak, tool, pack and game · no driver, no injection, no kernel component.<br/>
            Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC-gaming
            community. Every action logged, every key backed up, every tweak reversible.</p>

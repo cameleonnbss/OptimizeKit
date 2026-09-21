@@ -49,7 +49,7 @@ static std::vector<wstring> getArgs() {
 
 static void printHelp() {
     std::wcout <<
-        L"OptimizeKit v2.4 - Windows Gaming & Performance Control Center\n"
+        L"OptimizeKit v2.5 - Windows Gaming & Performance Control Center\n"
         L"usage:\n"
         L"  OptimizeKit.exe                 desktop app window (embedded dashboard)\n"
         L"  OptimizeKit.exe --native        native Direct2D dashboard\n"
