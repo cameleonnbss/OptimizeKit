@@ -1584,6 +1584,11 @@ document.addEventListener("click", (e) => {
 
 /* ============ GAME LIBRARY (cover art + the built-in game database) ============ */
 let libGames = null, libFilter = "all", libQuery = "", libSort = "az", libInstalledOnly = false;
+// readable labels for the suggested-set ids stored in the library manifest
+const PACK_LABEL = {
+  esport: "Esport", lowlatency: "Low latency", streaming: "Play & stream",
+  laptop: "Laptop / thermals", cleanboot: "Clean boot", privacy: "Privacy",
+};
 const FAMILY_LABEL = {
   fps: "Competitive FPS", br: "Battle royale", moba: "MOBA", mmo: "MMO / live service",
   coop: "Co-op / PvE", rpg: "Single-player RPG", openworld: "Open world", racing: "Racing & sim",
@@ -1670,7 +1675,7 @@ async function renderLibrary(force) {
       : `<div class="lib-ph"><b>${esc(initials(g.name))}</b><span>${esc(FAMILY_LABEL[g.family] || g.family || "PC")}</span></div>`}
       ${g._inst && g._inst.icon ? `<img class="lib-inst-ico" src="/api/game-icon/${encodeURIComponent(g._inst.icon)}" alt=""/>` : ""}
       ${g._inst ? `<span class="lib-badge inst">INSTALLED</span>` : ""}
-      <div class="lib-meta"><b>${esc(g.name)}</b><span>${esc(FAMILY_LABEL[g.family] || g.family)} · ${esc(g.pack)}</span></div>
+      <div class="lib-meta"><b>${esc(g.name)}</b><span>${esc(FAMILY_LABEL[g.family] || g.family)} · ${esc(PACK_LABEL[g.pack] || g.pack)}</span></div>
     </div>`).join("");
   $("#lib-count").textContent = `${list.length} of ${all.length} titles · ${instN} installed here`;
   const desc = $("#lib-desc");
