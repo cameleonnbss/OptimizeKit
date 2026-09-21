@@ -1,4 +1,5 @@
-/* OptimizeKit v2.2 — WormGPT design system + Gaming Control Center */
+/* OptimizeKit v2.4 — Windows Gaming Control Center
+   Shell: grouped rail + command bar · 32 modules · 12 themes · Ctrl+K palette */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -99,11 +100,13 @@ const monitorColors = () => ({
 
 /* ===================== i18n (EN base, FR) ===================== */
 const I18N = {
-  en: { dashboard:"Dashboard", gaming:"Gaming Center", scan:"Scan PC", optimize:"Optimize", tweaks:"Tweaks", games:"Games",
-        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", privacy:"Privacy",
+  en: { themes:"Themes", dashboard:"Dashboard", smart:"Smart Optimize", gaming:"Gaming Center", scan:"Scan PC", optimize:"Optimize", tweaks:"Tweaks", games:"Games",
+        library:"Game Library", packs:"Packs", inputlag:"Input Lag", render:"Rendering & FPS", background:"Background load", power:"Power & thermals", debloat:"Debloat & boot",
+        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", bios:"BIOS guide", privacy:"Privacy",
         diag:"Diagnostics", bench:"Benchmark", tools:"Tools", logs:"Logs", settings:"Settings", about:"About" },
-  fr: { dashboard:"Tableau de bord", gaming:"Centre Gaming", scan:"Analyser le PC", optimize:"Optimiser", tweaks:"Tweaks", games:"Jeux",
-        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", privacy:"Confidentialité",
+  fr: { themes:"Thèmes", dashboard:"Tableau de bord", smart:"Optimisation intelligente", gaming:"Centre Gaming", scan:"Analyser le PC", optimize:"Optimiser", tweaks:"Tweaks", games:"Jeux",
+        library:"Bibliothèque de jeux", packs:"Packs", inputlag:"Latence d'entrée", render:"Rendu & FPS", background:"Charge de fond", power:"Énergie & thermique", debloat:"Débloat & démarrage",
+        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", bios:"Guide BIOS", privacy:"Confidentialité",
         diag:"Diagnostics", bench:"Benchmark", tools:"Outils", logs:"Journaux", settings:"Paramètres", about:"À propos" }
 };
 function applyLang(lang) {
@@ -115,50 +118,99 @@ function applyLang(lang) {
   document.documentElement.lang = lang;
 }
 
-/* ===================== theme picker ===================== */
-function applyAccent(hex) {
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+/* ===================== theme engine =====================
+   Three layers, in this order: the pack (body[data-theme]) sets every surface,
+   the inline accent on <html> refines the accent, localStorage makes it instant
+   on the next open, and config.json is the source of truth across machines.
+   currentTheme/currentAccent exist so the 10 s state poll can never silently
+   revert a choice the user just made. */
+let currentTheme = null, currentAccent = null;
+
+/* Accent memory: each theme keeps ITS OWN accent. That is the fix for the old
+   behaviour where a colour picked on one theme leaked onto another (the config
+   ended up as e.g. ui_theme=steel with ui_accent=#38bdf8 — silver surfaces with
+   a blue accent). A theme now always looks the way it was designed, unless you
+   deliberately refined that theme's accent yourself. */
+function accentMem() {
+  try { return JSON.parse(localStorage.getItem("ok_accents") || "{}"); } catch (e) { return {}; }
+}
+function rememberAccent(theme, hex) {
+  if (!theme || !hex) return;
+  const m = accentMem(); m[theme] = hex.toLowerCase();
+  localStorage.setItem("ok_accents", JSON.stringify(m));
+}
+function themeAccent(theme) {
+  const pack = THEME_PACKS.find(([id]) => id === theme) || THEME_PACKS[0];
+  return accentMem()[pack[0]] || pack[1];
+}
+
+function shade(hex, amt) {   // lighten (amt>0) or darken (amt<0) a #rrggbb colour
   const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-  document.documentElement.style.setProperty("--accent", hex);
-  document.documentElement.style.setProperty("--accent-hover", hex);
-  document.documentElement.style.setProperty("--accent-rgb", `${r},${g},${b}`);
-  $$(".theme-opt").forEach((o) => o.classList.toggle("on", o.dataset.accent === hex));
-  localStorage.setItem("ok_accent", hex);
+  const f = (v) => Math.max(0, Math.min(255, Math.round(amt > 0 ? v + (255 - v) * amt : v * (1 + amt))));
+  return "#" + [f(r), f(g), f(b)].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+function applyAccent(hex, persist = true) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  currentAccent = hex.toLowerCase();
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  const root = document.documentElement.style;
+  root.setProperty("--accent", hex);
+  root.setProperty("--accent-hover", shade(hex, .14));
+  root.setProperty("--accent-rgb", `${r},${g},${b}`);
+  $$(".theme-opt").forEach((o) => o.classList.toggle("on", (o.dataset.accent || "").toLowerCase() === currentAccent));
+  if (persist) localStorage.setItem("ok_accent", currentAccent);
   if (currentView === "dashboard") { const mc = monitorColors(); sparkline($("#m-cpu-g"), histCpu, mc.cpu); sparkline($("#m-gpu-g"), histGpu, mc.gpu); sparkline($("#m-disk-g"), histDisk, mc.disk); }
   if (currentView === "gaming") { const ring = $(".gc-ring"); if (ring) ring.style.background = `conic-gradient(${hex} calc(var(--p,0)*1%),rgba(255,255,255,.07) 0)`; }
 }
 async function setTheme(hex, persist) {
-  applyAccent(hex);
-  if (persist) { await api("/api/settings", { ui_accent: hex }).catch(() => {}); toast("Theme updated"); }
+  applyAccent(hex, persist !== false);
+  if (persist) { await api("/api/settings", { ui_accent: hex }).catch(() => {}); toast("Accent updated"); }
 }
 
 /* ===================== theme packs (full-surface) ===================== */
 const THEME_PACKS = [
-  ["magma",  "#ff3d57", "Magma — deep black + crimson"],
-  ["ocean",  "#38bdf8", "Ocean — abyssal blue"],
-  ["matrix", "#22c55e", "Matrix — terminal green"],
-  ["violet", "#a78bfa", "Violet — neon purple"],
-  ["gold",   "#f59e0b", "Gold — amber elite"],
-  ["steel",  "#94a3b8", "Steel — cold silver"],
-  ["rose",   "#f472b6", "Rose — soft pink"],
+  ["magma",   "#ff3d57", "Magma — deep black + crimson"],
+  ["khadafi", "#ff3b4e", "Khadafi — near-black #0a0a0c + signal red"],
+  ["carbon",  "#ffb04d", "Carbon — graphite + amber"],
+  ["discord", "#5865f2", "Discord — blurple on nocturne"],
+  ["fusion",  "#ff37c7", "Fusion — hot magenta"],
+  ["acid",    "#7cff3d", "Acid — lime terminal"],
+  ["ocean",   "#38bdf8", "Ocean — abyssal blue"],
+  ["matrix",  "#22c55e", "Matrix — terminal green"],
+  ["violet",  "#a78bfa", "Violet — neon purple"],
+  ["gold",    "#f59e0b", "Gold — amber elite"],
+  ["steel",   "#94a3b8", "Steel — cold silver"],
+  ["rose",    "#f472b6", "Rose — soft pink"],
 ];
-function applyThemePack(name) {
+function applyThemePack(name, persist = true) {
   const pack = THEME_PACKS.find(([id]) => id === name) || THEME_PACKS[0];
+  currentTheme = pack[0];
   document.body.dataset.theme = pack[0];
-  applyAccent(pack[1]);
-  localStorage.setItem("ok_theme", pack[0]);
+  applyAccent(themeAccent(pack[0]), persist);
+  if (persist) localStorage.setItem("ok_theme", pack[0]);
   $$(".pack-opt").forEach((o) => o.classList.toggle("on", o.dataset.pack === pack[0]));
+  $$(".theme-card").forEach((c) => c.classList.toggle("on", c.dataset.pack === pack[0]));
+  const nm = $("#theme-name"); if (nm) nm.textContent = pack[2];
 }
-async function setThemePack(name, persist) {
-  applyThemePack(name);
-  if (persist) { await api("/api/settings", { ui_theme: name, ui_accent: THEME_PACKS.find(([id]) => id === name)[1] }).catch(() => {}); toast("Theme pack: " + name); }
+async function setThemePack(name, persist = true) {
+  applyThemePack(name, persist);
+  if (persist) {
+    const pack = THEME_PACKS.find(([id]) => id === name) || THEME_PACKS[0];
+    await api("/api/settings", { ui_theme: pack[0], ui_accent: pack[1] }).catch(() => {});
+    toast("Theme: " + pack[0]);
+  }
 }
 on("#btn-theme", () => $("#theme-flyout").classList.toggle("hidden"));
 document.addEventListener("click", (e) => {
   const fly = $("#theme-flyout");
   if (fly && !fly.classList.contains("hidden") && !e.target.closest("#theme-flyout") && !e.target.closest("#btn-theme")) fly.classList.add("hidden");
 });
-$$("#theme-flyout .theme-opt").forEach((o) => o.addEventListener("click", () => { applyAccent(o.dataset.accent); api("/api/settings", { ui_accent: o.dataset.accent }).catch(() => {}); }));
+$$("#theme-flyout .theme-opt").forEach((o) => o.addEventListener("click", () => {
+  applyAccent(o.dataset.accent);                       // keeps the current pack, only refines its accent
+  rememberAccent(currentTheme, o.dataset.accent);
+  api("/api/settings", { ui_accent: o.dataset.accent }).catch(() => {});
+  toast("Accent " + o.dataset.accent + " for " + currentTheme);
+}));
 $$(".pack-opt").forEach((o) => o.addEventListener("click", () => setThemePack(o.dataset.pack, true)));
 
 /* ===================== navigation ===================== */
@@ -181,6 +233,13 @@ function show(view) {
   if (view === "gaming") refreshGamingCenter();
   if (view === "tweaks") updateTweakState();
   if (view === "diag") refreshDiag();
+  if (view === "smart") refreshSmart();
+  if (view === "packs") renderPacks();
+  if (view === "bios") renderBios();
+  if (view === "library") renderLibrary();
+  if (view === "themes") renderThemes();
+  if (view === "dashboard") refreshKpis(null);
+  if (CENTERS[view]) renderCenter(view);
 }
 $("#nav").addEventListener("click", (e) => {
   const item = e.target.closest(".nav-item");
@@ -238,6 +297,7 @@ async function pollMonitor() {
       sparkline($("#m-gpu-g"), histGpu, mc.gpu);
       sparkline($("#m-disk-g"), histDisk, mc.disk);
       pollProcesses();
+      refreshKpis(s);
     }
     if (currentView === "ram") { const mc = monitorColors(); drawRamBig(s, mc.cpu); }
   } catch (e) { /* server restarting */ }
@@ -269,7 +329,8 @@ async function loadState() {
     $("#st-plan").textContent = s.plan;
     $("#st-gm").textContent = s.gameMode ? "Enabled" : "Disabled";
     $("#st-hags").textContent = s.hags ? "Enabled" : "Disabled";
-    if (s.ui_theme) applyThemePack(s.ui_theme);
+    // only react to a real change: re-applying on every poll used to wipe a custom accent
+    if (s.ui_theme && s.ui_theme !== currentTheme) applyThemePack(s.ui_theme, false);
     const adm = s.admin;
     for (const id of ["admin-pill", "admin-pill-side"])
       $("#" + id).textContent = adm ? "Administrator" : "Standard user";
@@ -284,6 +345,7 @@ async function updateTweakState(silent) {
     tweaksCache = await api("/api/tweaks");
     if (currentView === "tweaks") renderTweaks($(".chip.on")?.dataset.filter || "all");
     if (currentView === "gaming") refreshGamingCenter();
+    if (CENTERS[currentView]) renderCenter(currentView);
     const applied = tweaksCache.filter((t) => t.applied).length;
     const badge = $("#nav-tw-count");
     badge.textContent = applied;
@@ -304,26 +366,8 @@ function renderTweaks(filter) {
   const list = tweaksCache
     .filter((t) => filter === "all" || catOf(t) === filter)
     .filter((t) => !q || (t.name + t.desc + t.id).toLowerCase().includes(q));
-  el.innerHTML = list.map((t, i) => `
-    <div class="tw2 ${t.applied ? "is-on" : ""}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(i * 22, 400)}ms">
-      <div class="t-main" style="flex:1">
-        <div class="tw2-top"><b>${esc(t.name)}</b>
-          <span class="badge ${t.admin ? "badge-admin" : "badge-user"}">${t.admin ? "ADMIN" : "USER"}</span>
-          <span class="badge ${t.applied ? "badge-on" : ""}">${t.applied ? "APPLIED" : "DEFAULT"}</span>
-        </div>
-        <div class="tw2-desc">${esc(t.desc)}</div>
-        <div class="tw2-foot"><span class="tw2-impact">impact <b>${"▮".repeat(t.impact || 1)}</b></span></div>
-      </div>
-      <div class="tw2-side">
-        <div class="ok-switch ${t.applied ? "on" : ""}" data-id="${esc(t.id)}" title="${t.applied ? "Click to restore Windows default" : "Click to apply"}"></div>
-        <span class="tw2-impact">${t.applied ? "ON" : "OFF"}</span>
-      </div>
-    </div>`).join("") || `<div class="conv-empty muted" style="padding:14px">no tweak matches</div>`;
-  $$("#tweaks-list .tw2").forEach((row) => row.addEventListener("click", (e) => {
-    if (e.target.closest(".ok-switch")) return;       // switch has its own handler
-    row.querySelector(".ok-switch")?.click();          // clicking the card toggles too
-  }));
-  $$("#tweaks-list .ok-switch").forEach((sw) => sw.addEventListener("click", (e) => { e.stopPropagation(); toggleTweak(sw); }));
+  el.innerHTML = list.map((t, i) => twRowHTML(t, i)).join("") || `<div class="conv-empty muted" style="padding:14px">no tweak matches</div>`;
+  wireSwitches("#tweaks-list");
 }
 async function toggleTweak(sw) {
   const id = sw.dataset.id;
@@ -972,12 +1016,11 @@ $("#log-filter").addEventListener("input", async (e) => { logFilterText = e.targ
 async function loadSettings() {
   try {
     const s = await api("/api/settings");
-    $("#set-accent").value = s.ui_accent || "#ff3d57";
+    $("#set-accent").value = currentAccent || "#ff3d57";
     $("#set-theme").value = s.ui_theme || "magma";
     $("#set-lang").value = s.ui_lang || "en";
     applyLang(s.ui_lang || "en");
-    $("#set-anim").checked = s.ui_particles !== false;
-    $("#set-glitch").checked = s.ui_glitch !== false;
+    applyVisualPrefs(s.ui_particles, s.ui_glitch_text);   // these two settings are now actually applied
     $("#set-confirm").checked = s.confirm_destructive !== false;
     $("#set-autoback").checked = s.auto_backup !== false;
     $("#set-dns").checked = s.dns_managed === true;
@@ -991,7 +1034,7 @@ on("#btn-set-save", async () => {
     ui_theme: $("#set-theme").value,
     ui_lang: $("#set-lang").value,
     ui_particles: $("#set-anim").checked,
-    ui_glitch: $("#set-glitch").checked,
+    ui_glitch_text: $("#set-glitch").checked,
     confirm_destructive: $("#set-confirm").checked,
     auto_backup: $("#set-autoback").checked,
     dns_managed: $("#set-dns").checked,
@@ -1000,6 +1043,8 @@ on("#btn-set-save", async () => {
   await api("/api/settings", body);
   applyThemePack(body.ui_theme);
   applyAccent(body.ui_accent);
+  rememberAccent(body.ui_theme, body.ui_accent);
+  applyVisualPrefs(body.ui_particles, body.ui_glitch_text);
   applyLang(body.ui_lang);
   $("#set-saved").textContent = "saved ✓";
   setTimeout(() => ($("#set-saved").textContent = ""), 2200);
@@ -1073,6 +1118,688 @@ async function toggleEsport() {
   updateTweakState();
 }
 on("#btn-esport", toggleEsport);
+on("#btn-boost", (e) => quickBoost(e.currentTarget));
+
+/* ===================== SMART OPTIMIZE ===================== */
+let smartPlan = null, smartGoal = "gaming";
+const smartSel = new Set();
+async function refreshSmart(force) {
+  if (smartPlan && !force && smartPlan.goal === smartGoal) return renderSmart();
+  try {
+    smartPlan = await api("/api/smart?goal=" + encodeURIComponent(smartGoal));
+    // drop selections that are gone / already applied
+    for (const id of Array.from(smartSel)) {
+      const it = smartPlan.items.find((x) => x.id === id);
+      if (!it || it.applied) smartSel.delete(id);
+    }
+    renderSmart();
+  } catch (e) { toast("✖ smart analysis failed"); }
+}
+function smartSelUI() {
+  const n = smartSel.size;
+  $("#sm-sel").textContent = n;
+  $("#btn-smart-apply").disabled = n === 0;
+}
+function renderSmart() {
+  const p = smartPlan; if (!p) return;
+  const ring = $("#view-smart .gc-ring");
+  if (ring) { ring.style.setProperty("--p", p.score); ring.style.background = `conic-gradient(var(--accent) calc(var(--p)*1%),rgba(255,255,255,.07) 0)`; }
+  $("#sm-num").textContent = p.score;
+  $("#sm-summary").innerHTML = `<b>${esc(p.headline)}</b><br/><span class="muted" style="font-size:11.5px">goal <b style="color:var(--accent)">${esc(p.goal)}</b> · ${p.admin ? "running as administrator" : "standard user — admin items are listed but cannot apply"}</span>`;
+  $("#sm-stats").innerHTML = `
+    <div class="stat-card good"><b>${p.applied}</b><span>applied</span></div>
+    <div class="stat-card med"><b>${p.pending}</b><span>on the table</span></div>
+    <div class="stat-card ${p.adminMissing ? "high" : "good"}"><b>${p.adminMissing}</b><span>need admin</span></div>
+    <div class="stat-card"><b>${p.total}</b><span>catalog size</span></div>`;
+  const pending = p.items.filter((i) => !i.applied).length;
+  $("#sm-count").textContent = `${pending} pending · ranked for ${p.goal}`;
+  const list = $("#smart-list");
+  list.innerHTML = p.items.map((it, i) => {
+    const sel = smartSel.has(it.id);
+    const sev = it.applied ? "low" : it.impact >= 3 ? "high" : it.impact === 2 ? "medium" : "low";
+    return `<div class="finding ${it.applied ? "is-done" : ""} ${sel ? "is-sel" : ""}" data-id="${esc(it.id)}" style="animation-delay:${Math.min(i * 14, 300)}ms">
+      <span class="sev ${sev}"></span>
+      <div class="fbody">
+        <b>${esc(it.name)}</b>
+        <p>${esc(it.desc)}</p>
+        <div class="tw2-foot">
+          <span class="badge ${it.admin ? "badge-admin" : "badge-user"}">${it.admin ? "ADMIN" : "USER"}</span>
+          <span class="badge ${it.applied ? "badge-on" : ""}">${it.applied ? "APPLIED" : "PENDING"}</span>
+          <span class="badge">${esc(it.category)}</span>
+          <span class="badge">weight ${it.weight}</span>
+        </div>
+        <p class="sm-why">${esc(it.why)}</p>
+      </div>
+      <div class="fx">
+        <span class="impact">${"▮".repeat(it.impact || 1)}</span>
+        ${it.applied
+          ? `<button class="btn sm" data-restore="${esc(it.id)}">↺ Restore</button>`
+          : `<input type="checkbox" class="sm-pick" data-pick="${esc(it.id)}" ${sel ? "checked" : ""} />`}
+      </div>
+    </div>`;
+  }).join("") || `<div class="conv-empty muted" style="padding:14px">nothing to show</div>`;
+  $$("#smart-list .sm-pick").forEach((cb) => cb.addEventListener("change", () => {
+    if (cb.checked) smartSel.add(cb.dataset.pick); else smartSel.delete(cb.dataset.pick);
+    cb.closest(".finding")?.classList.toggle("is-sel", cb.checked);
+    smartSelUI();
+  }));
+  $$("#smart-list [data-restore]").forEach((b) => b.addEventListener("click", async () => {
+    b.disabled = true;
+    const r = await api("/api/tweaks/restore", [b.dataset.restore]);
+    toast(r.restored > 0 ? "↺ restored to Windows default" : "✖ " + (r.errors[0] || "failed"));
+    await updateTweakState(true); await refreshSmart(true);
+  }));
+  smartSelUI();
+}
+$("#sm-goals").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip[data-goal]"); if (!chip) return;
+  $$("#sm-goals .chip").forEach((c) => c.classList.remove("on"));
+  chip.classList.add("on");
+  smartGoal = chip.dataset.goal; smartSel.clear(); smartPlan = null;
+  refreshSmart(true);
+});
+on("#btn-smart-refresh", () => { smartPlan = null; refreshSmart(true); toast("↻ re-analyzing"); });
+on("#btn-smart-none", () => { smartSel.clear(); renderSmart(); });
+on("#btn-smart-top", () => {
+  smartSel.clear();
+  (smartPlan?.items || []).filter((i) => !i.applied && !i.needAdmin).slice(0, 5).forEach((i) => smartSel.add(i.id));
+  renderSmart(); toast("selected " + smartSel.size + " top items");
+});
+on("#btn-smart-apply", async () => {
+  const ids = Array.from(smartSel); if (!ids.length) return;
+  overlay.show("Smart Optimize", `${ids.length} change${ids.length > 1 ? "s" : ""} — snapshot first, then apply`);
+  overlay.step("creating registry snapshot"); overlay.progress(12);
+  await sleep(220);
+  try {
+    const r = await api("/api/tweaks/apply", ids);
+    overlay.progress(96);
+    (r.errors || []).slice(0, 6).forEach((e) => overlay.step("✖ " + e, "er"));
+    overlay.step(`✓ ${r.applied} applied · ${ids.length - r.applied} skipped`, r.applied ? "ok" : "er");
+    await overlay.done(r.applied > 0, `${r.applied} applied${r.errors.length ? " — " + r.errors.length + " need admin" : ""}`);
+    toast(`✔ Smart Optimize: ${r.applied} applied`, 4200);
+  } catch (e) { await overlay.done(false, String(e)); }
+  smartSel.clear();
+  await updateTweakState(true);
+  await refreshSmart(true);
+});
+
+/* ===================== PACKS ===================== */
+const PACKS = [
+  { id: "esport", name: "⚑ Esport", desc: "Competitive FPS: 0.5 ms timer, no background recording, raw mouse, background apps off.",
+    ids: ["game_mode", "game_dvr_off", "timer_high", "network_gaming", "mouse_precision", "menu_delay_0", "background_apps", "win32_priority", "hags_on", "power_ultimate", "usb_powersave", "pcie_aspm", "vrr"] },
+  { id: "lowlatency", name: "⏱ Low latency", desc: "The latency set on its own: timer, input, network stack and interrupt handling.",
+    ids: ["timer_high", "network_gaming", "mouse_precision", "usb_powersave", "pcie_aspm", "win32_priority", "bcdedit_tsc", "msi_mode"] },
+  { id: "streaming", name: "🎥 Play & stream", desc: "Keep capture available without fighting your encoder — game priority stays first.",
+    ids: ["game_mode", "windowed_games", "vrr", "hags_on", "gpu_preference", "fso_on", "timer_high"] },
+  { id: "laptop", name: "💻 Laptop / thermals", desc: "Cooler and quieter: compositor, transparency, animations and background churn off.",
+    ids: ["transparency_off", "taskbar_anim", "background_apps", "search_index", "visual_fx_balloff", "mouse_trails"] },
+  { id: "cleanboot", name: "🚀 Fast, clean boot", desc: "Fewer things starting and running: Superfetch, indexing, telemetry tasks, boot logo.",
+    ids: ["sysmain_off", "search_index", "hpets_boot", "telemetry_tasks", "edge_bing_blocking", "storage_sense"] },
+  { id: "privacy", name: "🛡 Privacy lock-down", desc: "Telemetry, advertising ID, activity history, Bing in search, Copilot.",
+    ids: ["telemetry_off", "advertising_off", "activity_history", "bing_search", "tailored_experiences", "telemetry_tasks", "windows_copilot"] },
+];
+async function renderPacks() {
+  if (!tweaksCache.length) await updateTweakState(true);
+  const grid = $("#packs-grid"); if (!grid) return;
+  grid.innerHTML = PACKS.map((p) => {
+    const known = p.ids.filter((id) => tweaksCache.some((t) => t.id === id));
+    const on = known.filter((id) => tweaksCache.find((t) => t.id === id)?.applied).length;
+    const pct = known.length ? Math.round(on / known.length * 100) : 0;
+    return `<div class="pack-card ${pct === 100 ? "full" : pct ? "part" : ""}" data-pack="${p.id}">
+      <div class="pc-top"><b>${p.name}</b><span class="pc-pct">${on}/${p.ids.length}</span></div>
+      <p>${esc(p.desc)}</p>
+      <div class="pc-bar"><i style="width:${pct}%"></i></div>
+      <div class="pc-actions">
+        <button class="btn sm primary" data-act="apply">Apply</button>
+        <button class="btn sm" data-act="restore">Restore</button>
+        <button class="btn sm" data-act="open">What's inside</button>
+      </div>
+    </div>`;
+  }).join("");
+  $("#pack-detail").classList.add("hidden");
+  const busy = (b) => { b.disabled = true; setTimeout(() => (b.disabled = false), 1500); };
+  $$("#packs-grid .pack-card").forEach((card) => card.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-act]"); if (!btn) return;
+    const p = PACKS.find((x) => x.id === card.dataset.pack); if (!p) return;
+    busy(btn);
+    if (btn.dataset.act === "open") return showPack(p);
+    const applying = btn.dataset.act === "apply";
+    overlay.show((applying ? "Applying pack · " : "Restoring pack · ") + p.name,
+      `${p.ids.length} tweaks — snapshot first, reversible either way`);
+    overlay.step((applying ? "apply " : "restore ") + p.ids.length + " items"); overlay.progress(30);
+    try {
+      const r = applying ? await api("/api/tweaks/apply", p.ids) : await api("/api/tweaks/restore", p.ids);
+      overlay.progress(95);
+      const n = applying ? r.applied : r.restored;
+      (r.errors || []).slice(0, 5).forEach((x) => overlay.step("✖ " + x, "er"));
+      overlay.step(`✓ ${n} ${applying ? "applied" : "restored"}`, n ? "ok" : "er");
+      await overlay.done(n > 0, `${n}/${p.ids.length} ${applying ? "applied" : "restored"}${(r.errors || []).length ? " — some need admin" : ""}`);
+      toast(`✔ ${p.name}: ${n} ${applying ? "applied" : "restored"}`, 4000);
+    } catch (err) { await overlay.done(false, String(err)); }
+    await updateTweakState(true); await renderPacks();
+  }));
+}
+function showPack(p) {
+  const el = $("#pack-detail");
+  el.classList.remove("hidden");
+  el.innerHTML = `
+    <div class="profile-hero">
+      <h2>${p.name} — all ${p.ids.length} tweaks</h2>
+      <p>${esc(p.desc)}</p>
+      <div class="pack-list">${p.ids.map((id) => {
+        const t = tweaksCache.find((x) => x.id === id);
+        if (!t) return `<span class="badge">${esc(id)}</span>`;
+        return `<span class="badge ${t.applied ? "badge-on" : (t.admin ? "badge-admin" : "badge-user")}" title="${esc(t.desc)}">${t.applied ? "✓ " : ""}${esc(t.name)}</span>`;
+      }).join("")}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn primary" id="pdetail-apply">Apply whole pack</button>
+        <button class="btn danger" id="pdetail-restore">↺ Restore whole pack</button>
+        <button class="btn" id="pdetail-close">Close</button>
+      </div>
+    </div>`;
+  $("#pdetail-close").addEventListener("click", () => el.classList.add("hidden"));
+  $("#pdetail-apply").addEventListener("click", async (e) => { e.target.disabled = true; await api("/api/tweaks/apply", p.ids); await updateTweakState(true); await renderPacks(); showPack(p); toast("✔ pack applied"); });
+  $("#pdetail-restore").addEventListener("click", async (e) => { e.target.disabled = true; await api("/api/tweaks/restore", p.ids); await updateTweakState(true); await renderPacks(); showPack(p); toast("↺ pack restored"); });
+}
+
+/* ===================== v2.3 TUNING CENTERS =====================
+   Each center is a real module: it consolidates a slice of the catalog, shows the
+   live state of the machine behind it, and applies/restores through the same
+   snapshot-backed endpoints as the Tweaks page. Nothing here is decorative —
+   every number comes from /api/tweaks, /api/state or /api/diagnostics. */
+const CENTERS = {
+  inputlag: {
+    ico: "⏱", label: "Input Lag",
+    title: 'Input <span>Lag</span>',
+    sub: "The delay between your mouse moving and the pixel changing. Timer resolution, interrupt handling, USB/PCIe power states and the network stack all sit on that path — every switch below is on it too.",
+    live: ["dpc", "jitter"],
+    ids: ["timer_high", "win32_priority", "mouse_precision", "menu_delay_0", "usb_powersave", "pcie_aspm",
+          "msi_mode", "interrupt_affinity", "bcdedit_tsc", "hpets_off", "network_gaming", "tcp_congestion",
+          "dns_cache_big", "nic_powersave"],
+  },
+  render: {
+    ico: "▲", label: "Rendering & FPS",
+    title: 'Rendering <span>&amp; FPS</span>',
+    sub: "How Windows hands frames to your GPU: scheduling, overlays, fullscreen flips and per-app preferences. These are the documented graphics paths — no injection, no overlay hooks.",
+    live: ["hags", "driver"],
+    ids: ["hags_on", "mpo_off", "fso_on", "windowed_games", "vrr", "auto_hdr_off", "gpu_preference",
+          "game_dvr_off", "game_bar_off", "game_mode"],
+  },
+  background: {
+    ico: "▤", label: "Background load",
+    title: 'Background <span>load</span>',
+    sub: "What keeps running while you play: Store apps, indexing, Superfetch, Xbox services, telemetry tasks, compositor effects. Each one is a few percent of something — together they add up.",
+    live: ["procs"],
+    ids: ["background_apps", "sysmain_off", "search_index", "xbox_live_off", "xbox_presence", "bloat_uninstall",
+          "onedrive_off", "edge_bing_blocking", "telemetry_tasks", "visual_fx_perf", "visual_fx_balloff",
+          "transparency_off", "taskbar_anim", "mouse_trails", "storage_sense"],
+  },
+  power: {
+    ico: "⚡", label: "Power & thermals",
+    title: 'Power <span>&amp; thermals</span>',
+    sub: "A CPU that downclocks is a CPU that stutters. These settings keep clocks up and links awake; the flip side is heat and idle draw, which is why laptops get a note instead of a blind recommendation.",
+    live: ["plan", "pcie"],
+    ids: ["power_ultimate", "hpets_off", "pcie_aspm", "usb_powersave", "shutdown_fast", "sysmain_off", "search_index"],
+  },
+  debloat: {
+    ico: "🧹", label: "Debloat & boot",
+    title: 'Debloat <span>&amp; boot</span>',
+    sub: "Fewer things installed, fewer things starting, less disk churn: Store bloat, OneDrive, telemetry tasks, Storage Sense, boot logo. Reversible app by app — read the description before you tick.",
+    live: ["junk", "procs"],
+    ids: ["bloat_uninstall", "onedrive_off", "hpets_boot", "edge_bing_blocking", "telemetry_tasks", "storage_sense",
+          "sysmain_off", "search_index", "shutdown_fast", "telemetry_off"],
+  },
+};
+let centerLive = null;        // cheap ambient data (state / monitor / storage) — ~0.15 s
+let latencySample = null;     // /api/diagnostics — ~20 s of real measuring, only ever on demand
+
+async function centerLiveData() {
+  if (centerLive && Date.now() - centerLive.t < 30000) return centerLive;
+  const out = { t: Date.now(), state: null, storage: null, mon: null };
+  await Promise.all([
+    api("/api/state").then((s) => (out.state = s)).catch(() => {}),
+    api("/api/storage").then((s) => (out.storage = s)).catch(() => {}),
+    api("/api/monitor").then((s) => (out.mon = s)).catch(() => {}),
+  ]);
+  centerLive = out;
+  return out;
+}
+
+// DPC / ISR and jitter need a real sample (DPC counter + 20 pings ≈ 20 s), so it is
+// never fired behind the user's back: the Input Lag center has an explicit button.
+async function measureLatency() {
+  overlay.show("Measuring latency", "kernel DPC + ISR sample and 20 real pings — about 20 seconds, nothing is written");
+  overlay.step("sampling deferred procedure calls"); overlay.progress(25);
+  try {
+    latencySample = await api("/api/diagnostics");
+    overlay.progress(90);
+    const d = latencySample;
+    overlay.step(d.dpc && d.dpc.available ? `✓ DPC ${d.dpc.dpcPercent}% / ISR ${d.dpc.isrPercent}%` : "✖ DPC sample unavailable", d.dpc && d.dpc.available ? "ok" : "er");
+    if (d.network && d.network.available) overlay.step(`✓ jitter ${d.network.jitterMs} ms · avg ${d.network.avgMs} ms · loss ${d.network.lossPercent}%`, "ok");
+    await overlay.done(true, "measured on this machine, right now");
+  } catch (e) { await overlay.done(false, String(e)); }
+  renderCenter("inputlag");
+}
+
+function centerMetrics(key, live) {
+  const d = latencySample || {}, st = live.state || {};
+  const cards = {
+    dpc: d.dpc && d.dpc.available
+      ? { k: "DPC / ISR", v: d.dpc.dpcPercent + "% / " + d.dpc.isrPercent + "%", n: d.dpc.verdict }
+      : { k: "DPC / ISR", v: "not measured", n: "press Measure in this center" },
+    jitter: d.network && d.network.available
+      ? { k: "Network jitter", v: d.network.jitterMs + " ms", n: "avg " + d.network.avgMs + " ms · loss " + d.network.lossPercent + "%" }
+      : { k: "Network jitter", v: "not measured", n: "press Measure in this center" },
+    hags: { k: "GPU scheduling", v: st.hags ? "HAGS on" : "HAGS off", n: st.gpu || "" },
+    driver: { k: "GPU driver", v: st.gpuDriver || "—", n: st.gpu || "" },
+    plan: { k: "Power plan", v: st.plan || "—", n: st.admin ? "administrator" : "standard user" },
+    pcie: { k: "PCIe / USB power", v: tweaksCache.find((t) => t.id === "pcie_aspm")?.applied ? "full speed" : "link may sleep", n: "PCIe ASPM + USB selective suspend" },
+    procs: { k: "Processes", v: live.mon ? String(live.mon.procs) : "—", n: live.mon ? live.mon.threads + " threads running" : "live count" },
+    junk: { k: "Junk on disk", v: live.storage ? fmtB(live.storage.junkBytes || 0) : "—", n: "temp, caches, recycle bin" },
+  };
+  return (CENTERS[key].live || []).map((id) => cards[id]).filter(Boolean);
+}
+
+function twRowHTML(t, i) {
+  return `
+    <div class="tw2 ${t.applied ? "is-on" : ""}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(i * 22, 400)}ms">
+      <div class="t-main" style="flex:1">
+        <div class="tw2-top"><b>${esc(t.name)}</b>
+          <span class="badge ${t.admin ? "badge-admin" : "badge-user"}">${t.admin ? "ADMIN" : "USER"}</span>
+          <span class="badge ${t.applied ? "badge-on" : ""}">${t.applied ? "APPLIED" : "DEFAULT"}</span>
+        </div>
+        <div class="tw2-desc">${esc(t.desc)}</div>
+        <div class="tw2-foot"><span class="tw2-impact">impact <b>${"▮".repeat(t.impact || 1)}</b></span></div>
+      </div>
+      <div class="tw2-side">
+        <div class="ok-switch ${t.applied ? "on" : ""}" data-id="${esc(t.id)}" title="${t.applied ? "Click to restore Windows default" : "Click to apply"}"></div>
+        <span class="tw2-impact">${t.applied ? "ON" : "OFF"}</span>
+      </div>
+    </div>`;
+}
+function wireSwitches(root) {
+  $$(root + " .tw2").forEach((row) => row.addEventListener("click", (e) => {
+    if (e.target.closest(".ok-switch")) return;
+    row.querySelector(".ok-switch")?.click();
+  }));
+  $$(root + " .ok-switch").forEach((sw) => sw.addEventListener("click", (e) => { e.stopPropagation(); toggleTweak(sw); }));
+}
+
+async function renderCenter(key) {
+  const c = CENTERS[key]; if (!c) return;
+  if (!tweaksCache.length) await updateTweakState(true);
+  const items = c.ids.map((id) => tweaksCache.find((t) => t.id === id)).filter(Boolean);
+  const onW = items.filter((t) => t.applied).reduce((a, t) => a + (t.impact || 1), 0);
+  const totW = items.reduce((a, t) => a + (t.impact || 1), 0) || 1;
+  const pct = Math.round(onW / totW * 100);
+  const applied = items.filter((t) => t.applied).length;
+  const needAdmin = items.filter((t) => !t.applied && t.admin).length;
+  const ring = $(`#view-${key} .gc-ring`);
+  if (ring) { ring.style.setProperty("--p", pct); ring.style.background = `conic-gradient(var(--accent) calc(var(--p)*1%),rgba(255,255,255,.07) 0)`; }
+  $(`#${key}-num`).textContent = pct + "%";
+  $(`#${key}-summary`).innerHTML =
+    `<b>${applied} of ${items.length} switches active</b> in this center — ` +
+    `${pct >= 80 ? "this area is tuned." : pct >= 40 ? "half way there." : "stock Windows here."}` +
+    `<br/><span class="muted" style="font-size:11.5px">${needAdmin} of the remaining items require elevation · ${c.ids.length} curated settings in this module</span>`;
+  // catalog + switches first: the live measurement below can take ~2 s and must never block the page
+  $(`#${key}-stats`).innerHTML = `
+    <div class="stat-card good"><b>${applied}</b><span>active</span></div>
+    <div class="stat-card med"><b>${items.length - applied}</b><span>still pending</span></div>
+    <div class="stat-card ${needAdmin ? "high" : "good"}"><b>${needAdmin}</b><span>need admin</span></div>`;
+  const list = $(`#${key}-list`);
+  list.innerHTML = items.map((t, i) => twRowHTML(t, i)).join("") || `<div class="conv-empty muted" style="padding:14px">nothing in this center</div>`;
+  wireSwitches(`#${key}-list`);
+  const bA = $(`#${key}-apply`), bR = $(`#${key}-restore`);
+  const safeN = items.filter((t) => !t.applied && !t.admin).length;
+  if (bA) bA.textContent = `✔ Apply the ${safeN} user-safe switch${safeN === 1 ? "" : "es"}`;
+  if (bA) bA.disabled = safeN === 0;
+  if (bR) bR.disabled = applied === 0;
+  const live = await centerLiveData();
+  if (currentView !== key) return;   // user moved on while we measured
+  const stat = $(`#${key}-stats`);
+  if (stat) stat.insertAdjacentHTML("beforeend", centerMetrics(key, live).map((m) =>
+    `<div class="stat-card live"><b style="font-size:15px">${esc(m.v)}</b><span>${esc(m.k)}</span></div>`).join(""));
+}
+
+async function centerBulk(key, mode) {
+  const c = CENTERS[key]; if (!c) return;
+  const items = c.ids.map((id) => tweaksCache.find((t) => t.id === id)).filter(Boolean);
+  const ids = mode === "apply" ? items.filter((t) => !t.applied && !t.admin).map((t) => t.id) : items.filter((t) => t.applied).map((t) => t.id);
+  if (!ids.length) { toast("nothing to do in this center"); return; }
+  overlay.show((mode === "apply" ? "Applying · " : "Restoring · ") + c.label,
+    `${ids.length} settings — snapshot first, one by one reversible`);
+  overlay.step((mode === "apply" ? "apply " : "restore ") + ids.length + " settings"); overlay.progress(30);
+  try {
+    const r = mode === "apply" ? await api("/api/tweaks/apply", ids) : await api("/api/tweaks/restore", ids);
+    const n = mode === "apply" ? r.applied : r.restored;
+    (r.errors || []).slice(0, 5).forEach((x) => overlay.step("✖ " + x, "er"));
+    overlay.progress(95);
+    overlay.step(`✓ ${n} ${mode === "apply" ? "applied" : "restored"}`, n ? "ok" : "er");
+    await overlay.done(n > 0, `${n}/${ids.length} · admin items are left alone on purpose`);
+  } catch (e) { await overlay.done(false, String(e)); }
+  await updateTweakState(true);
+  centerLive = null;
+  renderCenter(key);
+}
+
+// one delegated handler for every center hero button (#<key>-apply | -restore | -refresh)
+on("#inputlag-measure", measureLatency);
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[id$='-apply'],button[id$='-restore'],button[id$='-refresh']");
+  if (!b) return;
+  const m = b.id.match(/^([a-z]+)-(apply|restore|refresh)$/); if (!m) return;
+  const key = m[1]; if (!CENTERS[key]) return;
+  if (m[2] === "refresh") { centerLive = null; toast("↻ re-analyzing " + CENTERS[key].label); updateTweakState(true).then(() => renderCenter(key)); }
+  else centerBulk(key, m[2]);
+});
+
+/* ===================== GAME LIBRARY (Khadafi covers) ===================== */
+let libGames = null, libFilter = "all", libQuery = "";
+const FAMILY_LABEL = {
+  fps: "Competitive FPS", br: "Battle royale", moba: "MOBA", mmo: "MMO / live service",
+  coop: "Co-op / PvE", rpg: "Single-player RPG", openworld: "Open world", racing: "Racing & sim",
+  fighting: "Fighting & arena", sports: "Sports", horror: "Horror", sandbox: "Sandbox", party: "Party",
+};
+async function renderLibrary(force) {
+  const grid = $("#lib-grid"); if (!grid) return;
+  if (libGames === null || force) {
+    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">loading the cover library…</div>`;
+    try {
+      const m = await api("/assets/gamelogos/manifest.json");
+      libGames = (m && m.games) || [];
+    } catch (e) {
+      libGames = [];
+    }
+  }
+  if (!libGames.length) {
+    grid.innerHTML = `<div class="conv-empty muted" style="padding:14px">Cover library not found. It lives in <span class="mono">web/assets/gamelogos</span> — run <span class="mono">python tools/import_gamelogos.py</span> then rebuild, or drop the covers in next to the exe.</div>`;
+    return;
+  }
+  const fams = {};
+  for (const g of libGames) fams[g.family] = (fams[g.family] || 0) + 1;
+  $("#lib-families").innerHTML = `<span class="chip ${libFilter === "all" ? "on" : ""}" data-fam="all">All · ${libGames.length}</span>` +
+    Object.keys(fams).sort((a, b) => fams[b] - fams[a]).map((f) =>
+      `<span class="chip ${libFilter === f ? "on" : ""}" data-fam="${f}">${FAMILY_LABEL[f] || f} · ${fams[f]}</span>`).join("");
+  const q = libQuery.toLowerCase();
+  const list = libGames.filter((g) => (libFilter === "all" || g.family === libFilter) &&
+    (!q || (g.name + " " + g.family).toLowerCase().includes(q)));
+  grid.innerHTML = list.map((g, i) => `
+    <div class="lib-card" data-key="${esc(g.key)}" style="animation-delay:${Math.min(i * 12, 300)}ms">
+      <img loading="lazy" src="/assets/gamelogos/${esc(g.cover)}" alt="${esc(g.name)}"/>
+      <div class="lib-meta"><b>${esc(g.name)}</b><span>${esc(FAMILY_LABEL[g.family] || g.family)} · ${esc(g.pack)}</span></div>
+    </div>`).join("");
+  $("#lib-count").textContent = `${list.length} of ${libGames.length} titles`;
+  $$("#lib-grid .lib-card").forEach((c) => c.addEventListener("click", () => selectLibGame(c.dataset.key)));
+}
+function selectLibGame(key) {
+  const g = (libGames || []).find((x) => x.key === key); if (!g) return;
+  const pack = PACKS.find((p) => p.id === g.pack) || PACKS[0];
+  $$("#lib-grid .lib-card").forEach((c) => c.classList.toggle("sel", c.dataset.key === key));
+  const el = $("#lib-detail");
+  el.classList.remove("hidden");
+  const known = pack.ids.filter((id) => tweaksCache.some((t) => t.id === id));
+  const on = known.filter((id) => tweaksCache.find((t) => t.id === id)?.applied).length;
+  el.innerHTML = `
+    <div class="lib-hero">
+      <img src="/assets/gamelogos/${esc(g.cover)}" alt=""/>
+      <div>
+        <h2>${esc(g.name)}</h2>
+        <p class="muted" style="font-size:12px">${esc(FAMILY_LABEL[g.family] || g.family)} · suggested set <b style="color:var(--accent)">${esc(pack.name)}</b> — ${esc(pack.desc)}</p>
+        <div class="lib-progress"><i style="width:${known.length ? Math.round(on / known.length * 100) : 0}%"></i></div>
+        <span class="muted" style="font-size:11px">${on}/${known.length} of this set already active</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn primary" id="lib-apply">⚡ Prepare this game</button>
+          <button class="btn" id="lib-inside">What's inside</button>
+          <button class="btn danger" id="lib-restore">↺ Restore</button>
+          <button class="btn" id="lib-games">Detected on this PC →</button>
+        </div>
+      </div>
+    </div>`;
+  $("#lib-games").addEventListener("click", () => show("games"));
+  $("#lib-inside").addEventListener("click", () => { show("packs"); setTimeout(() => showPack(pack), 120); });
+  $("#lib-restore").addEventListener("click", async (e) => { e.target.disabled = true; await api("/api/tweaks/restore", pack.ids); await updateTweakState(true); selectLibGame(key); toast("↺ " + pack.name + " restored"); });
+  $("#lib-apply").addEventListener("click", async (e) => {
+    e.target.disabled = true; e.target.textContent = "applying…";
+    overlay.show("Preparing " + g.name, pack.name + " — snapshot first, reversible in one click");
+    overlay.step("apply " + pack.ids.length + " settings"); overlay.progress(40);
+    try {
+      const r = await api("/api/tweaks/apply", pack.ids);
+      overlay.progress(95);
+      (r.errors || []).slice(0, 4).forEach((x) => overlay.step("✖ " + x, "er"));
+      overlay.step(`✓ ${r.applied} applied`, r.applied ? "ok" : "er");
+      await overlay.done(r.applied > 0, `${r.applied}/${pack.ids.length} applied${(r.errors || []).length ? " — some need admin" : ""}`);
+    } catch (err) { await overlay.done(false, String(err)); }
+    await updateTweakState(true);
+    selectLibGame(key);
+  });
+}
+$("#lib-search").addEventListener("input", (e) => { libQuery = e.target.value; renderLibrary(); });
+$("#lib-families").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  libFilter = chip.dataset.fam; renderLibrary();
+});
+
+/* ===================== quick BOOST (topbar) ===================== */
+async function quickBoost(btn) {
+  const active = btn.classList.contains("on");
+  if (active) {
+    overlay.show("Leaving BOOST", "restoring the Windows defaults for the boost set");
+    try {
+      const r = await api("/api/tweaks/restore", ESPORT_IDS);
+      await overlay.done(true, r.restored + " restored");
+      toast("↺ boost off");
+    } catch (e) { await overlay.done(false, String(e)); }
+  } else {
+    overlay.show("BOOST", "the competitive set in one click — everything is remembered");
+    overlay.step("apply " + ESPORT_IDS.length + " settings"); overlay.progress(35);
+    try {
+      const r = await api("/api/tweaks/apply", ESPORT_IDS);
+      overlay.progress(95);
+      overlay.step(`✓ ${r.applied} applied${(r.errors || []).length ? " · " + r.errors.length + " need admin" : ""}`, "ok");
+      await overlay.done(true, r.applied + " applied");
+      toast("⚡ BOOST ON — " + r.applied + " settings", 3600);
+    } catch (e) { await overlay.done(false, String(e)); }
+  }
+  await updateTweakState(true);
+  btn.classList.toggle("on", !active);
+}
+
+/* ===================== APPEARANCE (themes gallery) ===================== */
+const ACCENT_SWATCHES = [
+  "#ff3d57", "#ff3b4e", "#ffb04d", "#5865f2", "#ff37c7", "#7cff3d",
+  "#a78bfa", "#38bdf8", "#22c55e", "#f59e0b", "#94a3b8", "#f472b6",
+];
+function applyVisualPrefs(p, glitch) {
+  document.body.classList.toggle("no-particles", p === false);
+  document.body.classList.toggle("glitch", glitch === true);
+  const a = $("#set-anim"), g = $("#set-glitch");
+  if (a) a.checked = p !== false;
+  if (g) g.checked = glitch === true;
+  const tp = $("#theme-particles"), tg = $("#theme-glitch");
+  if (tp) tp.checked = p !== false;
+  if (tg) tg.checked = glitch === true;
+}
+async function renderThemes() {
+  const g = $("#theme-gallery"); if (!g) return;
+  g.innerHTML = THEME_PACKS.map(([id, hex, desc]) => `
+    <div class="theme-card ${currentTheme === id ? "on" : ""}" data-pack="${id}" style="--c:${hex}">
+      <div class="tc-preview"><i class="tc-bar"></i><i class="tc-dot"></i><i class="tc-line"></i><i class="tc-line s"></i></div>
+      <div class="tc-meta"><b>${id}</b><span>${esc(desc)}</span></div>
+    </div>`).join("");
+  $$("#theme-gallery .theme-card").forEach((c) => c.addEventListener("click", () => setThemePack(c.dataset.pack, true)));
+  $("#accent-swatches").innerHTML = ACCENT_SWATCHES.map((h) =>
+    `<i class="swatch ${currentAccent === h ? "on" : ""}" data-accent="${h}" style="--c:${h}" title="${h}"></i>`).join("");
+  $$("#accent-swatches .swatch").forEach((s) => s.addEventListener("click", () => {
+    applyAccent(s.dataset.accent);                    // apply first: applyThemePack would reset it
+    rememberAccent(currentTheme, s.dataset.accent);
+    api("/api/settings", { ui_accent: s.dataset.accent }).catch(() => {});
+    renderThemes();
+  }));
+  const ca = $("#theme-accent");
+  if (ca) ca.value = currentAccent || "#ff3d57";
+  $("#theme-name").textContent = `${currentTheme} · accent ${currentAccent}`;
+  try {
+    const s = await api("/api/settings");
+    applyVisualPrefs(s.ui_particles, s.ui_glitch_text);
+  } catch (e) { }
+}
+$("#theme-accent").addEventListener("input", (e) => { applyAccent(e.target.value, false); rememberAccent(currentTheme, e.target.value); });
+on("#btn-theme-save", async () => {
+  await api("/api/settings", {
+    ui_theme: currentTheme, ui_accent: currentAccent,
+    ui_particles: $("#theme-particles").checked, ui_glitch_text: $("#theme-glitch").checked,
+  }).catch(() => {});
+  localStorage.setItem("ok_theme", currentTheme);
+  rememberAccent(currentTheme, currentAccent);
+  applyVisualPrefs($("#theme-particles").checked, $("#theme-glitch").checked);
+  toast("✔ Appearance saved");
+});
+
+/* ===================== COMMAND PALETTE (Ctrl+K) ===================== */
+let palItems = [], palSel = 0, palOpenNow = false;
+function palSources() {
+  const out = [];
+  $$(".nav-item[data-view]").forEach((n) => {
+    const label = (n.querySelector("span:nth-child(2)")?.textContent || "").trim();
+    const sec = n.previousElementSibling?.classList.contains("nav-sep") ? n.previousElementSibling.textContent : "module";
+    out.push({ g: "module", label, hint: sec.toLowerCase(), run: () => show(n.dataset.view) });
+  });
+  for (const t of tweaksCache) out.push({
+    g: "tweak", label: t.name, hint: t.applied ? "ON · Enter restores the Windows default" : "OFF · Enter applies it",
+    run: async () => {
+      const r = t.applied ? await api("/api/tweaks/restore", [t.id]) : await api("/api/tweaks/apply", [t.id]);
+      const n = t.applied ? r.restored : r.applied;
+      toast(n > 0 ? (t.applied ? "↺ " : "✔ ") + t.name : "✖ " + ((r.errors || [])[0] || "no change"), 3400);
+      await updateTweakState(true);
+    },
+  });
+  for (const [, id, n, d] of TOOLS) out.push({
+    g: "tool", label: n, hint: "tool · " + d,
+    run: () => { api("/api/tools", { tool: id }); toast("Opening " + n + "…"); },
+  });
+  for (const p of PACKS) out.push({
+    g: "pack", label: p.name, hint: "pack · " + p.ids.length + " tweaks",
+    run: () => { show("packs"); setTimeout(() => showPack(p), 160); },
+  });
+  for (const c of Object.keys(CENTERS)) out.push({
+    g: "center", label: CENTERS[c].label, hint: "tuning center", run: () => show(c),
+  });
+  for (const g of (libGames || [])) out.push({
+    g: "game", label: g.name, hint: "game · " + (FAMILY_LABEL[g.family] || g.family),
+    run: () => { show("library"); setTimeout(() => selectLibGame(g.key), 180); },
+  });
+  return out;
+}
+function palRender(q) {
+  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = palItems.filter((it) => {
+    const hay = (it.label + " " + it.hint + " " + it.g).toLowerCase();
+    return terms.every((t) => hay.includes(t));
+  });
+  const ORDER = { module: 0, center: 1, pack: 2, tweak: 3, game: 4, tool: 5 };
+  hits.sort((a, b) => (ORDER[a.g] - ORDER[b.g]) || a.label.localeCompare(b.label));
+  const shown = hits.slice(0, 60);
+  palSel = Math.min(palSel, Math.max(shown.length - 1, 0));
+  const box = $("#pal-results");
+  box.innerHTML = shown.map((it, i) => `
+    <div class="pal-row ${i === palSel ? "sel" : ""}" data-i="${i}">
+      <span class="pal-kind k-${it.g}">${it.g}</span>
+      <b>${esc(it.label)}</b><span class="pal-hint">${esc(it.hint)}</span>
+      ${i === palSel ? '<kbd class="pal-enter">↵</kbd>' : ""}
+    </div>`).join("") || `<div class="pal-empty muted">nothing matches “${esc(q)}”</div>`;
+  $("#pal-count").textContent = shown.length + " result" + (shown.length === 1 ? "" : "s");
+  const sel = box.querySelector(".pal-row.sel"); if (sel) sel.scrollIntoView({ block: "nearest" });
+  return shown;
+}
+async function palOpen() {
+  const pal = $("#palette");
+  pal.classList.remove("hidden");
+  palOpenNow = true;
+  const inp = $("#pal-input");
+  inp.value = ""; inp.focus(); palSel = 0;
+  palItems = palSources();
+  palRender("");
+  if (libGames === null) {           // the game library joins the palette once its manifest is known
+    try {
+      const m = await api("/assets/gamelogos/manifest.json");
+      libGames = (m && m.games) || [];
+      palItems = palSources(); palRender(inp.value);
+    } catch (e) { libGames = []; }
+  }
+}
+function palClose() {
+  $("#palette").classList.add("hidden");
+  palOpenNow = false;
+  $$("#theme-flyout").forEach((f) => f.classList.add("hidden"));
+}
+function palRun(i) {
+  const terms = ($("#pal-input").value || "").toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = palItems.filter((it) => terms.every((t) => (it.label + " " + it.hint + " " + it.g).toLowerCase().includes(t)));
+  const ORDER = { module: 0, center: 1, pack: 2, tweak: 3, game: 4, tool: 5 };
+  hits.sort((a, b) => (ORDER[a.g] - ORDER[b.g]) || a.label.localeCompare(b.label));
+  const it = hits[i];
+  palClose();
+  if (it) it.run();
+}
+on("#btn-palette", palOpen);
+on("#cmdbar", palOpen);
+$("#pal-input").addEventListener("input", (e) => { palSel = 0; palRender(e.target.value); });
+$("#pal-results").addEventListener("click", (e) => {
+  const row = e.target.closest(".pal-row"); if (row) palRun(+row.dataset.i);
+});
+$("#palette").addEventListener("click", (e) => { if (e.target.id === "palette") palClose(); });
+document.addEventListener("keydown", (e) => {
+  const typing = e.target.closest("input,textarea,select");
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palOpen(); return; }
+  if (!palOpenNow) { if (e.key === "Escape" && typing) e.target.blur(); return; }
+  if (e.key === "Escape") { e.preventDefault(); palClose(); }
+  else if (e.key === "ArrowDown") { e.preventDefault(); palSel++; palRender($("#pal-input").value); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); palSel = Math.max(0, palSel - 1); palRender($("#pal-input").value); }
+  else if (e.key === "Enter") { e.preventDefault(); palRun(palSel); }
+});
+
+/* ===================== dashboard KPI tiles ===================== */
+let kpiJunk = null;
+async function refreshKpis(mon) {
+  const box = $("#dash-kpis"); if (!box) return;
+  if (kpiJunk === null) {
+    try { const s = await api("/api/storage"); kpiJunk = s.junkBytes || 0; } catch (e) { kpiJunk = 0; }
+  }
+  const active = tweaksCache.filter((t) => t.applied).length;
+  const pct = tweaksCache.length ? Math.round(active / tweaksCache.length * 100) : 0;
+  const v = [
+    { b: active + "/" + tweaksCache.length, s: "tweaks active", cls: pct >= 60 ? "good" : pct > 0 ? "med" : "" },
+    { b: fmtB(kpiJunk || 0), s: "junk on disk", cls: (kpiJunk || 0) > 2 * 1024 * 1024 * 1024 ? "med" : "good" },
+    { b: mon ? String(mon.procs) : "—", s: mon ? mon.threads + " threads" : "processes", cls: "" },
+    { b: mon ? fmtUptime(mon.uptimeSec) : "—", s: "uptime", cls: "" },
+  ];
+  box.innerHTML = v.map((k) => `<div class="kpi ${k.cls}"><b>${esc(k.b)}</b><span>${esc(k.s)}</span></div>`).join("");
+}
+
+/* ===================== BIOS GUIDE ===================== */
+const BIOS_ITEMS = [
+  ["XMP / EXPO", "Memory profile", "Loads your RAM kit's rated speed (e.g. 6000 MT/s) instead of the JEDEC fallback around 4800. On most builds this is the single biggest free gain — and it is vendor-sanctioned.", "safe"],
+  ["Resizable BAR / ReBAR", "PCIe · graphics", "Lets the CPU address the whole GPU VRAM at once. Supported on RTX 30/40, RX 6000/7000 with a modern CPU. Free FPS in many titles.", "safe"],
+  ["Above 4G decoding", "PCIe", "Required companion of ReBAR. If ReBAR is greyed out or missing, enable this first, save, and reboot.", "safe"],
+  ["C-States / core parking", "CPU power", "Deep C-states save power but add wake latency. On a desktop that never idles in-game, limiting them can smooth frame times.", "advanced"],
+  ["PBO / Precision Boost Overdrive", "CPU · AMD", "Vendor-sanctioned automatic boost within safe limits. Keep it on Auto or a mild curve — leave voltages alone.", "advanced"],
+  ["Fan curve / Q-Fan", "Thermals", "Ramp earlier so boost clocks hold longer. A curve beats a fixed 100% fan speed: quieter and just as cool.", "safe"],
+  ["BIOS / microcode update", "Firmware", "Newer firmware ships AGESA and microcode fixes (ReBAR bugs, memory stability). Flash from the BIOS itself using the vendor's official file only.", "advanced"],
+  ["CSM off + Fast Boot", "Boot", "CSM must be off and UEFI on for ReBAR and Secure Boot. Fast Boot skips some POST checks — faster cold boot, at the cost of slower key-to-enter-setup.", "safe"],
+  ["Secure Boot", "Security", "Keep it ON. Windows 11 and several anti-cheats require it. Disable only for specific legacy tooling, and re-enable afterwards.", "safe"],
+  ["Virtualization (SVM / VT-x)", "Security · VMs", "Needed for VMs, WSL2 and Android emulators. Leave it on unless an older anti-cheat conflicts with it.", "safe"],
+  ["Power supply / GPU cables", "Hardware", "Not a menu setting, but a real one: use separate PCIe cables per connector instead of daisy-chaining, and keep the PSU above 500 W headroom.", "safe"],
+  ["Driver mode (XMP & memory training)", "Stability", "After enabling XMP/EXPO, run a memory test (MemTest86 or the built-in check) before trusting it. Unstable RAM corrupts files silently.", "safe"],
+];
+function renderBios() {
+  const grid = $("#bios-grid"); if (!grid) return;
+  grid.innerHTML = BIOS_ITEMS.map(([name, cat, desc, risk], i) => `
+    <div class="bios-card ${risk}" style="animation-delay:${Math.min(i * 30, 320)}ms">
+      <div class="bc-top"><b>${esc(name)}</b><span class="badge ${risk === "safe" ? "badge-user" : "badge-admin"}">${risk === "safe" ? "SAFE" : "ADVANCED"}</span></div>
+      <small>${esc(cat)}</small>
+      <p>${esc(desc)}</p>
+    </div>`).join("");
+}
 
 /* ===================== first-run wizard ===================== */
 function maybeWizard(state) {
@@ -1086,7 +1813,7 @@ function maybeWizard(state) {
       <div class="wiz-logo"><b>Optimize<span>Kit</span></b></div>
       <h2>Welcome — four things before you start</h2>
       <div class="wiz-row"><span class="wiz-n">1</span><div><b>Pick your theme</b><p>Every pack redefines the whole surface — background, borders, glow, charts.</p>
-        <div class="wiz-themes">${[["magma","#ff3d57"],["ocean","#38bdf8"],["matrix","#22c55e"],["violet","#a78bfa"],["gold","#f59e0b"],["steel","#94a3b8"],["rose","#f472b6"]].map(([id,c])=>`<div class="pack-opt" data-pack="${id}" title="${id}"><i style="--c:${c}"></i><span>${id}</span></div>`).join("")}</div></div></div>
+        <div class="wiz-themes">${THEME_PACKS.map(([id,c])=>`<div class="pack-opt" data-pack="${id}" title="${id}"><i style="--c:${c}"></i><span>${id}</span></div>`).join("")}</div></div></div>
       <div class="wiz-row"><span class="wiz-n">2</span><div><b>Measure your machine first</b><p>The benchmark scores your CPU, RAM and disk against a reference machine (1000 = mainstream modern build). Run it now — it takes ~4 seconds, saved to history so you can compare after optimizing.</p>
         <button class="btn sm primary" id="wiz-bench">▲ Run benchmark now</button></div></div>
       <div class="wiz-row"><span class="wiz-n">3</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit.bat</span> (option 1) for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
@@ -1116,8 +1843,11 @@ function maybeWizard(state) {
   };
   await step("hw", () => api("/api/state"));
   await step("sys", () => api("/api/monitor"));
-  await step("tw", () => updateTweakState(true));
-  await step("net", () => api("/api/net/status"));
+  // the catalog read (~3 s) and the network read (~3 s) are independent: start both, then advance the bar
+  const twP = updateTweakState(true);
+  const netP = api("/api/net/status").then((s) => { window.__netStatus = s; }).catch(() => {});
+  await step("tw", () => twP);
+  await step("net", () => netP);
   await step("ok", () => sleep(160));
   await sleep(240);
   document.body.classList.add("ready");
@@ -1129,12 +1859,19 @@ function maybeWizard(state) {
   updateGamingStatus();
   // restore last theme pack + accent without toasting; ?theme= overrides (deep link / screenshots)
   const wantTheme = new URLSearchParams(location.search).get("theme");
-  if (wantTheme && THEME_PACKS.some(([id]) => id === wantTheme)) { applyThemePack(wantTheme); }
-  else {
-    try { const s = await api("/api/settings"); if (s.ui_theme) applyThemePack(s.ui_theme); } catch (e) { }
+  if (wantTheme && THEME_PACKS.some(([id]) => id === wantTheme)) {
+    applyThemePack(wantTheme, false);            // deep link: preview only, never hijacks the saved theme
+  } else {
     const savedTheme = localStorage.getItem("ok_theme");
-    if (savedTheme) applyThemePack(savedTheme);
+    let conf = null;
+    try { conf = await api("/api/settings"); } catch (e) { }
+    // one-time migration: drop the legacy flat ok_accent / ui_accent pair, which could
+    // carry an accent that belongs to a different theme (silver surfaces, blue accent)
+    localStorage.removeItem("ok_accent");
+    applyThemePack(savedTheme || (conf && conf.ui_theme) || "magma", false);
+    try { await api("/api/settings", { ui_theme: currentTheme, ui_accent: currentAccent }); } catch (e) { }
   }
+  try { const s = await api("/api/settings"); applyVisualPrefs(s.ui_particles, s.ui_glitch_text); } catch (e) { }
   // deep link: index.html?view=gaming
   const want = new URLSearchParams(location.search).get("view");
   if (want && $(".nav-item[data-view=" + want + "]")) show(want);

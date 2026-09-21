@@ -63,3 +63,19 @@ what it changes, and the source it was curated from.
 Every tweak in OptimizeKit has a matching `restore()` implementation that puts back the
 documented Windows default. Registry exports (`backup_*.reg`) are taken automatically before
 the first change of each session.
+
+## Assets inherited from Khadafi
+
+Two things in OptimizeKit come from the Khadafi optimizer (reverse-engineered from its
+shipped files), and both are cosmetic — no code, no behaviour:
+
+| Asset | Where it lives | What it is |
+|---|---|---|
+| **Game covers** (106 thumbnails) | `web/assets/gamelogos/` | Box art for the Game Library, downscaled to 400 px by [`tools/import_gamelogos.py`](../tools/import_gamelogos.py). Third-party artwork: it is **not** embedded in the exe and ships only as a side folder. |
+| **Palette + control surface** | `web/style.css` (`body[data-theme="khadafi"]` and the v2.3/v2.4 button rules) | Colour values read from Khadafi's own resource strings (`#0a0a0c`, `#ff3b4e`, `#ffb04d`, `#5865f2`, `#ff37c7`), squared letterspaced CTAs. |
+
+The modules that mirror Khadafi's feature set (Game Library, Input Lag center, Rendering,
+Background, Power, Debloat, Packs, BIOS guide) are OptimizeKit's own C++/JS implementations on
+top of OptimizeKit's tweak catalog. The two things Khadafi does that OptimizeKit deliberately
+refuses to copy are the in-game overlay injection and the WireGuard kernel tunnel: they would
+break the "no driver, no injection, everything reversible" promise.

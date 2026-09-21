@@ -1,0 +1,748 @@
+{
+ "source": "Khadafi extract — assets/gamelogos (thumbnails, downscaled to 400px)",
+ "note": "Suggested profile comes from the game's family, never from a template: the app shows which tweaks it will apply before it touches anything.",
+ "games": [
+  {
+   "key": "apex",
+   "name": "Apex Legends",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "apex.jpg"
+  },
+  {
+   "key": "arkasa",
+   "name": "ARK: Survival Ascended",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "arkasa.jpg"
+  },
+  {
+   "key": "avowed",
+   "name": "Avowed",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "avowed.jpg"
+  },
+  {
+   "key": "bdo",
+   "name": "Black Desert Online",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "bdo.jpg"
+  },
+  {
+   "key": "beamng",
+   "name": "BeamNG.drive",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "beamng.jpg"
+  },
+  {
+   "key": "bf2042",
+   "name": "Battlefield 2042",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "bf2042.jpg"
+  },
+  {
+   "key": "bg3",
+   "name": "Baldur's Gate 3",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "bg3.jpg"
+  },
+  {
+   "key": "brawlhalla",
+   "name": "Brawlhalla",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "brawlhalla.jpg"
+  },
+  {
+   "key": "codaw",
+   "name": "CoD: Advanced Warfare",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codaw.jpg"
+  },
+  {
+   "key": "codbo1",
+   "name": "CoD: Black Ops",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codbo1.jpg"
+  },
+  {
+   "key": "codbo2",
+   "name": "CoD: Black Ops II",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codbo2.jpg"
+  },
+  {
+   "key": "codbo3",
+   "name": "CoD: Black Ops III",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codbo3.jpg"
+  },
+  {
+   "key": "codbocw",
+   "name": "CoD: Black Ops Cold War",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codbocw.jpg"
+  },
+  {
+   "key": "codghosts",
+   "name": "CoD: Ghosts",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codghosts.jpg"
+  },
+  {
+   "key": "codiw",
+   "name": "CoD: Infinite Warfare",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codiw.jpg"
+  },
+  {
+   "key": "codmw2_2009",
+   "name": "CoD: MW2 (2009)",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codmw2_2009.jpg"
+  },
+  {
+   "key": "codmw3_2011",
+   "name": "CoD: MW3 (2011)",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codmw3_2011.jpg"
+  },
+  {
+   "key": "codmwr",
+   "name": "CoD: Modern Warfare Remastered",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codmwr.jpg"
+  },
+  {
+   "key": "codww2",
+   "name": "CoD: WWII",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "codww2.jpg"
+  },
+  {
+   "key": "cs2",
+   "name": "Counter-Strike 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "cs2.jpg"
+  },
+  {
+   "key": "cyberpunk",
+   "name": "Cyberpunk 2077",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "cyberpunk.jpg"
+  },
+  {
+   "key": "darktide",
+   "name": "Warhammer 40K: Darktide",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "darktide.jpg"
+  },
+  {
+   "key": "dayz",
+   "name": "DayZ",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "dayz.jpg"
+  },
+  {
+   "key": "dbd",
+   "name": "Dead by Daylight",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "dbd.jpg"
+  },
+  {
+   "key": "deadlock",
+   "name": "Deadlock",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "deadlock.jpg"
+  },
+  {
+   "key": "deeprock",
+   "name": "Deep Rock Galactic",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "deeprock.jpg"
+  },
+  {
+   "key": "deltaforce",
+   "name": "Delta Force",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "deltaforce.jpg"
+  },
+  {
+   "key": "destiny2",
+   "name": "Destiny 2",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "destiny2.jpg"
+  },
+  {
+   "key": "diablo4",
+   "name": "Diablo IV",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "diablo4.jpg"
+  },
+  {
+   "key": "division2",
+   "name": "The Division 2",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "division2.jpg"
+  },
+  {
+   "key": "dota2",
+   "name": "Dota 2",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "dota2.jpg"
+  },
+  {
+   "key": "ds3",
+   "name": "Dark Souls III",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "ds3.jpg"
+  },
+  {
+   "key": "duneawakening",
+   "name": "Dune: Awakening",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "duneawakening.jpg"
+  },
+  {
+   "key": "eafc25",
+   "name": "EA Sports FC 25",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "eafc25.jpg"
+  },
+  {
+   "key": "eldenring",
+   "name": "Elden Ring",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "eldenring.jpg"
+  },
+  {
+   "key": "enshrouded",
+   "name": "Enshrouded",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "enshrouded.jpg"
+  },
+  {
+   "key": "ets2",
+   "name": "Euro Truck Simulator 2",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "ets2.jpg"
+  },
+  {
+   "key": "fallguys",
+   "name": "Fall Guys",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "fallguys.jpg"
+  },
+  {
+   "key": "farcry6",
+   "name": "Far Cry 6",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "farcry6.jpg"
+  },
+  {
+   "key": "ffxiv",
+   "name": "Final Fantasy XIV",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "ffxiv.jpg"
+  },
+  {
+   "key": "firstdescendant",
+   "name": "The First Descendant",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "firstdescendant.jpg"
+  },
+  {
+   "key": "fortnite",
+   "name": "Fortnite",
+   "family": "br",
+   "pack": "esport",
+   "cover": "fortnite.jpg"
+  },
+  {
+   "key": "forza5",
+   "name": "Forza Horizon 5",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "forza5.jpg"
+  },
+  {
+   "key": "genshin",
+   "name": "Genshin Impact",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "genshin.jpg"
+  },
+  {
+   "key": "ghostts",
+   "name": "Ghost of Tsushima",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "ghostts.jpg"
+  },
+  {
+   "key": "greyzone",
+   "name": "Gray Zone Warfare",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "greyzone.jpg"
+  },
+  {
+   "key": "gtav",
+   "name": "Grand Theft Auto V",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "gtav.jpg"
+  },
+  {
+   "key": "helldivers2",
+   "name": "Helldivers 2",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "helldivers2.jpg"
+  },
+  {
+   "key": "hll",
+   "name": "Hell Let Loose",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "hll.jpg"
+  },
+  {
+   "key": "hogwarts",
+   "name": "Hogwarts Legacy",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "hogwarts.jpg"
+  },
+  {
+   "key": "horizonfw",
+   "name": "Horizon Forbidden West",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "horizonfw.jpg"
+  },
+  {
+   "key": "hunt",
+   "name": "Hunt: Showdown",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "hunt.jpg"
+  },
+  {
+   "key": "indianajones",
+   "name": "Indiana Jones & the Great Circle",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "indianajones.jpg"
+  },
+  {
+   "key": "kcd2",
+   "name": "Kingdom Come: Deliverance II",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "kcd2.jpg"
+  },
+  {
+   "key": "lastepoch",
+   "name": "Last Epoch",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "lastepoch.jpg"
+  },
+  {
+   "key": "lethal",
+   "name": "Lethal Company",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "lethal.jpg"
+  },
+  {
+   "key": "lol",
+   "name": "League of Legends",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "lol.jpg"
+  },
+  {
+   "key": "lostark",
+   "name": "Lost Ark",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "lostark.jpg"
+  },
+  {
+   "key": "marvelrivals",
+   "name": "Marvel Rivals",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "marvelrivals.jpg"
+  },
+  {
+   "key": "mhwilds",
+   "name": "Monster Hunter Wilds",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "mhwilds.jpg"
+  },
+  {
+   "key": "minecraft",
+   "name": "Minecraft",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "minecraft.jpg"
+  },
+  {
+   "key": "naraka",
+   "name": "Naraka: Bladepoint",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "naraka.jpg"
+  },
+  {
+   "key": "newworld",
+   "name": "New World",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "newworld.jpg"
+  },
+  {
+   "key": "nomanssky",
+   "name": "No Man's Sky",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "nomanssky.jpg"
+  },
+  {
+   "key": "oncehuman",
+   "name": "Once Human",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "oncehuman.jpg"
+  },
+  {
+   "key": "overwatch2",
+   "name": "Overwatch 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "overwatch2.jpg"
+  },
+  {
+   "key": "paladins",
+   "name": "Paladins",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "paladins.jpg"
+  },
+  {
+   "key": "palworld",
+   "name": "Palworld",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "palworld.jpg"
+  },
+  {
+   "key": "phasmo",
+   "name": "Phasmophobia",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "phasmo.jpg"
+  },
+  {
+   "key": "poe",
+   "name": "Path of Exile",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "poe.jpg"
+  },
+  {
+   "key": "poe2",
+   "name": "Path of Exile 2",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "poe2.jpg"
+  },
+  {
+   "key": "pubg",
+   "name": "PUBG: Battlegrounds",
+   "family": "br",
+   "pack": "esport",
+   "cover": "pubg.jpg"
+  },
+  {
+   "key": "r6",
+   "name": "Rainbow Six Siege",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "r6.jpg"
+  },
+  {
+   "key": "rdr2",
+   "name": "Red Dead Redemption 2",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "rdr2.jpg"
+  },
+  {
+   "key": "readyornot",
+   "name": "Ready or Not",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "readyornot.jpg"
+  },
+  {
+   "key": "remnant2",
+   "name": "Remnant II",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "remnant2.jpg"
+  },
+  {
+   "key": "roblox",
+   "name": "Roblox",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "roblox.jpg"
+  },
+  {
+   "key": "rocketleague",
+   "name": "Rocket League",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "rocketleague.jpg"
+  },
+  {
+   "key": "rust",
+   "name": "Rust",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "rust.jpg"
+  },
+  {
+   "key": "satisfactory",
+   "name": "Satisfactory",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "satisfactory.jpg"
+  },
+  {
+   "key": "sekiro",
+   "name": "Sekiro: Shadows Die Twice",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "sekiro.jpg"
+  },
+  {
+   "key": "sf6",
+   "name": "Street Fighter 6",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "sf6.jpg"
+  },
+  {
+   "key": "smite",
+   "name": "SMITE",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "smite.jpg"
+  },
+  {
+   "key": "sonsoftheforest",
+   "name": "Sons of the Forest",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "sonsoftheforest.jpg"
+  },
+  {
+   "key": "sot",
+   "name": "Sea of Thieves",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "sot.jpg"
+  },
+  {
+   "key": "spacemarine2",
+   "name": "Warhammer 40K: Space Marine 2",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "spacemarine2.jpg"
+  },
+  {
+   "key": "spiderman2",
+   "name": "Marvel's Spider-Man 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "spiderman2.jpg"
+  },
+  {
+   "key": "spidermanr",
+   "name": "Spider-Man Remastered",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "spidermanr.jpg"
+  },
+  {
+   "key": "splitgate2",
+   "name": "Splitgate 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "splitgate2.jpg"
+  },
+  {
+   "key": "squad",
+   "name": "Squad",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "squad.jpg"
+  },
+  {
+   "key": "stalker2",
+   "name": "S.T.A.L.K.E.R. 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "stalker2.jpg"
+  },
+  {
+   "key": "starfield",
+   "name": "Starfield",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "starfield.jpg"
+  },
+  {
+   "key": "tarkov",
+   "name": "Escape from Tarkov",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "tarkov.jpg"
+  },
+  {
+   "key": "tekken8",
+   "name": "Tekken 8",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "tekken8.jpg"
+  },
+  {
+   "key": "thefinals",
+   "name": "The Finals",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "thefinals.jpg"
+  },
+  {
+   "key": "throne",
+   "name": "Throne and Liberty",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "throne.jpg"
+  },
+  {
+   "key": "tlou",
+   "name": "The Last of Us Part I",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "tlou.jpg"
+  },
+  {
+   "key": "valheim",
+   "name": "Valheim",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "valheim.jpg"
+  },
+  {
+   "key": "valorant",
+   "name": "Valorant",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "valorant.jpg"
+  },
+  {
+   "key": "vrising",
+   "name": "V Rising",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "vrising.jpg"
+  },
+  {
+   "key": "warframe",
+   "name": "Warframe",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "warframe.jpg"
+  },
+  {
+   "key": "warthunder",
+   "name": "War Thunder",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "warthunder.jpg"
+  },
+  {
+   "key": "warzone",
+   "name": "Call of Duty: Warzone",
+   "family": "br",
+   "pack": "esport",
+   "cover": "warzone.jpg"
+  },
+  {
+   "key": "witcher3",
+   "name": "The Witcher 3",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "witcher3.jpg"
+  },
+  {
+   "key": "wot",
+   "name": "World of Tanks",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "wot.jpg"
+  },
+  {
+   "key": "wukong",
+   "name": "Black Myth: Wukong",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "wukong.jpg"
+  }
+ ]
+}

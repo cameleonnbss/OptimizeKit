@@ -11,15 +11,28 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 
-**Monitoring live** · **Score gaming** · **49 tweaks réversibles** · **Bibliothèque de jeux avec vraies icônes** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **7 packs de thèmes** · **EN/FR** · **Journal d'activité complet**
+**Monitoring live** · **Score gaming** · **Optimisation intelligente** · **49 tweaks réversibles** · **5 centres de réglage** · **Bibliothèque de 106 jeux** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes complets** · **EN/FR** · **Journal d'activité complet**
 
-`C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation`
+`C++20 / Win32` · `serveur HTTP embarqué` · `zéro dépendance` · `sans installation` · `aucun driver, aucune injection`
 
-[⬇️ **Télécharger v2.3.0**](../../releases) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.4.0**](../../releases/tag/v2.4.0) · [Nouveautés](#-nouveautés-de-la-240) · [Démarrage](#-démarrage-rapide) · [Captures](#-captures-décran) · [Sécurité](#%EF%B8%8F-sécurité-dabord) · [English](README.md)
 
 </div>
 
 ---
+
+## 🆕 Nouveautés de la 2.4.0
+
+| | |
+|---|---|
+| **Bibliothèque de jeux** | 106 jaquettes classées par genre — tu choisis un titre, tu vois exactement le set qui sera appliqué, puis applique ou restaure en un clic |
+| **5 centres de réglage** | Latence d'entrée · Rendu & FPS · Charge de fond · Énergie & thermique · Débloat & démarrage — état du catalogue + cartes mesurées sur ta machine, marquées `· LIVE` |
+| **Palette Ctrl+K** | Atteindre n'importe quel module, tweak, outil, pack ou jeu ; les tweaks s'appliquent depuis la palette avec leur état affiché |
+| **12 thèmes** | Thèmes complets avec mémoire d'accent par thème, présentés en galerie — Magma, Khadafi, Carbon, Discord, Fusion, Acid, Ocean, Matrix, Violet, Gold, Steel, Rose |
+| **⚡ BOOST** | Une pilule dans la barre du haut : le set compétitif, réversible en un clic |
+| **Démarrage plus rapide** | Lecture du catalogue et du réseau en parallèle (splash ~2× plus rapide) |
+
+Détail complet dans [CHANGELOG.md](CHANGELOG.md).
 
 ## 📸 Captures d'écran
 
@@ -93,6 +106,7 @@ Noir profond + couleur d'accent au choix (6 thèmes dans la barre du haut, persi
 | **Stockage** | Disques avec détection du bus NVMe/SATA, barres d'utilisation, fichiers les plus gros |
 | **Démarrage** | Clés Run HKCU/HKLM + dossiers Startup, désactivation en un clic (réversible via stash) |
 | **Benchmark** | Score style AnTuTu **sur ~4000** (1000 = machine de référence grand public) : CPU multi/single-cœur, bande passante mémoire, lecture NVMe/HDD, latence — sous-scores pondérés avec barres, deltas entre runs, historique de 20 runs. Le wizard de premier lancement propose un benchmark pour comparer avant/après optimisation |
+| **Thèmes** | 12 thèmes complets présentés en galerie, mémoire d'accent par thème, accent personnalisé, particules et effet glitch |
 | **Catalogue d'outils** | **79 outils Windows** dans 9 catégories recherchables (Système, Performance, Gaming, Réseau, Sécurité, Stockage, Affichage, Paramètres, Power user) — toutes les consoles, applets du panneau de configuration et pages ms-settings, en un clic |
 | **Logs** | Journal d'activité coloré avec filtre live |
 | **Paramètres** | Couleur d'accent, particules, kill list du Gaming Mode, gestion DNS — persistés dans `config.json` |

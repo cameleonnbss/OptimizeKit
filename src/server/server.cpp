@@ -9,6 +9,7 @@
 #include "storage.h"
 #include "logging2.h"
 #include "diagnostics.h"
+#include "webassets.h"
 #include "httplib.h"
 #include <shellapi.h>
 #include <filesystem>
@@ -18,6 +19,12 @@
 namespace fs = std::filesystem;
 
 namespace ok::server {
+
+static httplib::Server* g_svr = nullptr;   // for stop() from the UI thread
+
+void stop() {
+    if (g_svr) g_svr->stop();
+}
 
 using json = nlohmann::json;
 
@@ -93,9 +100,25 @@ static json jsonPingAll() {
 
 int serve(unsigned short preferredPort) {
     httplib::Server svr;
+    g_svr = &svr;
 
-    // ---------------- static files (web/) ----------------
-    svr.set_mount_point("/", narrow(webRoot()));
+    // ------------- embedded dashboard fallback (exe works with zero files on disk) -------------
+    const bool diskWeb = fs::exists(webRoot());
+    if (diskWeb) {
+        svr.set_mount_point("/", narrow(webRoot()));
+    } else {
+        log2::warn(L"SERVER", L"web/ folder not found next to the exe - serving the embedded dashboard");
+        svr.Get("/", [](const httplib::Request&, httplib::Response& res) {
+            auto f = webassets::find("index.html");
+            res.set_content((const char*)f->data, f->len, f->mime);
+        });
+        for (const auto& f : webassets::kFiles) {
+            const string path = string("/") + f.path;
+            svr.Get(path.c_str(), [&f](const httplib::Request&, httplib::Response& res) {
+                res.set_content((const char*)f.data, f.len, f.mime);
+            });
+        }
+    }
 
     svr.Get("/health", [](const httplib::Request&, httplib::Response& res) {
         res.set_content("{\"ok\":true}", "application/json");
@@ -169,6 +192,12 @@ int serve(unsigned short preferredPort) {
             else errs.push_back(narrow(widen(idv.get<string>()) + L": " + e));
         }
         res.set_content(json({ {"restored", n}, {"errors", errs} }).dump(), "application/json");
+    });
+
+    // ---------------- Smart Optimize (goal-aware ranked plan) ----------------
+    svr.Get("/api/smart", [](const httplib::Request& req, httplib::Response& res) {
+        string goal = req.has_param("goal") ? req.get_param_value("goal") : "gaming";
+        res.set_content(engine::smartPlan(goal).dump(), "application/json");
     });
 
     svr.Post("/api/profile", [](const httplib::Request& req, httplib::Response& res) {

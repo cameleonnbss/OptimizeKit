@@ -35,43 +35,62 @@
 <!-- ============ APP ============ -->
 <div id="screen-app" class="screen">
   <aside class="side">
-    <div class="brand"><b>Optimize<span>Kit</span></b></div>
+    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.4</span></div>
+    <button class="side-search" id="btn-palette" type="button"><span class="ss-ico">⌕</span><span>Search anything…</span><kbd>Ctrl K</kbd></button>
     <nav id="nav">
       <div class="nav-item active" data-view="dashboard"><span class="ni-ico">◉</span><span>Dashboard</span></div>
+      <div class="nav-item" data-view="smart"><span class="ni-ico">✦</span><span>Smart Optimize</span></div>
       <div class="nav-item" data-view="gaming"><span class="ni-ico">⚑</span><span>Gaming Center</span></div>
       <div class="nav-item" data-view="scan"><span class="ni-ico">◎</span><span>Scan PC</span></div>
       <div class="nav-item" data-view="optimize"><span class="ni-ico">⚡</span><span>Optimize</span></div>
       <div class="nav-item" data-view="tweaks"><span class="ni-ico">⚙</span><span>Tweaks</span><span class="nav-badge" id="nav-tw-count"></span></div>
       <div class="nav-sep">Gaming</div>
       <div class="nav-item" data-view="games"><span class="ni-ico">☰</span><span>Games</span></div>
+      <div class="nav-item" data-view="library"><span class="ni-ico">▦</span><span>Game Library</span></div>
+      <div class="nav-item" data-view="packs"><span class="ni-ico">⬢</span><span>Packs</span></div>
+      <div class="nav-sep">Tuning</div>
+      <div class="nav-item" data-view="inputlag"><span class="ni-ico">⏱</span><span>Input Lag</span></div>
+      <div class="nav-item" data-view="render"><span class="ni-ico">▲</span><span>Rendering &amp; FPS</span></div>
+      <div class="nav-item" data-view="background"><span class="ni-ico">▤</span><span>Background load</span></div>
+      <div class="nav-item" data-view="power"><span class="ni-ico">⚡</span><span>Power &amp; thermals</span></div>
+      <div class="nav-item" data-view="debloat"><span class="ni-ico">🧹</span><span>Debloat &amp; boot</span></div>
       <div class="nav-sep">System</div>
       <div class="nav-item" data-view="network"><span class="ni-ico">⇄</span><span>Network</span></div>
       <div class="nav-item" data-view="ram"><span class="ni-ico">▤</span><span>RAM</span></div>
       <div class="nav-item" data-view="storage"><span class="ni-ico">▤</span><span>Storage</span></div>
       <div class="nav-item" data-view="startup"><span class="ni-ico">▶</span><span>Startup</span></div>
       <div class="nav-item" data-view="drivers"><span class="ni-ico">⇥</span><span>Drivers</span></div>
+      <div class="nav-item" data-view="bios"><span class="ni-ico">⛭</span><span>BIOS guide</span></div>
       <div class="nav-item" data-view="privacy"><span class="ni-ico">🛡</span><span>Privacy</span></div>
       <div class="nav-item" data-view="diag"><span class="ni-ico">❤</span><span>Diagnostics</span></div>
       <div class="nav-item" data-view="bench"><span class="ni-ico">▲</span><span>Benchmark</span></div>
       <div class="nav-sep">App</div>
       <div class="nav-item" data-view="tools"><span class="ni-ico">▦</span><span>Tools</span></div>
       <div class="nav-item" data-view="logs"><span class="ni-ico">▤</span><span>Logs</span></div>
+      <div class="nav-item" data-view="themes"><span class="ni-ico">◐</span><span>Themes</span></div>
       <div class="nav-item" data-view="settings"><span class="ni-ico">⚙</span><span>Settings</span></div>
       <div class="nav-item" data-view="about"><span class="ni-ico">ⓘ</span><span>About</span></div>
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.3 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.4 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div class="top-left"><b>Optimize<span>Kit</span></b><span class="muted" style="font-size:11px" id="crumb">Dashboard</span></div>
+      <div class="top-left"><b>Optimize<span>Kit</span></b><span class="crumb-sep">/</span><span class="top-crumb" id="crumb">Dashboard</span></div>
+      <button class="cmdbar" id="cmdbar" type="button"><span class="cb-ico">⌕</span><span class="cb-txt">Jump to a module, a tweak, a tool or a game…</span><kbd>Ctrl K</kbd></button>
       <div class="top-right">
+        <button class="btn-boost" id="btn-boost" title="One-click competitive preset — the same set as Esport mode, fully reversible"><b>⚡ BOOST</b></button>
         <button class="theme-btn" id="btn-theme" title="Accent color">◐</button>
         <div class="theme-flyout hidden" id="theme-flyout">
           <div class="theme-opt" data-accent="#ff3d57" style="--c:#ff3d57"></div>
+          <div class="theme-opt" data-accent="#ff3b4e" style="--c:#ff3b4e"></div>
+          <div class="theme-opt" data-accent="#ffb04d" style="--c:#ffb04d"></div>
+          <div class="theme-opt" data-accent="#5865f2" style="--c:#5865f2"></div>
+          <div class="theme-opt" data-accent="#ff37c7" style="--c:#ff37c7"></div>
+          <div class="theme-opt" data-accent="#7cff3d" style="--c:#7cff3d"></div>
           <div class="theme-opt" data-accent="#a78bfa" style="--c:#a78bfa"></div>
           <div class="theme-opt" data-accent="#38bdf8" style="--c:#38bdf8"></div>
           <div class="theme-opt" data-accent="#34d399" style="--c:#34d399"></div>
@@ -84,15 +103,21 @@
 
     <!-- ============ DASHBOARD ============ -->
     <section class="view" id="view-dashboard">
-      <div class="hero">
-        <div>
+      <div class="dash-hero">
+        <div class="dh-main">
           <h1>Optimize <span>everything.</span></h1>
           <p id="hero-sub">Live monitoring · gaming · network · storage — fully logged, fully reversible.</p>
+          <div class="hero-actions">
+            <button class="btn primary" id="btn-quick-scan">◎ Scan this PC</button>
+            <button class="btn" id="btn-quick-optimize">Quick Optimize</button>
+            <button class="btn" id="btn-clean">🧹 Clean junk</button>
+          </div>
         </div>
-        <div class="hero-actions">
-          <button class="btn primary" id="btn-quick-scan">◎ Scan this PC</button>
-          <button class="btn" id="btn-quick-optimize">Quick Optimize</button>
-          <button class="btn" id="btn-clean">🧹 Clean junk</button>
+        <div class="dh-kpis" id="dash-kpis">
+          <div class="kpi"><b>—</b><span>tweaks active</span></div>
+          <div class="kpi"><b>—</b><span>junk on disk</span></div>
+          <div class="kpi"><b>—</b><span>processes</span></div>
+          <div class="kpi"><b>—</b><span>uptime</span></div>
         </div>
       </div>
 
@@ -103,7 +128,14 @@
         <div class="mon-card disk"><div class="mon-head"><b>DISK</b><span class="muted mono" style="font-size:10px" id="m-disk-io"></span></div><div class="mon-val"><span id="m-disk-v">—</span></div><canvas id="m-disk-g"></canvas></div>
       </div>
 
-      <div class="sys-grid">
+      <div class="dash-cols">
+      <div class="proc-card k-panel">
+        <div class="proc-head"><h3>Top processes — live CPU</h3><span class="muted" style="font-size:10px">updates every 2.5s</span></div>
+        <div id="proc-list"><div class="conv-empty muted" style="padding:14px">…</div></div>
+      </div>
+      <div class="sys-card k-panel">
+      <div class="panel-head"><h3>This machine</h3><span class="muted" style="font-size:10px">read live, never guessed</span></div>
+      <div class="sys-grid" id="dash-sysgrid">
         <div class="sys-row"><span>OS</span><b id="st-os">…</b></div>
         <div class="sys-row"><span>CPU</span><b id="st-cpu">…</b></div>
         <div class="sys-row"><span>GPU</span><b id="st-gpu">…</b></div>
@@ -115,10 +147,7 @@
         <div class="sys-row"><span>Network</span><b class="mono" id="m-net-v">…</b></div>
         <div class="sys-row"><span>Processes</span><b class="mono" id="m-proc-v">…</b></div>
       </div>
-
-      <div class="proc-card">
-        <div class="proc-head"><h3>Top processes — live CPU</h3><span class="muted" style="font-size:10px">updates every 2.5s</span></div>
-        <div id="proc-list"><div class="conv-empty muted" style="padding:14px">…</div></div>
+      </div>
       </div>
     </section>
 
@@ -142,6 +171,34 @@
       <div class="gc-cards" id="gc-cards"></div>
       <div class="sec-head" style="margin-top:18px"><h2 style="font-size:15px">Gaming switches</h2><span class="muted" style="font-size:11px">click to toggle — every change is backed up &amp; reversible</span></div>
       <div id="gc-switches"></div>
+    </section>
+
+    <!-- ============ SMART OPTIMIZE ============ -->
+    <section class="view hidden" id="view-smart">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="sm-num">—</span><small>OPTIMIZE SCORE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Smart <span>Optimize</span></h1>
+          <p id="sm-summary">reading the live state of this machine…</p>
+          <div class="chips" id="sm-goals" style="margin-bottom:12px">
+            <span class="chip on" data-goal="gaming">🎮 Gaming</span>
+            <span class="chip" data-goal="latency">⏱ Latency</span>
+            <span class="chip" data-goal="privacy">🛡 Privacy</span>
+            <span class="chip" data-goal="balanced">⚖ Balanced</span>
+          </div>
+          <div class="gc-actions">
+            <button class="btn primary" id="btn-smart-apply" disabled>✔ Apply selected (<span id="sm-sel">0</span>)</button>
+            <button class="btn" id="btn-smart-top">Select top 5</button>
+            <button class="btn" id="btn-smart-none">Clear</button>
+            <button class="btn" id="btn-smart-refresh">↻ Re-analyze</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="sm-stats"></div>
+      <div class="sec-head" style="margin-top:4px"><h2 style="font-size:15px">Ranked plan</h2><div class="spacer"></div>
+        <span class="muted" style="font-size:11px" id="sm-count"></span></div>
+      <p class="muted" style="font-size:11.5px;margin:0 0 12px;max-width:980px">Ranked from the <b>real</b> state of your machine — power plan, HAGS, Game Mode and every tweak — never from a template. Tick what you want, apply once; each item keeps its own restore.</p>
+      <div id="smart-list"></div>
     </section>
 
     <!-- ============ SCAN ============ -->
@@ -196,6 +253,123 @@
       <p class="muted" style="font-size:12px;margin:6px 0 14px">Steam, Epic, Riot, GOG, Battle.net, Ubisoft, EA, Xbox — real icons extracted from the game executables.</p>
       <div id="games-grid" class="games-grid"><div class="conv-empty muted" style="padding:14px">Press "Detect games"…</div></div>
       <div id="game-profile" class="hidden"></div>
+    </section>
+
+    <!-- ============ GAME LIBRARY ============ -->
+    <section class="view hidden" id="view-library">
+      <div class="sec-head"><h1>Game <span style="color:var(--accent)">Library</span></h1>
+        <input class="input" id="lib-search" placeholder="search a title…" style="width:190px"/>
+        <div class="spacer"></div>
+        <span class="muted" style="font-size:11px" id="lib-count"></span></div>
+      <div class="chips" id="lib-families" style="margin:6px 0 14px"></div>
+      <p class="muted" style="font-size:12px;margin:0 0 16px;max-width:1020px">106 covers, grouped by genre. Pick a title and OptimizeKit prepares the set that fits it — you see the exact tweak list before anything is written, and one click puts it all back. Covers come from the Khadafi library; the tweaks behind them are OptimizeKit's own.</p>
+      <div id="lib-grid" class="lib-grid"></div>
+      <div id="lib-detail" class="hidden"></div>
+    </section>
+
+    <!-- ============ INPUT LAG CENTER ============ -->
+    <section class="view hidden" id="view-inputlag">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="inputlag-num">—</span><small>SWITCHES ACTIVE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Input <span>Lag</span></h1>
+          <p id="inputlag-summary">reading the live state of this machine…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="inputlag-apply">✔ Apply the user-safe switches</button>
+            <button class="btn danger" id="inputlag-restore">↺ Restore all</button>
+            <button class="btn" id="inputlag-measure" title="Samples the kernel DPC/ISR load and pings 20 packets — about 20 seconds, read-only">❤ Measure DPC &amp; jitter</button>
+            <button class="btn" id="inputlag-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="inputlag-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 12px;max-width:1000px">Everything on the path between your hand and the screen: scheduler tick, foreground quantum, interrupt mode, USB/PCIe power states and the network stack. The cards above read the real machine — the DPC/ISR and jitter cards stay empty until you press <b>Measure</b>, because that sample takes 20 seconds and OptimizeKit does not run measurements behind your back.</p>
+      <div id="inputlag-list"></div>
+    </section>
+
+    <!-- ============ RENDERING CENTER ============ -->
+    <section class="view hidden" id="view-render">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="render-num">—</span><small>SWITCHES ACTIVE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Rendering <span>&amp; FPS</span></h1>
+          <p id="render-summary">reading the live state of this machine…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="render-apply">✔ Apply the user-safe switches</button>
+            <button class="btn danger" id="render-restore">↺ Restore all</button>
+            <button class="btn" id="render-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="render-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 12px;max-width:1000px">How Windows hands frames to the GPU: hardware scheduling, overlay hooks, fullscreen flip model, per-app preference. Documented graphics paths only — no injection, no overlay patching, nothing a game can detect.</p>
+      <div id="render-list"></div>
+    </section>
+
+    <!-- ============ BACKGROUND CENTER ============ -->
+    <section class="view hidden" id="view-background">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="background-num">—</span><small>SWITCHES ACTIVE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Background <span>load</span></h1>
+          <p id="background-summary">reading the live state of this machine…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="background-apply">✔ Apply the user-safe switches</button>
+            <button class="btn danger" id="background-restore">↺ Restore all</button>
+            <button class="btn" id="background-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="background-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 12px;max-width:1000px">What keeps running while you play — Store apps, indexing, Superfetch, Xbox services, telemetry tasks, compositor effects. Each is a small slice of CPU, disk or RAM; together they are why the machine feels heavy after a few months.</p>
+      <div id="background-list"></div>
+    </section>
+
+    <!-- ============ POWER CENTER ============ -->
+    <section class="view hidden" id="view-power">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="power-num">—</span><small>SWITCHES ACTIVE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Power <span>&amp; thermals</span></h1>
+          <p id="power-summary">reading the live state of this machine…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="power-apply">✔ Apply the user-safe switches</button>
+            <button class="btn danger" id="power-restore">↺ Restore all</button>
+            <button class="btn" id="power-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="power-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 12px;max-width:1000px">A CPU that downclocks is a CPU that stutters. These settings keep clocks up and PCIe/USB links awake — the honest trade-off is heat and idle power, which is why the laptop items are marked and reversible.</p>
+      <div id="power-list"></div>
+    </section>
+
+    <!-- ============ DEBLOAT CENTER ============ -->
+    <section class="view hidden" id="view-debloat">
+      <div class="gc-hero">
+        <div class="gc-ring"><span id="debloat-num">—</span><small>SWITCHES ACTIVE</small></div>
+        <div class="gc-hero-txt">
+          <h1>Debloat <span>&amp; boot</span></h1>
+          <p id="debloat-summary">reading the live state of this machine…</p>
+          <div class="gc-actions">
+            <button class="btn primary" id="debloat-apply">✔ Apply the user-safe switches</button>
+            <button class="btn danger" id="debloat-restore">↺ Restore all</button>
+            <button class="btn" id="debloat-refresh">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="debloat-stats"></div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 12px;max-width:1000px">Fewer things installed, fewer things starting, less disk churn. Read each description before you tick it: uninstalling Store apps and dropping OneDrive are the two items here that change what you can find on your PC, and both restore.</p>
+      <div id="debloat-list"></div>
+    </section>
+
+    <!-- ============ PACKS ============ -->
+    <section class="view hidden" id="view-packs">
+      <div class="sec-head"><h1>Packs</h1><div class="spacer"></div>
+        <span class="muted" style="font-size:11px">registry snapshot → apply → reversible in one click</span></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 16px;max-width:980px">A pack is a named set of tweaks tuned for one job. Apply it in one click, restore it in one click, or expand it to see <b>exactly</b> what it touches — nothing hidden, nothing irreversible.</p>
+      <div class="quick-grid" id="packs-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:1200px"></div>
+      <div id="pack-detail" class="hidden"></div>
     </section>
 
     <!-- ============ NETWORK ============ -->
@@ -273,6 +447,15 @@
         scan can be triggered from the CLI (OptimizeKit.bat → menu 10, Drivers).</div>
     </section>
 
+    <!-- ============ BIOS GUIDE ============ -->
+    <section class="view hidden" id="view-bios">
+      <div class="sec-head"><h1>BIOS &amp; firmware guide</h1><div class="spacer"></div>
+        <span class="adm-lock">read-only · OptimizeKit never writes to your firmware</span></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 16px;max-width:980px">Your motherboard holds performance Windows cannot reach. These settings are documented, universal and reversible — you open them yourself in the firmware setup. Restart and press <span class="mono">Del</span> or <span class="mono">F2</span> at the brand logo.</p>
+      <div class="quick-grid" id="bios-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:1200px"></div>
+      <div class="tip">⚠ Firmware settings are <b>not</b> covered by OptimizeKit's registry backup. Note your previous values before changing anything, flash the BIOS only from the vendor's official support page, and never flash during a storm, a brownout or on battery.</div>
+    </section>
+
     <!-- ============ DIAGNOSTICS ============ -->
     <section class="view hidden" id="view-diag">
       <div class="sec-head"><h1>Diagnostics</h1><div class="spacer"></div>
@@ -338,8 +521,13 @@
         <div class="set-card">
           <h3>Appearance</h3>
           <label class="set-row">Theme pack
-            <select id="set-theme" class="input" style="max-width:160px">
+            <select id="set-theme" class="input" style="max-width:200px">
               <option value="magma">Magma (crimson)</option>
+              <option value="khadafi">Khadafi (signal red)</option>
+              <option value="carbon">Carbon (amber)</option>
+              <option value="discord">Discord (blurple)</option>
+              <option value="fusion">Fusion (magenta)</option>
+              <option value="acid">Acid (lime)</option>
               <option value="ocean">Ocean (blue)</option>
               <option value="matrix">Matrix (green)</option>
               <option value="violet">Violet (purple)</option>
@@ -348,13 +536,18 @@
               <option value="rose">Rose (pink)</option>
             </select></label>
           <div class="pack-grid">
-            <div class="pack-opt" data-pack="magma"  title="Magma — deep black + crimson"><i style="--c:#ff3d57"></i><span>Magma</span></div>
-            <div class="pack-opt" data-pack="ocean"  title="Ocean — abyssal blue"><i style="--c:#38bdf8"></i><span>Ocean</span></div>
-            <div class="pack-opt" data-pack="matrix" title="Matrix — terminal green"><i style="--c:#22c55e"></i><span>Matrix</span></div>
-            <div class="pack-opt" data-pack="violet" title="Violet — neon purple"><i style="--c:#a78bfa"></i><span>Violet</span></div>
-            <div class="pack-opt" data-pack="gold"   title="Gold — amber elite"><i style="--c:#f59e0b"></i><span>Gold</span></div>
-            <div class="pack-opt" data-pack="steel"  title="Steel — cold silver"><i style="--c:#94a3b8"></i><span>Steel</span></div>
-            <div class="pack-opt" data-pack="rose"   title="Rose — soft pink"><i style="--c:#f472b6"></i><span>Rose</span></div>
+            <div class="pack-opt" data-pack="magma"   title="Magma — deep black + crimson"><i style="--c:#ff3d57"></i><span>Magma</span></div>
+            <div class="pack-opt" data-pack="khadafi" title="Khadafi — near-black #0a0a0c + signal red #ff3b4e"><i style="--c:#ff3b4e"></i><span>Khadafi</span></div>
+            <div class="pack-opt" data-pack="carbon"  title="Carbon — graphite + amber #ffb04d"><i style="--c:#ffb04d"></i><span>Carbon</span></div>
+            <div class="pack-opt" data-pack="discord" title="Discord — blurple #5865f2 on nocturne"><i style="--c:#5865f2"></i><span>Discord</span></div>
+            <div class="pack-opt" data-pack="fusion"  title="Fusion — hot magenta #ff37c7"><i style="--c:#ff37c7"></i><span>Fusion</span></div>
+            <div class="pack-opt" data-pack="acid"    title="Acid — lime terminal #7cff3d"><i style="--c:#7cff3d"></i><span>Acid</span></div>
+            <div class="pack-opt" data-pack="ocean"   title="Ocean — abyssal blue"><i style="--c:#38bdf8"></i><span>Ocean</span></div>
+            <div class="pack-opt" data-pack="matrix"  title="Matrix — terminal green"><i style="--c:#22c55e"></i><span>Matrix</span></div>
+            <div class="pack-opt" data-pack="violet"  title="Violet — neon purple"><i style="--c:#a78bfa"></i><span>Violet</span></div>
+            <div class="pack-opt" data-pack="gold"    title="Gold — amber elite"><i style="--c:#f59e0b"></i><span>Gold</span></div>
+            <div class="pack-opt" data-pack="steel"   title="Steel — cold silver"><i style="--c:#94a3b8"></i><span>Steel</span></div>
+            <div class="pack-opt" data-pack="rose"    title="Rose — soft pink"><i style="--c:#f472b6"></i><span>Rose</span></div>
           </div>
           <label class="set-row">Accent color (fine tune)
             <input type="color" id="set-accent" value="#ff3d57"/></label>
@@ -387,8 +580,10 @@
     <!-- ============ ABOUT ============ -->
     <section class="view hidden" id="view-about">
       <div class="profile-hero">
-        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.2</h2>
-        <p>Windows Gaming Control Center — embedded C++ server + WormGPT-style liquid glass UI.<br/>
+        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.4</h2>
+        <p>Windows Gaming Control Center — one static exe, embedded C++ HTTP server, liquid-glass dashboard.<br/>
+           32 modules · 49 reversible tweaks · 12 full themes · a command palette (Ctrl+K) over every module,
+           tweak, tool, pack and game · no driver, no injection, no kernel component.<br/>
            Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC-gaming
            community. Every action logged, every key backed up, every tweak reversible.</p>
         <div style="display:flex;gap:10px;margin-top:8px">
@@ -400,7 +595,33 @@
         <span class="mono">%LOCALAPPDATA%\OptimizeKit\backup_*.reg</span> and each tweak has a
         per-item restore. Reboot after HAGS / timer / power-plan changes.</div>
     </section>
+    <!-- ============ THEMES ============ -->
+    <section class="view hidden" id="view-themes">
+      <div class="sec-head"><h1>Appearance</h1><div class="spacer"></div>
+        <span class="muted" style="font-size:11px" id="theme-name"></span></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 16px;max-width:980px">Twelve complete themes. Each one redefines the background gradients, borders, glow and every control surface — not just an accent swap. Your choice is written to <span class="mono">config.json</span> and applied before the first frame on the next launch.</p>
+      <div class="theme-gallery" id="theme-gallery"></div>
+      <div class="k-panel fine-tune">
+        <div class="panel-head"><h3>Fine tuning</h3><span class="muted" style="font-size:10px">keeps the theme, refines the accent</span></div>
+        <div class="swatch-row" id="accent-swatches"></div>
+        <div class="ft-row">
+          <label class="set-row" style="gap:10px">Custom accent <input type="color" id="theme-accent" value="#ff3d57"/></label>
+          <label class="set-row"><input type="checkbox" id="theme-particles"/> Background particles</label>
+          <label class="set-row"><input type="checkbox" id="theme-glitch"/> Glitch text effect</label>
+          <button class="btn primary sm" id="btn-theme-save">✔ Save appearance</button>
+        </div>
+      </div>
+    </section>
   </main>
+</div>
+
+<!-- ============ command palette ============ -->
+<div id="palette" class="hidden">
+  <div class="pal-wrap">
+    <div class="pal-input"><span class="pal-ico">⌕</span><input id="pal-input" placeholder="Search modules, tweaks, tools, packs and games…" autocomplete="off" spellcheck="false"/><kbd>ESC</kbd></div>
+    <div class="pal-results" id="pal-results"></div>
+    <div class="pal-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open / toggle</span><span id="pal-count" class="muted"></span></div>
+  </div>
 </div>
 
 <!-- ============ apply overlay ============ -->

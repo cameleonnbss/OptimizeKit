@@ -12,15 +12,28 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**Live monitoring** · **Gaming score** · **49 reversible tweaks** · **Game library with real icons** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **7 theme packs** · **EN/FR** · **Full activity log**
+**Live monitoring** · **Gaming score** · **Smart Optimize** · **49 reversible tweaks** · **5 tuning centers** · **106-title game library** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K command palette** · **12 full themes** · **EN/FR** · **Full activity log**
 
-`C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install`
+`C++20 / Win32` · `embedded HTTP server` · `zero dependencies` · `no install` · `no driver, no injection`
 
-[⬇️ **Download v2.3.0**](../../releases) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.4.0**](../../releases/tag/v2.4.0) · [What's new](#-whats-new-in-240) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
 
 </div>
 
 ---
+
+## 🆕 What's new in 2.4.0
+
+| | |
+|---|---|
+| **Game Library** | 106 covers grouped by genre — pick a title, see the exact set it will apply, apply or restore it in one click |
+| **5 tuning centers** | Input Lag · Rendering & FPS · Background load · Power & thermals · Debloat & boot — catalog state plus cards measured on your machine, marked `· LIVE` |
+| **Ctrl+K palette** | Jump to any module, tweak, tool, pack or game; tweaks toggle straight from the palette and show their current state |
+| **12 themes** | Full-surface themes with per-theme accent memory, previewed in a gallery — Magma, Khadafi, Carbon, Discord, Fusion, Acid, Ocean, Matrix, Violet, Gold, Steel, Rose |
+| **⚡ BOOST** | One pill in the top bar: the competitive set, reversible in one click |
+| **Faster boot** | Catalog and network reads run in parallel (~2× faster splash) |
+
+Full detail in [CHANGELOG.md](CHANGELOG.md).
 
 ## 📸 Screenshots
 
@@ -52,8 +65,9 @@
 
 | Release | Link |
 |---|---|
-| **v2.3.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.3.0 |
+| **v2.4.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.4.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
 `OptimizeKit.exe` is fully **static** (MinGW-w64, ~6 MB): no runtime, no DLLs, no install. It embeds an HTTP server and the liquid-glass web dashboard (`web/` folder ships next to it).
 
@@ -83,24 +97,51 @@ Every switch is a real toggle: click → registry snapshot → apply → animate
 
 ## 🔧 The dashboard (WormGPT-style liquid glass)
 
-Deep black + your accent color (6 themes in the top bar, persisted), glassmorphism with moving specular sheen, mouse-following particles, Inter & Space Mono. Served by an embedded C++ HTTP server on `127.0.0.1:8765`, opened as a chromeless app window.
+Deep black + your accent color (accent picker in the top bar), **12 full theme packs** in Settings — Magma, Khadafi (signal red on near-black), Carbon, Discord, Fusion, Acid, Ocean, Matrix, Violet, Gold, Steel, Rose — squared letterspaced Khadafi-style CTAs, a top-bar **⚡ BOOST** pill that applies the competitive set in one click, glassmorphism with moving specular sheen, mouse-following particles, Inter & Space Mono. Served by an embedded C++ HTTP server on `127.0.0.1:8765`, opened as a chromeless app window.
 
 | View | What you get |
 |---|---|
 | **Dashboard** | Live CPU / RAM / GPU / disk with 60-second sparklines, network throughput, process/thread counts, top processes (2.5 s refresh) |
 | **Gaming Center** | Gaming score ring, category score cards, grouped ON/OFF switches, Gaming Mode enter/exit |
 | **Tweaks** | All 49 tweaks as switch cards: instant apply / instant restore, search, category filters, ADMIN/USER badges, impact bars, live count in the sidebar |
+| **Smart Optimize** | Ranks the whole catalog against a goal (Gaming / Latency / Privacy / Balanced) from the machine's **real** state, with a weight and a "why" per item, per-item checkboxes and one apply |
 | **Games** | Steam + Epic + Riot + GOG + registry detection, real icons extracted from the executables, per-game boost (IFEO persistent priority) and Gaming Mode |
+| **Game Library** | 106 covers grouped by genre — pick a title and apply the set that fits it, with the exact tweak list shown first (see below) |
+| **Packs** | Six ready-made bundles (Esport, Low latency, Play & stream, Laptop/thermals, Fast clean boot, Privacy) with a live progress bar, Apply/Restore in one click and "What's inside" resolving the real tweak names |
+| **Input Lag** | 14 settings on the hand-to-pixel path (timer, foreground quantum, MSI mode, interrupt affinity, USB/PCIe power states, network stack) + an explicit **Measure** button for the DPC/ISR and jitter sample |
+| **Rendering & FPS** | Hardware GPU scheduling, MPO, fullscreen flips, windowed-game optimizations, VRR, Auto-HDR, per-app GPU preference, Game Bar/DVR — with the live HAGS state and driver version as measured cards |
+| **Background load** | Store apps, SysMain, indexing, Xbox services, telemetry tasks, compositor effects, OneDrive, bloat apps — 15 switches with the live process count |
+| **Power & thermals** | Ultimate Performance plan, HPET, PCIe ASPM, USB suspend, fast startup — with the active plan as a measured card |
+| **Debloat & boot** | Store bloat, OneDrive, telemetry tasks, Storage Sense, boot logo, indexing — measured against the real junk size on disk |
 | **Scan PC** | Full system scan: junk files, tweak state, network config, power plan, startup load, drivers, games — every finding has an Apply button |
 | **Optimize** | One-click profiles (SAFE / GAMING / PRIVACY / RESTORE ALL) with snapshot → apply → verify |
 | **Network** | Adapter status (autotuning, RSC, RSS, DNS, MTU), profiles, **MTU slider** with presets (Ethernet/PPPoE/VPN/Jumbo), latency monitor, quick ping |
 | **RAM** | Usage graph, committed/cached stats, top consumers, honest standby-list trim (with an explanation of what it really does) |
 | **Storage** | Drives with NVMe/SATA bus detection, usage bars, largest files |
 | **Startup** | HKCU/HKLM Run keys + startup folders, one-click disable (reversible via stash) |
+| **Drivers** | GPU name + driver version, vendor download / DXDiag / Device Manager shortcuts, clean-install advice |
+| **BIOS guide** | 12 firmware cards (XMP/EXPO, ReBAR, Above 4G, C-States, PBO, fan curve, flashing, CSM, Secure Boot, virtualization…) marked SAFE / ADVANCED — **read-only**: OptimizeKit never writes to firmware |
+| **Privacy** | Telemetry, advertising ID, activity history, Bing search, Copilot, Edge background — one profile plus per-item switches |
+| **Diagnostics** | Real measurements only: effective CPU clock (PDH), DPC/ISR kernel load, unbuffered disk latency, 20-packet network quality (avg/min/max/jitter/loss). CPU temperature is deliberately **not** shown — Windows does not expose it without a vendor driver |
 | **Benchmark** | AnTuTu-style **score out of ~4000** (1000 = mainstream reference): CPU multi/single-core, memory bandwidth, NVMe/HDD read, latency — weighted sub-scores with bars, per-run deltas, 20-run history. The first-run wizard offers to benchmark so you can compare before/after optimizing |
 | **Tools catalog** | **79 Windows tools** in 9 searchable categories (System, Performance, Gaming, Network, Security, Storage, Display, Settings, Power user) — every console, control panel applet and ms-settings page, one click |
+| **Themes** | 12 full-surface themes previewed as a gallery, per-theme accent memory, custom accent, particles & glitch toggles |
 | **Logs** | Color-coded activity log with live filter |
-| **Settings** | Accent color, particles, kill list for Gaming Mode, DNS management — persisted in `config.json` |
+| **Settings** | Language, kill list for Gaming Mode, DNS management, backup behaviour — persisted in `config.json` |
+
+Press **Ctrl+K** anywhere for the command palette (modules, tweaks, tools, packs, games) and **Enter** to act on the highlighted row.
+
+## 🎮 Game Library
+
+106 titles with their cover art, grouped by genre (Competitive FPS, MMO, Co-op, Sandbox, Racing, Fighting, Horror…). Pick a cover and OptimizeKit resolves the set that fits that genre, shows **exactly** which tweaks it contains, then applies/restores them through the normal snapshot path. Nothing hidden, nothing irreversible.
+
+The covers are imported from the Khadafi optimizer's `assets/gamelogos` folder — thumbnails only, and deliberately **not** embedded in the exe (they are third-party box art):
+
+```
+python tools/import_gamelogos.py [source_folder]   # default: %USERPROFILE%\Downloads\Khadafi_extract\assets\gamelogos
+```
+
+It downscales every cover to 400 px wide, writes `web/assets/gamelogos/manifest.json` (real title + family per key) and reports any title with no cover. Without the covers the module degrades to an explanatory message instead of failing.
 
 ## 🕹️ Game detection
 

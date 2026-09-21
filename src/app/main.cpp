@@ -1,11 +1,12 @@
 // OptimizeKit - entry point.
-// No arguments -> WormGPT-style web dashboard served by the embedded HTTP server
-//                (opened as a standalone app window via msedge --app when available).
-// --native      -> the native Direct2D liquid-glass dashboard (no browser).
+// No arguments -> a real desktop window (WebView2 frame) hosting the embedded
+//                dashboard; falls back to msedge --app, then the default browser.
+// --native      -> the native Direct2D liquid-glass dashboard (no web view).
 // With arguments (from OptimizeKit-cli.bat) -> attaches to the parent console and runs the CLI.
 #include "core/common.h"
 #include "core/engine.h"
 #include "ui/ui.h"
+#include "ui/webframe.h"
 #include "app/cli.h"
 #include "server/server.h"
 #include <shellapi.h>
@@ -48,11 +49,11 @@ static std::vector<wstring> getArgs() {
 
 static void printHelp() {
     std::wcout <<
-        L"OptimizeKit v2.3 - Windows Gaming & Performance Control Center\n"
+        L"OptimizeKit v2.4 - Windows Gaming & Performance Control Center\n"
         L"usage:\n"
-        L"  OptimizeKit.exe                 web dashboard (embedded server, standalone window)\n"
+        L"  OptimizeKit.exe                 desktop app window (embedded dashboard)\n"
         L"  OptimizeKit.exe --native        native Direct2D dashboard\n"
-        L"  OptimizeKit.exe --web [port]    web dashboard without opening the browser\n"
+        L"  OptimizeKit.exe --web [port]    serve the dashboard without opening a window\n"
         L"  OptimizeKit.exe --cli           numbered CLI menu (user or admin)\n"
         L"  OptimizeKit.exe --profile gaming|privacy|full|clean\n"
         L"  OptimizeKit.exe --apply <tweak-id>\n"
@@ -100,12 +101,15 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     auto args = getArgs();
 
     if (args.empty()) {
-        // default: embedded web dashboard (served locally, no install)
+        // default: real desktop window hosting the embedded dashboard
         std::thread srv([] { ok::server::serve(8765); });
         int port = probeServer(8765);
         if (port > 0) {
             wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
-            openAppWindow(url);
+            if (webframe::runWindow(wstring(url)) == 0)
+                ok::server::stop(); // native window closed - exit cleanly
+            else
+                openAppWindow(url); // WebView2 unavailable -> browser app window
         }
         srv.join();
         return 0;

@@ -2,7 +2,9 @@ name: build
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -13,8 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install MinGW-w64
         run: choco install mingw -y --no-progress
+
+      - name: Embed the dashboard into the exe
+        shell: pwsh
+        run: python tools/embed_web.py
 
       - name: Build
         shell: pwsh
@@ -28,16 +38,31 @@ jobs:
             src/app/main.cpp src/app/cli.cpp `
             src/core/common.cpp src/core/sysinfo.cpp src/core/tweaks.cpp src/core/cleaner.cpp `
             src/core/engine.cpp src/core/ping.cpp src/core/drivers.cpp src/core/gameboost.cpp `
-            src/core/monitor.cpp src/server/server.cpp src/ui/ui.cpp build/OptimizeKit.res `
+            src/core/monitor.cpp src/core/netprofile.cpp src/core/scan.cpp `
+            src/core/games.cpp src/core/ram.cpp src/core/storage.cpp src/core/logging2.cpp `
+            src/core/diagnostics.cpp `
+            src/server/server.cpp `
+            src/ui/ui.cpp src/ui/webframe.cpp `
+            build/OptimizeKit.res `
             -o dist/OptimizeKit.exe `
-            -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lshell32 -ladvapi32 -lole32 -loleaut32 `
+            -Ithird_party/webview2/include `
+            -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 `
             -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi `
-            -lpdh -lwininet -luuid `
+            -lpdh -lwininet -luuid -lntdll `
             -static -static-libgcc -static-libstdc++
           if (-not (Test-Path dist/OptimizeKit.exe)) { throw "build failed" }
+
+      - name: Assemble the portable folder
+        shell: pwsh
+        run: |
           New-Item -ItemType Directory -Force dist/web/assets/fonts | Out-Null
+          New-Item -ItemType Directory -Force dist/web/assets/gamelogos | Out-Null
+          New-Item -ItemType Directory -Force dist/web/fonts | Out-Null
           Copy-Item web/index.html, web/style.css, web/app.js dist/web/
-          Copy-Item web/assets/fonts/*.ttf dist/web/assets/fonts/
+          Copy-Item web/assets/fonts/*.ttf dist/web/assets/fonts/ -ErrorAction SilentlyContinue
+          Copy-Item web/fonts/*.woff2 dist/web/fonts/ -ErrorAction SilentlyContinue
+          Copy-Item web/assets/gamelogos/*.jpg, web/assets/gamelogos/manifest.json dist/web/assets/gamelogos/ -ErrorAction SilentlyContinue
+          if (Test-Path WebView2Loader.dll) { Copy-Item WebView2Loader.dll dist/ }
           Get-Item dist/OptimizeKit.exe | Select-Object Name, Length
 
       - name: Smoke test
@@ -45,6 +70,28 @@ jobs:
         run: |
           & dist/OptimizeKit.exe --list
           & dist/OptimizeKit.exe --info
+          $p = Start-Process -PassThru -FilePath dist/OptimizeKit.exe -ArgumentList '--web','8799'
+          Start-Sleep -Seconds 4
+          $health = Invoke-RestMethod http://127.0.0.1:8799/health
+          if (-not $health.ok) { throw "embedded server did not answer" }
+          $size = (Invoke-WebRequest http://127.0.0.1:8799/).RawContentLength
+          if ($size -lt 5000) { throw "embedded dashboard looks empty ($size bytes)" }
+          Stop-Process -Id $p.Id -Force
+
+      - name: Release notes from CHANGELOG
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $lines = Get-Content CHANGELOG.md
+          $start = ($lines | Select-String -Pattern "^##\s+\[?$([regex]::Escape($tag))" | Select-Object -First 1).LineNumber
+          if (-not $start) { "See CHANGELOG.md for the full history." | Set-Content release-body.md; exit 0 }
+          $body = @()
+          for ($i = $start; $i -lt $lines.Count; $i++) {
+            if ($i -gt $start -and $lines[$i] -match '^##\s') { break }
+            $body += $lines[$i]
+          }
+          $body -join "`n" | Set-Content release-body.md
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -53,26 +100,28 @@ jobs:
           path: |
             dist/OptimizeKit.exe
             dist/web/
-            OptimizeKit-user.bat
-            OptimizeKit-admin.bat
+            OptimizeKit.bat
             OptimizeKit-cli.bat
+            Uninstall-OptimizeKit.bat
             PowerShell/OptimizeKit.ps1
 
       - name: Zip portable bundle
         if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         run: |
-          Compress-Archive -Force -Path dist/OptimizeKit.exe, dist/web, OptimizeKit-user.bat, OptimizeKit-admin.bat, OptimizeKit-cli.bat, Uninstall-OptimizeKit.bat, PowerShell, README.fr.md -DestinationPath dist/OptimizeKit-${{ github.ref_name }}.zip
+          Compress-Archive -Force -Path dist/OptimizeKit.exe, dist/web, OptimizeKit.bat, OptimizeKit-cli.bat, Uninstall-OptimizeKit.bat, PowerShell, README.md, README.fr.md -DestinationPath dist/OptimizeKit-${{ github.ref_name }}.zip
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          name: OptimizeKit ${{ github.ref_name }}
+          body_path: release-body.md
           overwrite_files: true
           files: |
             dist/OptimizeKit.exe
             dist/OptimizeKit-*.zip
-            OptimizeKit-user.bat
-            OptimizeKit-admin.bat
+            OptimizeKit.bat
             OptimizeKit-cli.bat
+            Uninstall-OptimizeKit.bat
             PowerShell/OptimizeKit.ps1

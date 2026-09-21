@@ -8,4 +8,7 @@ namespace ok::server {
 // Returns the chosen port if it started.
 int serve(unsigned short preferredPort);
 
+// Ask the running server to stop (thread-safe; serve() then returns).
+void stop();
+
 } // namespace ok::server

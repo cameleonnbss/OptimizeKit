@@ -20,12 +20,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "cameleonnbss"
             VALUE "FileDescription",  "OptimizeKit - Windows Optimization Suite"
-            VALUE "FileVersion",      "2.3.0.0"
+            VALUE "FileVersion",      "2.4.0.0"
             VALUE "InternalName",     "OptimizeKit"
             VALUE "LegalCopyright",   "MIT License (c) 2026 cameleonnbss"
             VALUE "OriginalFilename", "OptimizeKit.exe"
             VALUE "ProductName",      "OptimizeKit"
-            VALUE "ProductVersion",   "2.3.0"
+            VALUE "ProductVersion",   "2.4.0"
         END
     END
     BLOCK "VarFileInfo"

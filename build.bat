@@ -19,6 +19,9 @@ if errorlevel 1 (
 if not exist build mkdir build
 if not exist dist  mkdir dist
 
+rem --- embed the web dashboard into the exe (single-file guarantee) ---
+where python >nul 2>nul && (python tools\embed_web.py || exit /b 1) || echo [!] python missing - keeping the last generated webassets.h
+
 echo [1/2] Compiling resources...
 windres resources\OptimizeKit.rc -O coff -o build\OptimizeKit.res
 if errorlevel 1 exit /b 1
@@ -33,9 +36,10 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     src\core\games.cpp src\core\ram.cpp src\core\storage.cpp src\core\logging2.cpp ^
     src\core\diagnostics.cpp ^
     src\server\server.cpp ^
-    src\ui\ui.cpp ^
+    src\ui\ui.cpp src\ui\webframe.cpp ^
     build\OptimizeKit.res ^
     -o dist\OptimizeKit.exe ^
+    -Ithird_party\webview2\include ^
     -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 ^
     -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi ^
     -lpdh -lwininet -luuid -lntdll ^
@@ -52,11 +56,18 @@ if exist web\assets\fonts (
     if not exist dist\web\assets\fonts mkdir dist\web\assets\fonts
     copy /y web\assets\fonts\*.ttf dist\web\assets\fonts\ >nul
 )
+rem --- Game Library covers (Khadafi library, thumbnails only: not embedded in the exe) ---
+if exist web\assets\gamelogos (
+    if not exist dist\web\assets\gamelogos mkdir dist\web\assets\gamelogos
+    copy /y web\assets\gamelogos\*.jpg dist\web\assets\gamelogos\ >nul
+    copy /y web\assets\gamelogos\manifest.json dist\web\assets\gamelogos\ >nul
+)
 if not exist dist\web\fonts mkdir dist\web\fonts
 if exist web\fonts copy /y web\fonts\*.woff2 dist\web\fonts\ >nul
+if exist WebView2Loader.dll copy /y WebView2Loader.dll dist\ >nul
 
 echo.
 echo [OK] Built dist\OptimizeKit.exe + dist\web\
 echo      Run  dist\OptimizeKit.exe   (web dashboard, standalone window)
-echo      Run  OptimizeKit-user.bat / OptimizeKit-admin.bat / OptimizeKit-cli.bat
+echo      Run  OptimizeKit.bat (all-in-one) / OptimizeKit-cli.bat (menus)
 endlocal
