@@ -23,6 +23,9 @@ add_executable(OptimizeKit WIN32
     src/core/storage.cpp
     src/core/logging2.cpp
     src/core/diagnostics.cpp
+    src/core/diskscope.cpp
+    src/core/reducer.cpp
+    src/core/security.cpp
     src/core/firmware.cpp
     src/core/drvupdate.cpp
     src/server/server.cpp

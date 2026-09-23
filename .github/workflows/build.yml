@@ -41,6 +41,7 @@ jobs:
             src/core/monitor.cpp src/core/netprofile.cpp src/core/scan.cpp `
             src/core/games.cpp src/core/ram.cpp src/core/storage.cpp src/core/logging2.cpp `
             src/core/diagnostics.cpp `
+            src/core/diskscope.cpp src/core/reducer.cpp src/core/security.cpp `
             src/core/firmware.cpp src/core/drvupdate.cpp `
             src/server/server.cpp `
             src/ui/ui.cpp src/ui/webframe.cpp `
