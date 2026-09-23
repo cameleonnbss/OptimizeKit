@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  OptimizeKit v2.8 - Windows Gaming & Performance Control Center (PowerShell engine)
+  OptimizeKit v2.9 - Windows Gaming & Performance Control Center (PowerShell engine)
 
 .DESCRIPTION
   Full CLI parity with the C++ dashboard: 71 tweaks, live status, profiles,
@@ -17,7 +17,7 @@
     -Profile gaming|privacy|debloat|full
 
 .NOTES
-  Version 2.8 - cameleonnbss - MIT license
+  Version 2.9 - cameleonnbss - MIT license
 #>
 [CmdletBinding()]
 param(
@@ -152,7 +152,7 @@ $Script:Tweaks = @(
     @{ id='shutdown_fast';     name='Fast startup ON (Hiberboot)';          cat='power';   user=0 }
     @{ id='recycle_bin_conf';  name='Recycle bin: immediate confirm';       cat='disk';    user=1 }
 
-    # ---- v2.8: WinUtil-alignment batch (24) ----
+    # ---- v2.8: WinUtil-alignment batch (24) — engine v2.9 ----
     @{ id='widgets_off';       name='Widgets - Remove (taskbar)';           cat='debloat'; user=0 }
     @{ id='location_off';      name='Location tracking - Disable';          cat='privacy'; user=0 }
     @{ id='services_manual';   name='Services to Manual + svchost tuning';  cat='debloat'; user=0 }
@@ -538,7 +538,7 @@ function Show-Banner {
     Write-Host " | $$$$$$$/|  $$$$$$/   | $$   | $$ \  $$ | $$$$$$$$| $$$$$$$$" -ForegroundColor Cyan
     Write-Host " |_______/  \______/    |__/   |__/  \__/ |________/|________/" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Windows Gaming & Performance Control Center - engine v2.8" -ForegroundColor DarkGray
+    Write-Host "  Windows Gaming & Performance Control Center - engine v2.9" -ForegroundColor DarkGray
     Write-Host ("  log: {0}" -f $Script:Log) -ForegroundColor DarkGray
     Write-Host ("  mode: {0}   tweaks: {1}" -f $(if (Test-Admin) { 'ADMINISTRATOR' } else { 'user' }), $Script:Tweaks.Count) -ForegroundColor $(if (Test-Admin) { 'Green' } else { 'Yellow' })
     Write-Host ""
@@ -718,7 +718,7 @@ function Invoke-RestoreAll {
 }
 
 # ----------------------------------------------------------------- entry
-Write-Kit ("OptimizeKit engine v2.8 started (admin={0})" -f (Test-Admin)) 'info'
+Write-Kit ("OptimizeKit engine v2.9 started (admin={0})" -f (Test-Admin)) 'info'
 
 if ($RestoreAll) { if (Test-Admin) { Backup-Registry; Invoke-RestoreAll } else { Write-Kit 'admin required for -RestoreAll' 'err' }; exit 0 }
 if ($Status)     { Show-StatusAll; exit 0 }

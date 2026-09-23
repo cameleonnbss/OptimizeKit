@@ -987,3 +987,29 @@ body.glitch .brand b,body.glitch .dh-main h1,body.glitch .gc-hero-txt h1,body.gl
   background:linear-gradient(160deg,rgba(24,18,20,.5),rgba(9,10,15,.6));animation:dg-fade-up 380ms var(--ease) both}
 .dupe-head{display:flex;gap:16px;align-items:baseline;margin-bottom:8px}
 .dupe-head .mono{color:var(--muted);font-size:11px}
+
+/* ============ v2.9 — dashboard spotlights (Highlights) ============ */
+.spot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 20px;max-width:1180px}
+.spot-card{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:var(--radius);
+  border:1px solid var(--border);background:linear-gradient(160deg,rgba(18,15,20,.55),rgba(9,10,15,.65));
+  backdrop-filter:blur(22px);cursor:pointer;transition:transform .18s var(--ease),border-color .18s,box-shadow .25s;
+  animation:dg-fade-up 420ms var(--ease) both}
+.spot-card:hover{transform:translateY(-3px);border-color:rgba(var(--accent-rgb),.5);box-shadow:0 8px 26px rgba(0,0,0,.35)}
+.spot-card .sc-ico{font-size:17px;line-height:1;filter:saturate(1.1)}
+.spot-card .sc-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.spot-card .sc-txt b{font-size:12.5px;letter-spacing:.01em}
+.spot-card .sc-txt .sub{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spot-card .sc-go{margin-left:auto;color:var(--muted-2);font-size:14px;transition:transform .18s var(--ease),color .18s}
+.spot-card:hover .sc-go{transform:translateX(3px);color:var(--accent)}
+.spot-card.spot-warn{border-color:rgba(255,176,77,.45)}
+.spot-card.spot-warn .sc-ico{filter:none}
+@media(max-width:1500px){.spot-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ============ v2.9 — featured packs (spotlight categories) ============ */
+.pack-card.featured{border-color:rgba(var(--accent-rgb),.35)}
+.pack-card.featured:hover{border-color:var(--accent)}
+.pc-star{color:var(--accent);font-size:11px;margin-left:2px;text-shadow:0 0 10px rgba(var(--accent-rgb),.8)}
+#packs-presets{margin:0 0 14px}
+
+/* ============ v2.9 — accent-bordered settings cards ============ */
+.set-card[style*="--accent-rgb"]{background:linear-gradient(160deg,rgba(var(--accent-rgb),.05),rgba(9,10,15,.62))}

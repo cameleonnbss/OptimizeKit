@@ -4,63 +4,57 @@
 
 # ⚡ OptimizeKit
 
-**Windows Gaming Control Center — one exe, the full dashboard in a real desktop window (no browser), every tweak reversible.**
+**Windows Gaming Control Center — one compiled C++20 exe, one HTML/CSS/JS interface, every tweak reversible.**
 
 [![Release](https://img.shields.io/github/v/release/cameleonnbss/OptimizeKit?style=flat-square&color=ff3d57)](../../releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078d4?style=flat-square)](https://github.com/cameleonnbss/OptimizeKit)
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
+[![UI](https://img.shields.io/badge/UI-HTML%20%2F%20CSS%20%2F%20JS-e34f26?style=flat-square&logo=html5&logoColor=white)](web/index.html)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
-[![Size](https://img.shields.io/badge/exe-~6.6%20MB%20static-ff9800?style=flat-square)](#-download)
+[![Size](https://img.shields.io/badge/exe-~6.5%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**App-window dashboard (web UI, no browser)** · **Gaming score** · **77 reversible tweaks** · **Standalone CLI (no exe needed)** · **Firmware panel (SecureBoot/TPM/VT)** · **Driver auto-update engine** · **5 tuning centers** · **300-title game database + 106 covers** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K palette** · **12 themes** · **EN/FR**
+**Desktop window dashboard** · **Gaming score** · **77 reversible tweaks** · **Firmware panel (SecureBoot/TPM/VT)** · **Driver auto-update engine** · **Process Reducer (EcoQoS)** · **Security scan** · **DiskScope** · **5 tuning centers** · **300-title game database + 106 covers** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K palette** · **12 themes** · **EN/FR**
 
-`C++20 / Win32 / Direct2D` · `zero dependencies` · `no install` · `no driver, no injection, no Edge`
+`C++20 / Win32 / WebView2 / cpp-httplib` · `zero runtime dependencies` · `no install` · `no driver, no injection`
 
-[⬇️ **Download v2.8.0**](../../releases/tag/v2.8.0) · [What's new](#-whats-new-in-280) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · [Français](README.fr.md)
+[⬇️ **Download v2.9.0**](../../releases/tag/v2.9.0) · [What's new](#-whats-new-in-290) · [Quick start](#-quick-start) · [Screenshots](#-screenshots) · [Safety](#%EF%B8%8F-safety-first) · **English** · [**Français**](README.fr.md)
 
 </div>
 
 ---
 
-## 🆕 What's new in 2.8.0
+## 🆕 What's new in 2.9.0
 
 | | |
 |---|---|
-| **The web dashboard IS the app window** | Double-click → the embedded dashboard opens in a real desktop frame — **pixel-identical to the browser dashboard** (themes, Ctrl+K palette, game library), with no Edge window, no tabs, no address bar. If the WebView2 runtime is missing, the app silently falls back to the native Direct2D window instead of opening a browser. `--native` forces D2D. |
-| **Better app frame** | The window title follows the dashboard tab (Firmware, Tweaks…), F5 / Ctrl+R reload works, right-click copy enabled. |
-| **Standalone CLI launchers** | `OptimizeKit.bat` is a full module menu and `OptimizeKit-cli.bat` runs everywhere — **no exe required**: everything goes through the PowerShell engine (71 tweaks, profiles, network, cleanup, firmware, drivers, restore-all), in admin and non-admin menus. |
-| **24 new PowerShell tweaks — 71 total** | The engine matches the C++ catalog: Widgets, Location, Services-to-Manual + svchost tuning, Delivery Optimization, Consumer features, Store search, End-task on taskbar, **WPBT block**, Razer block, Notifications, IPv4/IPv6/Teredo, disk cleanup + WinSxS trim, hibernation off, verbose BSoD, long paths, Game Mode (Win11), Edge & Brave debloat, UTC clock, restore point — each with apply, restore and live status. |
-| **Firmware report in the engine** | `-Firmware` / menu 7: BIOS, Secure Boot, TPM, VT-x, hypervisor, pending reboot — strictly read-only. |
-| **Fresh screenshots** | Every dashboard view re-captured from the live app with real machine data. |
+| **The v2.6 interface is back** | The liquid-glass web dashboard is once again **the** interface: double-click → the same HTML/CSS/JS UI opens in a real desktop window (embedded WebView2 frame). If WebView2 is unavailable, the app opens `msedge --app` — the same chromeless WormGPT-style window — then the default browser. No silent switch to a different UI. |
+| **Compiled binary + web UI, WormGPT-desktop style** | One static C++20 exe embeds its own HTTP server (loopback only) and the whole dashboard: HTML/CSS/JS interface, compiled language underneath. Exactly the architecture you asked for. |
+| **Dashboard Highlights** | A live row of the newest modules — firmware identity, Secure Boot, driver age, games detected, Process Reducer, Security Scan, DiskScope, Benchmark — updates from real machine data and opens each view in one click. |
+| **Featured pack categories** | The Packs page opens on ★ **In the spotlight** with the four flagship presets (Esport, Low latency, Fast clean boot, Privacy lock-down) plus per-category chips. |
+| **Two CLI launchers, your way** | `OptimizeKit.bat` (no admin, never elevates) and `OptimizeKit-Admin.bat` (offers UAC once, full admin menu). Both run the numbered menus **without the exe** through the PowerShell engine — `/exe` opts into the compiled CLI. |
+| **New dashboard quick actions** | ⚑ Esport mode and ⛭ Firmware join Scan / Quick Optimize / Clean junk on the hero card. |
+| **Settings refresh** | Firmware & drivers and Updates cards now show the accent border; the firmware nudge setting loads properly. |
+| **Fresh screenshots** | Every view re-captured from the live app (v2.9, real machine data). |
 
-### Still from 2.7.0
-
-| | |
-|---|---|
-| **Firmware & platform panel (native + `--firmware`)** | BIOS vendor/version, motherboard, boot mode, **Secure Boot**, **TPM**, VT-x/SVM + hypervisor, modern standby vs S3, HPET, WPBT, dynamic tick / TSC, kernel dump level, pending reboot |
-| **Driver auto-update engine (native + `--drvupdate`)** | Real driver ages from the driver store, problem devices, **Windows Update driver scan trigger**, PnP rescan, vendor pages |
-| **28 C++ tweaks — 77 total** | Aligned on WinUtil's current catalog, all reversible |
-
-### Still from 2.6.0
+### Still from 2.8.0 / 2.7.0
 
 | | |
 |---|---|
-| **Process Reducer** | Live CPU/RAM table — eco mode (below-normal + EcoQoS), end, sweep, full restore |
-| **Security scan** | Antivirus, firewall per profile, every listening port + owner, autostart persistence, ransomware patterns — one-click fixes |
-| **DiskScope tools** | Duplicate finder, space hogs, folder sizes |
-| **Real cover art** | Steam/Epic box art for the top-played titles |
+| **Firmware & platform panel** | BIOS vendor/version, motherboard, boot mode, **Secure Boot**, **TPM**, VT-x/SVM + hypervisor, modern standby vs S3, HPET, WPBT, dynamic tick / TSC, kernel dump level, pending reboot — read-only |
+| **Driver auto-update engine** | Real driver ages from the driver store, problem devices, **Windows Update driver scan trigger**, PnP rescan, vendor pages |
+| **77 reversible tweaks** (28 aligned on WinUtil in 2.7, 24 more in the engine in 2.8) | Widgets, Location, Services-to-Manual + svchost tuning, Delivery Optimization, Consumer features, **WPBT block**, Razer block, Notifications, IPv4/IPv6/Teredo, disk cleanup + WinSxS trim, hibernation off, verbose BSoD, long paths, Game Mode (Win11), Edge & Brave debloat, UTC clock, restore point… |
 
-### Still from 2.5.0 & 2.4.0
+### Still from 2.6.0 / 2.5.0 / 2.4.0
 
-Game database (~300 titles, every store + every drive detection), batch icons, Game Library with genre-aware sets, 5 tuning centers, Ctrl+K palette, 12 full themes, ⚡ BOOST pill.
+Process Reducer (eco mode / EcoQoS), Security scan (ports, persistence, ransomware patterns), DiskScope (dupes, space hogs), Steam/Epic cover art, game database (~300 titles, every store + every drive), batch icons, Game Library with genre-aware sets, 5 tuning centers, Ctrl+K palette, 12 full themes, ⚡ BOOST pill, first-run wizard with theme picker.
 
 Full detail in [CHANGELOG.md](CHANGELOG.md).
 
 ## 📸 Screenshots
 
-All shots captured from the live app (v2.8, real machine data, no mockups).
+All shots captured from the live app (v2.9, real machine data, no mockups).
 
-| Dashboard | Tweaks |
+| Dashboard — with Highlights | Tweaks |
 |---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Tweaks](docs/screenshots/tweaks.png) |
 
@@ -72,89 +66,120 @@ All shots captured from the live app (v2.8, real machine data, no mockups).
 |---|---|
 | ![Network](docs/screenshots/network.png) | ![Storage](docs/screenshots/storage.png) |
 
-| Tools — 79-launcher catalog | Themes — 12 packs |
+| Firmware — live platform state | Themes — 12 packs |
 |---|---|
-| ![Tools](docs/screenshots/tools.png) | ![Themes](docs/screenshots/themes.png) |
+| ![Firmware](docs/screenshots/bios.png) | ![Themes](docs/screenshots/themes.png) |
+
+| Tools — 79-launcher catalog | |
+|---|---|
+| ![Tools](docs/screenshots/tools.png) | |
 
 ## 📦 Download
 
 | Release | Link |
 |---|---|
-| **v2.8.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.8.0 |
+| **v2.9.0 (current)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.9.0 |
+| v2.8.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.8.0 |
 | v2.7.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.7.0 |
 | v2.6.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.6.0 |
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
-`OptimizeKit.exe` is fully **static** (MinGW-w64, ~6.6 MB): no runtime, no DLLs, no install, no browser component. An optional `web/` folder next to the exe unlocks the full web dashboard when you launch with `--app`.
+`OptimizeKit.exe` is fully **static** (MinGW-w64, ~6.5 MB): no runtime, no DLLs, no install. The whole interface ships inside the exe; an optional `web/` folder next to it just lets you serve the same dashboard from a fresh edit.
 
 ## ⚡ Quick start
 
 | You want | Do this |
 |---|---|
-| **The app** (default) | Double-click `dist\OptimizeKit.exe` — the dashboard opens in its own desktop window, no browser |
-| **The full CLI, no exe** | Run `OptimizeKit.bat` (module menu) or `OptimizeKit-cli.bat` (numbered menus, admin + user) |
-| Direct PowerShell engine | `powershell -File PowerShell\OptimizeKit.ps1` or `OptimizeKit.bat -Status` |
+| **The app** (default) | Double-click `dist\OptimizeKit.exe` — the dashboard opens in its own desktop window |
+| **The app, browser window** | `OptimizeKit.exe --web 8765` then open http://127.0.0.1:8765 (loopback only) |
+| **CLI without admin** | Run `OptimizeKit.bat` — numbered menus, HKCU tweaks, reports |
+| **CLI as admin** | Run `OptimizeKit-Admin.bat` — UAC prompt once, then every tweak, cleanup, restore-all |
+| Direct engine flags | `OptimizeKit.bat -Status`, `-Apply id1,id2`, `-Profile gaming`, `-RestoreAll`, `-Silent` |
 | Native Direct2D window | `OptimizeKit.exe --native` |
-| Headless web dashboard | `OptimizeKit.exe --web 8765` (loopback only) |
 
-The default window **is the app**: the exact same liquid-glass interface as the browser dashboard — themes, Ctrl+K palette, game library, firmware panel, driver engine, benchmark, 77 tweaks — rendered inside a dedicated desktop frame with a dark title bar and dynamic window title.
+The window **is the app**: the exact same liquid-glass interface as the browser — themes, Ctrl+K palette, game library, firmware panel, driver engine, benchmark, 77 tweaks — served by the embedded server and rendered in a dedicated desktop frame with a dark title bar and dynamic window title.
 
 > 🛡️ **Safety**: every tweak has a one-click **restore to Windows default** (web UI + native UI + CLI + PowerShell `-RestoreAll`), and `.reg` backups live in `%LOCALAPPDATA%\OptimizeKit\`.
 
-## 🎮 What's inside (app window = web dashboard)
+## 🎮 What's inside
 
-- **Dashboard** — live machine state, gaming-relevant flags, quick profiles, one-click benchmark
+- **Dashboard** — live machine state, gaming flags, quick profiles, **Highlights** (new), one-click benchmark
 - **Tweaks** — all **77 tweaks** with instant apply/restore, filters, admin badges, impact stars
-- **Gaming Center** — one-click profiles + 12 quick switches + process priority/kill table
-- **Firmware (BIOS guide)** — BIOS identity, Secure Boot, TPM, VT, standby mode, HPET/WPBT/tick state, pending reboot (read-only; the app never writes firmware)
-- **Storage** — drives with NVMe/SATA bus detection, safe cleanup targets, duplicate finder, largest files
-- **Network** — TCP autotuning / RSS / MTU, profiles, latency monitor with custom targets
+- **Gaming Center** — one-click profiles + ESPORT MODE + 12 quick switches + process priority/kill table
+- **Packs** — preset bundles with ★ spotlight categories and per-category chips
+- **Firmware (BIOS guide)** — live platform state + guided BIOS cards (read-only; the app never writes firmware)
+- **Storage** — DiskScope: drives, safe cleanup targets, duplicate finder, largest files, folder sizes
+- **Network** — TCP autotuning / RSS / MTU, profiles, latency monitor, DNS reset to DHCP
 - **Security Scan** — antivirus, firewall, listening ports + owners, autostart persistence, one-click fixes
 - **Process Reducer** — live CPU/RAM table, eco mode (EcoQoS), end, sweep, full restore
-- **Games / Library** — every-store detection with real cover art, batch icons, boost
-- **Tools** — 79 Windows tool launchers; **Themes** — 12 full packs + custom accent; **Ctrl+K** palette
+- **Games / Library** — every-store detection with real cover art, batch icons, genre-aware boost
+- **Tools** — 79 Windows tool launchers; **Themes** — 12 full packs + custom accent; **Ctrl+K** palette; EN/FR switch
 
-Without the exe, `OptimizeKit.bat` / `OptimizeKit-cli.bat` expose the same feature set through the PowerShell engine: 71 tweaks with status, gaming/privacy/debloat/full profiles, network center, junk cleanup, firmware report, driver info, restore-all — in admin and non-admin menus.
+Without the exe, both `.bat` launchers expose the same feature set through the PowerShell engine: 71 tweaks with status, gaming/privacy/debloat/full profiles, network center, junk cleanup, firmware report, driver info, restore-all — in the admin and non-admin menus.
 
 ## 🖥️ CLI
 
-`OptimizeKit-cli.bat` gives numbered menus (user or admin). Direct flags:
+Two launchers, one engine — no exe required:
 
 ```
-OptimizeKit.exe                    web dashboard in a desktop window (default)
+OptimizeKit.bat                    CLI menu, NO admin (never elevates)
+OptimizeKit-Admin.bat              CLI menu, offers UAC once (full admin menu)
+OptimizeKit.bat /exe               same menus through the compiled C++ CLI (if built)
+
+OptimizeKit.bat -Status            tweak states, read-only
+OptimizeKit.bat -Apply id1,id2     apply specific tweaks
+OptimizeKit.bat -Profile gaming|privacy|debloat|full
+OptimizeKit.bat -Silent            gaming profile, no prompts
+OptimizeKit.bat -RestoreAll        back to Windows defaults
+OptimizeKit.bat -Firmware          BIOS / SecureBoot / TPM (read-only)
+OptimizeKit.bat -Drivers           GPU/driver info + vendor pages
+OptimizeKit.bat -Network           latency + DNS benchmark
+OptimizeKit.bat -Cleanup           junk cleanup
+```
+
+The exe itself:
+
+```
+OptimizeKit.exe                    desktop window: embedded dashboard (default)
 OptimizeKit.exe --native           native Direct2D dashboard window
-OptimizeKit.exe --web [port]       serve the web dashboard, no window
+OptimizeKit.exe --web [port]       serve the web dashboard, no window (loopback)
+OptimizeKit.exe --cli              numbered CLI menu (user or admin)
 OptimizeKit.exe --profile gaming|privacy|full|clean
-OptimizeKit.exe --apply <tweak-id>
-OptimizeKit.exe --restore <tweak-id>
+OptimizeKit.exe --apply <tweak-id>       OptimizeKit.exe --restore <tweak-id>
 OptimizeKit.exe --list             list all tweak ids
 OptimizeKit.exe --clean            junk cleanup
 OptimizeKit.exe --info             system summary
 OptimizeKit.exe --firmware         BIOS / SecureBoot / TPM / kernel options report
 OptimizeKit.exe --drvupdate        driver age report + Windows Update scan
 OptimizeKit.exe --ping <host>      latency test
-
-OptimizeKit.bat                    full module menu, PowerShell engine (no exe needed)
-OptimizeKit.bat -Status            tweak states, read-only
-OptimizeKit.bat -Tweaks            pick-a-number apply / r<N> restore
-OptimizeKit.bat -Network           latency + DNS benchmark
-OptimizeKit.bat -Cleanup           junk cleanup
-OptimizeKit.bat -Firmware          BIOS / SecureBoot / TPM (read-only)
-OptimizeKit.bat -Drivers           GPU/driver info + vendor pages
-OptimizeKit.bat -Profile gaming|privacy|debloat|full
-OptimizeKit.bat -Silent            gaming profile, no prompts
-OptimizeKit.bat -RestoreAll        back to Windows defaults
-OptimizeKit-cli.bat /exe           same menus through the C++ CLI (if built)
 ```
 
-## 🎛️ Firmware, kernel & drivers — "closer to the metal"
+## 🏗️ Under the hood
 
-OptimizeKit is plain Win32/C++ and behaves like a system tool:
+```
+┌────────────────────────────────────────────────────────┐
+│  OptimizeKit.exe (static C++20, ~6.5 MB)               │
+│                                                        │
+│  ┌──────────────┐  ┌────────────────────────────────┐  │
+│  │ Win32 window │  │  embedded HTTP server          │  │
+│  │ (WebView2    │──│  (cpp-httplib, 127.0.0.1 only) │  │
+│  │  frame)      │  │  serves the embedded UI + JSON │  │
+│  └──────────────┘  └───────────────┬────────────────┘  │
+│                                    │                   │
+│  ┌────────────────────────────────┬┴─────────────────┐ │
+│  │  HTML / CSS / JS dashboard     │  C++ core         │ │
+│  │  (embedded in the exe)         │  tweaks · monitor │ │
+│  │  12 themes · Ctrl+K · EN/FR    │  firmware · games │ │
+│  └────────────────────────────────┴───────────────────┘ │
+└────────────────────────────────────────────────────────┘
+```
 
-- **Firmware inventory** reads the SMBIOS identity (WMI), the UEFI Secure Boot state machine, the TPM (Win32_Tpm namespace with a PnP fallback for non-elevated sessions), virtualization state including the running hypervisor, modern-standby vs S3 policy, and the boot options `bcdedit` manages (dynamic tick, platform tick, platform clock, TSC sync). It is strictly **read-only** — firmware changes stay a human job, guided by the BIOS cards.
-- **Kernel-visible tweaks**: WPBT execution block (stops vendor firmware from launching code at boot), HPET policy, dynamic tick, MSI mode for GPU/NIC, interrupt affinity, `Win32PrioritySeparation`, MMCSS gaming task, svchost split threshold — all applied through documented registry/service paths, all reversible.
-- **Driver updates**: the app reports the real age of every installed driver (from `Control\Class` records — same source as Device Manager), lists devices with problem codes, then triggers **Windows Update's own driver scan** (`UsoClient`, the supported orchestrator) or opens the vendor page. Nothing is downloaded or installed behind your back.
+- **Compiled language**: every action goes through C++ modules (tweaks, monitor, firmware, games, reducer, security, diskscope, drivers) — no Python, no Node, no runtime.
+- **Web interface**: the dashboard is plain HTML/CSS/JS, embedded in the exe and also editable in `web/` for development.
+- **Firmware inventory** reads the SMBIOS identity (WMI), the UEFI Secure Boot state machine, the TPM (Win32_Tpm with a PnP fallback for non-elevated sessions), virtualization state including the running hypervisor, modern-standby vs S3 policy, and the boot options `bcdedit` manages. Strictly **read-only**.
+- **Kernel-visible tweaks**: WPBT execution block, HPET policy, dynamic tick, MSI mode for GPU/NIC, interrupt affinity, `Win32PrioritySeparation`, MMCSS gaming task, svchost split threshold — documented registry/service paths only, all reversible.
+- **Driver updates**: real driver ages from `Control\Class` records, problem devices, then **Windows Update's own driver scan** (`UsoClient`, the supported orchestrator) or the vendor page. Nothing downloads behind your back.
 
 ## 🛡️ Safety first
 
@@ -162,7 +187,7 @@ OptimizeKit is plain Win32/C++ and behaves like a system tool:
 - **Registry backups** before any change: `%LOCALAPPDATA%\OptimizeKit\backup_*.reg`.
 - **Honest descriptions** — no magic FPS promises; the RAM trim page even explains why "empty standby" is not "extra RAM"; the firmware panel says "unknown" instead of inventing values.
 - **Gaming Mode** snapshots your power plan and restores everything on exit.
-- **Nothing runs at boot**, no service is installed; the exe only acts when you ask.
+- **Nothing runs at boot**, no service is installed; the exe only acts when you ask. The server listens on 127.0.0.1 only — never on the network.
 - Source curated from [Chris Titus Tech's WinUtil](https://github.com/ChrisTitusTech/winutil) (MIT), Microsoft documentation and the PC-gaming community — every tweak shows its origin.
 
 ## 🏗️ Build from source
@@ -173,7 +198,7 @@ cd OptimizeKit
 build.bat          rem MinGW-w64 g++ 13+ (winlibs / MSYS2)
 ```
 
-Output: `dist\OptimizeKit.exe` + `dist\web\`. Or use the provided CMakeLists with any MinGW toolchain. Regenerate the icon set with `python tools/make_icon.py` (Pillow).
+Output: `dist\OptimizeKit.exe` (+ optional `dist\web\`). Or use the provided CMakeLists with any MinGW toolchain. Regenerate the icon set with `python tools/make_icon.py` (Pillow); `tools/embed_web.py` re-embeds edited dashboard files.
 
 ## 📄 License
 

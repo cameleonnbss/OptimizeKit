@@ -13,7 +13,7 @@
 <div id="splash">
   <div class="sp-inner">
     <div class="sp-logo"><b>Optimize<span>Kit</span></b></div>
-    <div class="sp-tag">WINDOWS GAMING CONTROL CENTER · V2.7</div>
+    <div class="sp-tag">WINDOWS GAMING CONTROL CENTER · V2.9</div>
     <div class="sp-bar"><i></i></div>
     <div class="sp-steps mono">
       <div data-s="hw">detecting hardware</div>
@@ -35,7 +35,7 @@
 <!-- ============ APP ============ -->
 <div id="screen-app" class="screen">
   <aside class="side">
-    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.7</span></div>
+    <div class="brand"><b>Optimize<span>Kit</span></b><span class="brand-tag">v2.9</span></div>
     <button class="side-search" id="btn-palette" type="button"><span class="ss-ico">⌕</span><span>Search anything…</span><kbd>Ctrl K</kbd></button>
     <nav id="nav">
       <div class="nav-item active" data-view="dashboard"><span class="ni-ico">◉</span><span>Dashboard</span></div>
@@ -75,7 +75,7 @@
     </nav>
     <div class="side-foot">
       <div class="pill-status"><span class="dot"></span><span id="admin-pill-side">…</span></div>
-      <small>OptimizeKit v2.7 · <span id="foot-procs">—</span> procs</small>
+      <small>OptimizeKit v2.9 · <span id="foot-procs">—</span> procs</small>
     </div>
   </aside>
 
@@ -108,11 +108,13 @@
       <div class="dash-hero">
         <div class="dh-main">
           <h1>Optimize <span>everything.</span></h1>
-          <p id="hero-sub">Live monitoring · gaming · network · storage — fully logged, fully reversible.</p>
+          <p id="hero-sub">Live monitoring · gaming · firmware · network · storage — fully logged, fully reversible.</p>
           <div class="hero-actions">
             <button class="btn primary" id="btn-quick-scan">◎ Scan this PC</button>
             <button class="btn" id="btn-quick-optimize">Quick Optimize</button>
+            <button class="btn" id="btn-quick-esport">⚑ Esport mode</button>
             <button class="btn" id="btn-clean">🧹 Clean junk</button>
+            <button class="btn" id="btn-quick-firmware">⛭ Firmware</button>
           </div>
         </div>
         <div class="dh-kpis" id="dash-kpis">
@@ -129,6 +131,9 @@
         <div class="mon-card gpu"><div class="mon-head"><b>GPU</b><span class="muted mono" style="font-size:10px" id="m-disk-sub"></span></div><div class="mon-val"><span id="m-gpu-v">—</span></div><canvas id="m-gpu-g"></canvas></div>
         <div class="mon-card disk"><div class="mon-head"><b>DISK</b><span class="muted mono" style="font-size:10px" id="m-disk-io"></span></div><div class="mon-val"><span id="m-disk-v">—</span></div><canvas id="m-disk-g"></canvas></div>
       </div>
+
+      <div class="sec-head" style="margin-top:6px"><h2 style="font-size:15px">Highlights</h2><span class="muted" style="font-size:11px">the newest modules, live — click to open</span></div>
+      <div class="spot-grid" id="dash-spotlights"></div>
 
       <div class="dash-cols">
       <div class="proc-card k-panel">
@@ -396,6 +401,7 @@
       <div class="sec-head"><h1>Packs</h1><div class="spacer"></div>
         <span class="muted" style="font-size:11px">registry snapshot → apply → reversible in one click</span></div>
       <p class="muted" style="font-size:12px;margin:6px 0 16px;max-width:980px">A pack is a named set of tweaks tuned for one job. Apply it in one click, restore it in one click, or expand it to see <b>exactly</b> what it touches — nothing hidden, nothing irreversible.</p>
+      <div class="chips" id="packs-presets" style="margin:0 0 14px"><span class="chip on" data-preset="all">All</span></div>
       <div class="quick-grid" id="packs-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:1200px"></div>
       <div id="pack-detail" class="hidden"></div>
     </section>
@@ -656,13 +662,13 @@
           <label class="set-row"><input type="checkbox" id="set-dns"/> Let OptimizeKit manage DNS in gaming profiles (1.1.1.1 / 8.8.8.8)</label>
           <label class="set-row"><button class="btn sm" id="btn-set-dns-reset">DNS → DHCP default</button></label>
         </div>
-        <div class="set-card">
+        <div class="set-card" style="border-color:rgba(var(--accent-rgb),.35)">
           <h3>Firmware &amp; drivers</h3>
           <label class="set-row"><input type="checkbox" id="set-fw-nag"/> Show a nudge when Secure Boot / TPM are off (gaming &amp; anti-cheat)</label>
           <label class="set-row"><button class="btn sm" id="btn-set-fw">Open Firmware panel</button>
             <button class="btn sm" id="btn-set-drvscan">Trigger driver scan now</button></label>
         </div>
-        <div class="set-card">
+        <div class="set-card" style="border-color:rgba(var(--accent-rgb),.35)">
           <h3>Updates</h3>
           <label class="set-row"><input type="checkbox" id="set-dl-opt"/> Delivery Optimization: block P2P upload of Windows updates</label>
           <label class="set-row"><input type="checkbox" id="set-consumer"/> Block auto-installed Store suggestions &amp; sponsored apps</label>
@@ -679,13 +685,15 @@
     <!-- ============ ABOUT ============ -->
     <section class="view hidden" id="view-about">
       <div class="profile-hero">
-        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.7</h2>
-        <p>Windows Gaming Control Center — one static exe, native Direct2D window (no browser needed)
-           plus an optional web dashboard served by the embedded C++ HTTP server.<br/>
+        <h2>Optimize<span style="color:var(--accent)">Kit</span> v2.9</h2>
+        <p>Windows Gaming Control Center — one static exe, the dashboard in a real desktop window
+           (embedded WebView2 frame), with the same liquid-glass interface also available in any browser.
+           C++20 front to back — a compiled binary plus an HTML/CSS/JS interface.<br/>
            77 reversible tweaks · Firmware &amp; platform panel (SecureBoot / TPM / VT / kernel options) ·
            driver auto-update engine · 12 full themes · a Game Library of 200+ covered titles ·
-           a Process Reducer (EcoQoS) and a read-only Security Scan · a command palette (Ctrl+K) over
-           everything · no driver, no injection, no kernel component.<br/>
+           a Process Reducer (EcoQoS), DiskScope storage tools and a read-only Security Scan ·
+           dashboard Highlights · a command palette (Ctrl+K) over everything · EN/FR interface ·
+           standalone CLI launchers, with and without admin · no driver, no injection, no kernel component.<br/>
            Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC-gaming
            community. Every action logged, every key backed up, every tweak reversible.</p>
         <div style="display:flex;gap:10px;margin-top:8px">

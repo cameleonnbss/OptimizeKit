@@ -103,7 +103,7 @@ jobs:
             dist/OptimizeKit.exe
             dist/web/
             OptimizeKit.bat
-            OptimizeKit-cli.bat
+            OptimizeKit-Admin.bat
             Uninstall-OptimizeKit.bat
             PowerShell/OptimizeKit.ps1
 
@@ -111,7 +111,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         run: |
-          Compress-Archive -Force -Path dist/OptimizeKit.exe, dist/web, OptimizeKit.bat, OptimizeKit-cli.bat, Uninstall-OptimizeKit.bat, PowerShell, README.md, README.fr.md -DestinationPath dist/OptimizeKit-${{ github.ref_name }}.zip
+          Compress-Archive -Force -Path dist/OptimizeKit.exe, dist/web, OptimizeKit.bat, OptimizeKit-Admin.bat, Uninstall-OptimizeKit.bat, PowerShell, README.md, README.fr.md -DestinationPath dist/OptimizeKit-${{ github.ref_name }}.zip
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -124,6 +124,6 @@ jobs:
             dist/OptimizeKit.exe
             dist/OptimizeKit-*.zip
             OptimizeKit.bat
-            OptimizeKit-cli.bat
+            OptimizeKit-Admin.bat
             Uninstall-OptimizeKit.bat
             PowerShell/OptimizeKit.ps1

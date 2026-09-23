@@ -1,8 +1,10 @@
-/* OptimizeKit v2.7 — Windows Gaming Control Center
+/* OptimizeKit v2.9 — Windows Gaming Control Center
    Shell: grouped rail + command bar · 34 modules · 12 themes · Ctrl+K palette
    Games: every store + every fixed drive, matched against the built-in game database;
    Library: cover art plus that database, installed titles badged with their real icon.
-   v2.7: Firmware panel (live SecureBoot/TPM/VT/kernel state) + driver auto-update engine. */
+   Firmware panel (live SecureBoot/TPM/VT/kernel state) + driver auto-update engine.
+   v2.9: dashboard Highlights, featured pack categories, firmware spotlight.
+   Compiled C++20 binary (embedded HTTP server) + HTML/CSS/JS dashboard — WormGPT-desktop style. */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -101,15 +103,55 @@ const monitorColors = () => ({
   })();
 })();
 
+/* ===================== dashboard spotlights (v2.9 Highlights) =====================
+   The dashboard gets a live, clickable row of the newest modules: firmware state,
+   driver ages and the game count update as soon as the machine answers. Nothing
+   is invented — a card shows "—" until its real data is on screen. */
+let spotFirmware = null, spotDriverAge = null, spotGameCount = null;
+const spotCards = [
+  { key: "firmware", cls: "spot-firmware", ico: "⛭", label: "Firmware & platform", view: "bios",
+    sub: () => spotFirmware ? esc((spotFirmware.biosVendor || "?") + " " + (spotFirmware.biosVersion || "")) : "reading…" },
+  { key: "secureboot", cls: "spot-secureboot", ico: "🛡", label: "Secure Boot", view: "bios",
+    sub: () => spotFirmware ? esc(spotFirmware.secureBoot || "?") : "reading…" },
+  { key: "drivers", cls: "spot-drivers", ico: "⇥", label: "Driver ages", view: "drivers",
+    sub: () => spotDriverAge ? esc(spotDriverAge) : "measuring…" },
+  { key: "games", cls: "spot-games", ico: "☰", label: "Games detected", view: "games",
+    sub: () => spotGameCount != null ? spotGameCount + " on this machine" : "detecting…" },
+  { key: "reducer", cls: "spot-reducer", ico: "⏬", label: "Process Reducer", view: "reducer", sub: () => "EcoQoS sweep & undo" },
+  { key: "security", cls: "spot-security", ico: "◎", label: "Security Scan", view: "security", sub: () => "read-only audit" },
+  { key: "diskscope", cls: "spot-diskscope", ico: "▤", label: "DiskScope", view: "storage", sub: () => "dupes · folders · cleanup" },
+  { key: "bench", cls: "spot-bench", ico: "▲", label: "Benchmark", view: "bench", sub: () => "1000 = reference machine" },
+];
+function renderSpotlights() {
+  const grid = $("#dash-spotlights"); if (!grid) return;
+  if (!grid.childElementCount) {
+    grid.innerHTML = spotCards.map((c) =>
+      `<div class="spot-card ${c.cls}" data-view="${c.view}" style="animation-delay:${Math.min(grid.childElementCount * 40, 300)}ms">
+        <span class="sc-ico">${c.ico}</span>
+        <div class="sc-txt"><b>${esc(c.label)}</b><span class="sub muted">…</span></div>
+        <span class="sc-go">→</span>
+      </div>`).join("");
+    $$("#dash-spotlights .spot-card").forEach((card) => card.addEventListener("click", () => show(card.dataset.view)));
+  }
+  $$("#dash-spotlights .spot-card").forEach((card) => {
+    const c = spotCards.find((x) => x.key === card.dataset.view || card.classList.contains(x.cls));
+    if (!c) return;
+    const sub = card.querySelector(".sc-txt .sub");
+    if (sub) sub.innerHTML = c.sub();
+    if (c.key === "secureboot" && spotFirmware)
+      card.classList.toggle("spot-warn", spotFirmware.secureBoot !== "on");
+  });
+}
+
 /* ===================== i18n (EN base, FR) ===================== */
 const I18N = {
   en: { themes:"Themes", dashboard:"Dashboard", smart:"Smart Optimize", gaming:"Gaming Center", scan:"Scan PC", optimize:"Optimize", tweaks:"Tweaks", games:"Games",
         library:"Game Library", packs:"Packs", inputlag:"Input Lag", render:"Rendering & FPS", background:"Background load", power:"Power & thermals", debloat:"Debloat & boot",
-        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", bios:"Firmware", privacy:"Privacy",
+        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", bios:"BIOS guide", privacy:"Privacy",
         diag:"Diagnostics", bench:"Benchmark", tools:"Tools", logs:"Logs", settings:"Settings", about:"About" },
   fr: { themes:"Thèmes", dashboard:"Tableau de bord", smart:"Optimisation intelligente", gaming:"Centre Gaming", scan:"Analyser le PC", optimize:"Optimiser", tweaks:"Tweaks", games:"Jeux",
         library:"Bibliothèque de jeux", packs:"Packs", inputlag:"Latence d'entrée", render:"Rendu & FPS", background:"Charge de fond", power:"Énergie & thermique", debloat:"Débloat & démarrage",
-        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", bios:"Micrologiciel", privacy:"Confidentialité",
+        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", bios:"Guide BIOS", privacy:"Confidentialité",
         diag:"Diagnostics", bench:"Benchmark", tools:"Outils", logs:"Journaux", settings:"Paramètres", about:"À propos" }
 };
 function applyLang(lang) {
@@ -249,6 +291,7 @@ function show(view) {
   if (view === "security") refreshSecurity(false);
   if (view === "bios") { renderBios(); refreshFirmware(); }
   if (view === "drivers") refreshDriverReport(false);
+  if (view === "dashboard") renderSpotlights();
   if (view === "library") renderLibrary();
   if (view === "themes") renderThemes();
   if (view === "dashboard") refreshKpis(null);
@@ -416,6 +459,8 @@ $$(".chips .chip").forEach((c) => c.addEventListener("click", () => {
 on("#btn-privacy", () => applyProfile("privacy"));
 on("#btn-full-gaming", () => applyProfile("gaming"));
 on("#btn-quick-optimize", () => applyProfile("gaming"));
+on("#btn-quick-esport", () => show("gaming"));
+on("#btn-quick-firmware", () => show("bios"));
 on("#btn-clean", () => doClean());
 on("#btn-clean2", () => doClean());
 async function applyProfile(name) {
@@ -1308,6 +1353,7 @@ async function loadSettings() {
     $("#set-killlist").value = (s.gaming_kill_list || []).join(", ");
     const dlOpt = $("#set-dl-opt"); if (dlOpt) dlOpt.checked = s.delivery_optimization_off === true;
     const cons = $("#set-consumer"); if (cons) cons.checked = s.consumer_features_off === true;
+    const fwNag = $("#set-fw-nag"); if (fwNag) fwNag.checked = s.firmware_nag === true;
     applyAccent(s.ui_accent || "#ff3d57");
   } catch (e) { }
 }
@@ -1415,7 +1461,7 @@ async function toggleEsport() {
       const r = await api("/api/tweaks/apply", ESPORT_IDS);
       overlay.progress(100);
       overlay.step(`✓ ${r.applied} applied${r.errors.length ? " · " + r.errors.length + " need admin" : ""}`, "ok");
-      await overlay.done(true, r.errors.length ? r.applied + " applied, " + r.errors.length + " need admin via OptimizeKit.bat" : "competitive preset active");
+      await overlay.done(true, r.errors.length ? r.applied + " applied, " + r.errors.length + " need admin — run OptimizeKit-Admin.bat" : "competitive preset active");
       toast("⚑ ESPORT MODE ON — " + r.applied + " optimizations", 4000);
     } catch (e) { await overlay.done(false, String(e)); }
   } else {
@@ -1536,28 +1582,56 @@ on("#btn-smart-apply", async () => {
 
 /* ===================== PACKS ===================== */
 const PACKS = [
-  { id: "esport", name: "⚑ Esport", desc: "Competitive FPS: 0.5 ms timer, no background recording, raw mouse, background apps off.",
+  { id: "esport", name: "⚑ Esport", featured: true, desc: "Competitive FPS: 0.5 ms timer, no background recording, raw mouse, background apps off.",
     ids: ["game_mode", "game_dvr_off", "timer_high", "network_gaming", "mouse_precision", "menu_delay_0", "background_apps", "win32_priority", "hags_on", "power_ultimate", "usb_powersave", "pcie_aspm", "vrr"] },
-  { id: "lowlatency", name: "⏱ Low latency", desc: "The latency set on its own: timer, input, network stack and interrupt handling.",
+  { id: "lowlatency", name: "⏱ Low latency", featured: true, desc: "The latency set on its own: timer, input, network stack and interrupt handling.",
     ids: ["timer_high", "network_gaming", "mouse_precision", "usb_powersave", "pcie_aspm", "win32_priority", "bcdedit_tsc", "msi_mode"] },
+  { id: "cleanboot", name: "🚀 Fast, clean boot", featured: true, desc: "Fewer things starting and running: Superfetch, indexing, telemetry tasks, boot logo.",
+    ids: ["sysmain_off", "search_index", "hpets_boot", "telemetry_tasks", "edge_bing_blocking", "storage_sense"] },
+  { id: "privacy", name: "🛡 Privacy lock-down", featured: true, desc: "Telemetry, advertising ID, activity history, Bing in search, Copilot.",
+    ids: ["telemetry_off", "advertising_off", "activity_history", "bing_search", "tailored_experiences", "telemetry_tasks", "windows_copilot"] },
   { id: "streaming", name: "🎥 Play & stream", desc: "Keep capture available without fighting your encoder — game priority stays first.",
     ids: ["game_mode", "windowed_games", "vrr", "hags_on", "gpu_preference", "fso_on", "timer_high"] },
   { id: "laptop", name: "💻 Laptop / thermals", desc: "Cooler and quieter: compositor, transparency, animations and background churn off.",
     ids: ["transparency_off", "taskbar_anim", "background_apps", "search_index", "visual_fx_balloff", "mouse_trails"] },
-  { id: "cleanboot", name: "🚀 Fast, clean boot", desc: "Fewer things starting and running: Superfetch, indexing, telemetry tasks, boot logo.",
-    ids: ["sysmain_off", "search_index", "hpets_boot", "telemetry_tasks", "edge_bing_blocking", "storage_sense"] },
-  { id: "privacy", name: "🛡 Privacy lock-down", desc: "Telemetry, advertising ID, activity history, Bing in search, Copilot.",
-    ids: ["telemetry_off", "advertising_off", "activity_history", "bing_search", "tailored_experiences", "telemetry_tasks", "windows_copilot"] },
 ];
+function applyPackPreset(preset) {
+  const grid = $("#packs-grid"); if (!grid) return;
+  const want = (p) => preset.startsWith("pack:") ? p.id === preset.slice(5)
+    : preset === "featured" ? !!p.featured : true;
+  $$("#packs-grid .pack-card").forEach((card) => {
+    const p = PACKS.find((x) => x.id === card.dataset.pack);
+    card.style.display = p && want(p) ? "" : "none";
+  });
+}
 async function renderPacks() {
   if (!tweaksCache.length) await updateTweakState(true);
   const grid = $("#packs-grid"); if (!grid) return;
-  grid.innerHTML = PACKS.map((p) => {
+  // v2.9: the bar row filters the grid — "In the spotlight" shows the featured packs first
+  const bar = $("#packs-presets");
+  if (bar && !bar.childElementCount) {
+    bar.innerHTML =
+      `<span class="chip on" data-preset="all">All</span>` +
+      `<span class="chip" data-preset="featured">★ In the spotlight</span>` +
+      PACKS.filter((p) => p.featured).map((p) => `<span class="chip" data-preset="pack:${p.id}">${p.name}</span>`).join("");
+    bar.querySelectorAll(".chip").forEach((chip) => chip.addEventListener("click", () => {
+      bar.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
+      chip.classList.add("on");
+      applyPackPreset(chip.dataset.preset);
+    }));
+  }
+  const preset = bar?.querySelector(".chip.on")?.dataset.preset || "all";
+  const list = PACKS.filter((p) => {
+    if (preset.startsWith("pack:")) return p.id === preset.slice(5);
+    if (preset === "featured") return !!p.featured;
+    return true;
+  });
+  grid.innerHTML = list.map((p) => {
     const known = p.ids.filter((id) => tweaksCache.some((t) => t.id === id));
     const on = known.filter((id) => tweaksCache.find((t) => t.id === id)?.applied).length;
     const pct = known.length ? Math.round(on / known.length * 100) : 0;
-    return `<div class="pack-card ${pct === 100 ? "full" : pct ? "part" : ""}" data-pack="${p.id}">
-      <div class="pc-top"><b>${p.name}</b><span class="pc-pct">${on}/${p.ids.length}</span></div>
+    return `<div class="pack-card ${pct === 100 ? "full" : pct ? "part" : ""} ${p.featured ? "featured" : ""}" data-pack="${p.id}">
+      <div class="pc-top"><b>${p.name}</b>${p.featured ? '<span class="pc-star" title="In the spotlight">★</span>' : ""}<span class="pc-pct">${on}/${p.ids.length}</span></div>
       <p>${esc(p.desc)}</p>
       <div class="pc-bar"><i style="width:${pct}%"></i></div>
       <div class="pc-actions">
@@ -1591,7 +1665,6 @@ async function renderPacks() {
   }));
 }
 function showPack(p) {
-  const el = $("#pack-detail");
   el.classList.remove("hidden");
   el.innerHTML = `
     <div class="profile-hero">
@@ -2355,7 +2428,7 @@ function maybeWizard(state) {
         <div class="wiz-themes">${THEME_PACKS.map(([id,c])=>`<div class="pack-opt" data-pack="${id}" title="${id}"><i style="--c:${c}"></i><span>${id}</span></div>`).join("")}</div></div></div>
       <div class="wiz-row"><span class="wiz-n">2</span><div><b>Measure your machine first</b><p>The benchmark scores your CPU, RAM and disk against a reference machine (1000 = mainstream modern build). Run it now — it takes ~4 seconds, saved to history so you can compare after optimizing.</p>
         <button class="btn sm primary" id="wiz-bench">▲ Run benchmark now</button></div></div>
-      <div class="wiz-row"><span class="wiz-n">3</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit.bat</span> (option 1) for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
+      <div class="wiz-row"><span class="wiz-n">3</span><div><b>Some tweaks need admin</b><p>Close this, then run <span class="mono">OptimizeKit-Admin.bat</span> for the full set (HAGS, timer, network stack…). User-safe tweaks work right now.</p></div></div>
       <div class="wiz-row"><span class="wiz-n">4</span><div><b>Everything is reversible</b><p>Every switch off restores the exact Windows default. Registry backups live in <span class="mono">%LOCALAPPDATA%\\OptimizeKit</span>.</p></div></div>
       <button class="btn primary" id="wiz-done">Let's go</button>
     </div>`;
@@ -2391,6 +2464,16 @@ function maybeWizard(state) {
   await sleep(240);
   document.body.classList.add("ready");
   loadState();
+  renderSpotlights();          // v2.9: dashboard Highlights live from boot
+  // fill the Highlights cards as soon as the machine answers (lazy, non-blocking)
+  Promise.allSettled([
+    api("/api/firmware").then((f) => { spotFirmware = f; }),
+    api("/api/drvupdate/report").then((r) => {
+      const g = r && r.gpu ? r.gpu : null;
+      spotDriverAge = g ? (g.ageDays != null ? g.ageDays + " days" : (g.age || null)) : null;
+    }),
+    api("/api/games").then((g) => { spotGameCount = (g || []).length; }),
+  ]).then(() => { if (currentView === "dashboard") renderSpotlights(); });
   pollMonitor();
   setInterval(pollMonitor, 1000);
   setInterval(loadState, 10000);

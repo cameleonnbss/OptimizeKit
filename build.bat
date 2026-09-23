@@ -71,6 +71,6 @@ if exist WebView2Loader.dll copy /y WebView2Loader.dll dist\ >nul
 
 echo.
 echo [OK] Built dist\OptimizeKit.exe + dist\web\
-echo      Run  dist\OptimizeKit.exe   (web dashboard, standalone window)
-echo      Run  OptimizeKit.bat (all-in-one) / OptimizeKit-cli.bat (menus)
+echo      Run  dist\OptimizeKit.exe   (desktop window: embedded dashboard)
+echo      Run  OptimizeKit.bat (CLI, no admin) / OptimizeKit-Admin.bat (CLI, admin)
 endlocal

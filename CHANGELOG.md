@@ -4,6 +4,50 @@ All notable changes to OptimizeKit are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] — 2026-09-23
+
+The "v2.6 interface, perfected" release: the liquid-glass web dashboard is
+restored as THE interface with the v2.6 launch chain back (desktop WebView2
+window -> msedge --app -> browser), every 2.7/2.8 feature kept, plus new
+dashboard spotlights and the two requested CLI launchers.
+
+### Added
+
+- **Dashboard Highlights** - a live, clickable row of the newest modules
+  (Firmware & platform, Secure Boot, Driver ages, Games detected, Process
+  Reducer, Security Scan, DiskScope, Benchmark), filled from real machine
+  data as soon as the APIs answer, rendered from boot.
+- **Featured pack categories** - the Packs page opens on ★ "In the spotlight"
+  with the four flagship presets (Esport, Low latency, Fast clean boot,
+  Privacy lock-down), plus per-category chips; featured cards get an accent
+  border and a star.
+- **New dashboard quick actions** - Esport mode and Firmware join Scan /
+  Quick Optimize / Clean junk on the hero card.
+- **OptimizeKit-Admin.bat** - admin CLI launcher: offers UAC once (decline
+  = continue without admin), then the full numbered menu through the
+  PowerShell engine; `/exe` runs the compiled C++ CLI when present.
+- **OptimizeKit.bat** - the no-admin CLI launcher: numbered user menu, never
+  elevates, direct engine flags pass through (-Status, -Apply, -Profile,
+  -RestoreAll, -Silent, -Firmware, -Drivers, -Network, -Cleanup).
+- Fresh screenshots of every README view from the live v2.9 app.
+
+### Changed
+
+- **v2.6 launch chain restored** - double-click opens the web dashboard in
+  the desktop WebView2 frame; without WebView2 the app opens msedge --app
+  (same chromeless window), then the default browser. The D2D window stays
+  available via `--native` but is no longer a silent fallback.
+- Branding back to v2.6 style: "BIOS guide" nav label, "WINDOWS GAMING
+  CONTROL CENTER" splash tag, About text reworded (compiled C++20 + HTML/
+  CSS/JS interface, WormGPT-desktop architecture), version bumped to 2.9.0.
+- Settings: Firmware & drivers and Updates cards moved out of the accent-
+  bordered group; the firmware nudge setting now loads from config.
+- Engine version strings bumped to v2.9.
+
+### Removed
+
+- `OptimizeKit-cli.bat` replaced by the two dedicated launchers.
+
 ## [2.8.0] — 2026-09-23
 
 The "same interface everywhere" release: the exe now opens the **web
