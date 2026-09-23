@@ -33,10 +33,12 @@ dashboard spotlights and the two requested CLI launchers.
 
 ### Changed
 
-- **v2.6 launch chain restored** - double-click opens the web dashboard in
-  the desktop WebView2 frame; without WebView2 the app opens msedge --app
-  (same chromeless window), then the default browser. The D2D window stays
-  available via `--native` but is no longer a silent fallback.
+- **v2.6 launch chain restored, browser-agnostic** - double-click opens the
+  web dashboard in the dedicated desktop WebView2 frame; if that window
+  cannot be created, the dashboard opens in the DEFAULT browser - any
+  browser, never forced to Edge. New `--browser` flag skips the dedicated
+  window on purpose. The D2D window stays available via `--native` but is
+  no longer a silent fallback.
 - Branding back to v2.6 style: "BIOS guide" nav label, "WINDOWS GAMING
   CONTROL CENTER" splash tag, About text reworded (compiled C++20 + HTML/
   CSS/JS interface, WormGPT-desktop architecture), version bumped to 2.9.0.

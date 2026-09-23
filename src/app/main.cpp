@@ -1,6 +1,8 @@
 // OptimizeKit - entry point.
 // No arguments -> a real desktop window (WebView2 frame) hosting the embedded
-//                dashboard; falls back to msedge --app, then the default browser.
+//                dashboard; if that frame cannot be created, the dashboard opens
+//                in the DEFAULT browser - any browser, never forced to Edge.
+// --browser     -> skip the dedicated window, open the default browser directly.
 // --native      -> the native Direct2D liquid-glass dashboard (no web view).
 // --app/--d2d   -> aliases kept for compatibility (--d2d forces D2D too).
 // With arguments (from the CLI launchers) -> attaches to the parent console and runs the CLI.
@@ -56,6 +58,7 @@ static void printHelp() {
         L"OptimizeKit v2.9 - Windows Gaming & Performance Control Center\n"
         L"usage:\n"
         L"  OptimizeKit.exe                 desktop app window (embedded dashboard)\n"
+        L"  OptimizeKit.exe --browser       dashboard in the default browser (any)\n"
         L"  OptimizeKit.exe --native        native Direct2D dashboard\n"
         L"  OptimizeKit.exe --web [port]    serve the dashboard without opening a window\n"
         L"  OptimizeKit.exe --cli           numbered CLI menu (user or admin)\n"
@@ -70,18 +73,12 @@ static void printHelp() {
         L"  OptimizeKit.exe --ping <host>   latency test\n";
 }
 
-static string g_probeBuf;
-
-static bool openAppWindow(const wstring& url) {
-    // msedge --app gives the WormGPT-like chromeless window when available
-    if (runCapture(L"reg query HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe /ve", g_probeBuf, 8000)) {
-        ShellExecuteW(nullptr, L"open",
-            L"msedge.exe",
-            (L"--app=" + url + L" --window-size=1280,860").c_str(), nullptr, SW_SHOWNORMAL);
-        return true;
-    }
-    ShellExecuteW(nullptr, L"open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-    return true;
+// Open the dashboard in the DEFAULT browser - Firefox, Chrome, Brave, Edge,
+// whatever the user chose in Windows settings. Never forced to Edge.
+static bool openDefaultBrowser(const wstring& url) {
+    // ShellExecuteW on a raw URL follows the user's default-browser choice
+    const HINSTANCE r = ShellExecuteW(nullptr, L"open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    return reinterpret_cast<INT_PTR>(r) > 32;
 }
 
 // probe 127.0.0.1:port..port+20 until one accepts a TCP connection (server ready)
@@ -107,20 +104,32 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     auto args = getArgs();
 
     if (args.empty() || args[0] == L"--app") {
-        // v2.6 launch chain, restored: a real desktop window (WebView2 frame)
-        // hosting the embedded dashboard; if WebView2 is unavailable, msedge --app
-        // gives the same chromeless WormGPT-style window; last resort, the default
-        // browser. The web UI is the interface - no silent switch to another UI.
+        // Preferred: a real dedicated desktop window (WebView2 frame) hosting the
+        // embedded dashboard - the web UI is the interface, one chromeless frame.
+        // If that frame cannot be created (no WebView2 runtime), fall back to the
+        // DEFAULT browser - any browser, never forced to Edge.
         std::thread srv([] { ok::server::serve(8765); });
         int port = probeServer(8765);
         if (port > 0) {
             wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
             if (webframe::runWindow(wstring(url)) == 0)
-                ok::server::stop(); // native window closed - exit cleanly
+                ok::server::stop(); // dedicated window closed - exit cleanly
             else
-                openAppWindow(url);  // no WebView2 -> msedge --app, then the browser
+                openDefaultBrowser(url); // no WebView2 -> the default browser
         }
         srv.join();
+        return 0;
+    }
+
+    if (args[0] == L"--browser") {
+        // No dedicated window: serve and open the user's default browser.
+        std::thread srv([] { ok::server::serve(8765); });
+        int port = probeServer(8765);
+        if (port > 0) {
+            wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
+            openDefaultBrowser(url);
+        }
+        srv.join(); // keep serving while the tab is open (Ctrl+C / kill to stop)
         return 0;
     }
 

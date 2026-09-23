@@ -27,7 +27,7 @@
 
 | | |
 |---|---|
-| **The v2.6 interface is back** | The liquid-glass web dashboard is once again **the** interface: double-click → the same HTML/CSS/JS UI opens in a real desktop window (embedded WebView2 frame). If WebView2 is unavailable, the app opens `msedge --app` — the same chromeless WormGPT-style window — then the default browser. No silent switch to a different UI. |
+| **The v2.6 interface is back** | The liquid-glass web dashboard is once again **the** interface: double-click → the same HTML/CSS/JS UI opens in a **dedicated desktop window** (embedded WebView2 frame). If that window cannot be created, the dashboard opens in your **default browser — any browser** (Firefox, Chrome, Brave, Vivaldi…), never forced to Edge. `--browser` skips the window on purpose. |
 | **Compiled binary + web UI, WormGPT-desktop style** | One static C++20 exe embeds its own HTTP server (loopback only) and the whole dashboard: HTML/CSS/JS interface, compiled language underneath. Exactly the architecture you asked for. |
 | **Dashboard Highlights** | A live row of the newest modules — firmware identity, Secure Boot, driver age, games detected, Process Reducer, Security Scan, DiskScope, Benchmark — updates from real machine data and opens each view in one click. |
 | **Featured pack categories** | The Packs page opens on ★ **In the spotlight** with the four flagship presets (Esport, Low latency, Fast clean boot, Privacy lock-down) plus per-category chips. |
@@ -96,6 +96,7 @@ All shots captured from the live app (v2.9, real machine data, no mockups).
 | **CLI without admin** | Run `OptimizeKit.bat` — numbered menus, HKCU tweaks, reports |
 | **CLI as admin** | Run `OptimizeKit-Admin.bat` — UAC prompt once, then every tweak, cleanup, restore-all |
 | Direct engine flags | `OptimizeKit.bat -Status`, `-Apply id1,id2`, `-Profile gaming`, `-RestoreAll`, `-Silent` |
+| Dashboard in your browser | `OptimizeKit.exe --browser` — opens your **default** browser, any browser |
 | Native Direct2D window | `OptimizeKit.exe --native` |
 
 The window **is the app**: the exact same liquid-glass interface as the browser — themes, Ctrl+K palette, game library, firmware panel, driver engine, benchmark, 77 tweaks — served by the embedded server and rendered in a dedicated desktop frame with a dark title bar and dynamic window title.
@@ -141,7 +142,8 @@ OptimizeKit.bat -Cleanup           junk cleanup
 The exe itself:
 
 ```
-OptimizeKit.exe                    desktop window: embedded dashboard (default)
+OptimizeKit.exe                    dedicated desktop window: embedded dashboard (default)
+OptimizeKit.exe --browser          dashboard in the default browser (any browser)
 OptimizeKit.exe --native           native Direct2D dashboard window
 OptimizeKit.exe --web [port]       serve the web dashboard, no window (loopback)
 OptimizeKit.exe --cli              numbered CLI menu (user or admin)
