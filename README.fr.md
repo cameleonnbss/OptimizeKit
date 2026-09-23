@@ -4,7 +4,7 @@
 
 # ⚡ OptimizeKit
 
-**Centre de contrôle Gaming Windows — un seul exe, vraie fenêtre native (sans navigateur), chaque tweak réversible.**
+**Centre de contrôle Gaming Windows — un seul exe, le dashboard complet dans une vraie fenêtre bureau (sans navigateur), chaque tweak réversible.**
 
 [![Release](https://img.shields.io/github/v/release/cameleonnbss/OptimizeKit?style=flat-square&color=ff3d57)](../../releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078d4?style=flat-square)](https://github.com/cameleonnbss/OptimizeKit)
@@ -12,26 +12,34 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6,6%20Mo%20statique-ff9800?style=flat-square)](#-t%C3%A9l%C3%A9chargement)
 
-**Fenêtre native D2D** · **Score gaming** · **77 tweaks réversibles** · **Optimisation intelligente** · **Panneau firmware (SecureBoot/TPM/VT)** · **Moteur de mise à jour des pilotes** · **5 centres de réglage** · **Base de ~300 jeux + 106 jaquettes** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes** · **EN/FR**
+**Dashboard en fenêtre d'app (interface web, sans navigateur)** · **Score gaming** · **77 tweaks réversibles** · **CLI autonome (sans exe)** · **Panneau firmware (SecureBoot/TPM/VT)** · **Moteur de mise à jour des pilotes** · **5 centres de réglage** · **Base de ~300 jeux + 106 jaquettes** · **Centre réseau** · **Benchmark style AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes** · **EN/FR**
 
 `C++20 / Win32 / Direct2D` · `zéro dépendance` · `sans installation` · `aucun driver, aucune injection, aucun Edge`
 
-[⬇️ **Télécharger v2.7.0**](../../releases/tag/v2.7.0) · [Nouveautés](#-nouveaut%C3%A9s-de-la-270) · [Démarrage](#-d%C3%A9marrage-rapide) · [Captures](#-captures-d%C3%A9cran) · [Sécurité](#%EF%B8%8F-s%C3%A9curit%C3%A9-dabord) · [English](README.md)
+[⬇️ **Télécharger v2.8.0**](../../releases/tag/v2.8.0) · [Nouveautés](#-nouveaut%C3%A9s-de-la-280) · [Démarrage](#-d%C3%A9marrage-rapide) · [Captures](#-captures-d%C3%A9cran) · [Sécurité](#%EF%B8%8F-s%C3%A9curit%C3%A9-dabord) · [English](README.md)
 
 </div>
 
 ---
 
-## 🆕 Nouveautés de la 2.7.0
+## 🆕 Nouveautés de la 2.8.0
 
 | | |
 |---|---|
-| **Fenêtre native d'abord** | Double-clic → le dashboard liquid-glass Direct2D s'ouvre dans une vraie fenêtre Win32. **Aucun Edge, aucun WebView2, aucun navigateur, aucune application externe** — un exe statique, une fenêtre. (Le dashboard web reste dispo via `--app`.) |
-| **28 nouveaux tweaks — 77 au total** | Alignés sur le catalogue actuel de [WinUtil](https://github.com/ChrisTitusTech/winutil) : Widgets, Localisation, Services en manuel (+ `SvcHostSplitThresholdInKB`), Delivery Optimization, suggestions du Store, point de restauration, menu fin de tâche, **blocage WPBT**, blocage auto-install Razer, IPv4/IPv6/Teredo, nettoyage disque + WinSxS, hibernation, BSoD verbeux, chemins longs, débloat Edge & Brave, UTC pour le dual-boot… tout réversible |
-| **Panneau Firmware & plateforme** | État live en lecture seule : BIOS (fournisseur/version/date), carte mère, mode de boot (UEFI/Legacy), **Secure Boot**, **TPM**, VT-x/SVM + hyperviseur actif, modern standby vs S3, HPET, WPBT, dynamic tick / platform tick / TSC (bcdedit), niveau de dump kernel, redémarrage en attente — aussi en CLI avec `--firmware` |
-| **Moteur de mise à jour des pilotes** | Âge réel de chaque pilote depuis le magasin (GPU/audio/réseau/chipset, bruit filtré), périphériques en erreur, **déclenchement du scan Windows Update** (le même orchestrateur que l'appli Paramètres), rescan PnP, pages constructeurs — aussi en CLI avec `--drvupdate` |
-| **Nouveaux onglets natifs** | Firmware, Stockage (type de bus NVMe/SATA, plus gros fichiers, nettoyages un clic), Démarrage (toggles réversibles), Paramètres (persistés dans `config.json`) |
-| **Nouvelle icône** | Éclair en dégradé sur tuile sombre, générée par `tools/make_icon.py` |
+| **Le dashboard web EST la fenêtre de l'app** | Double-clic → le dashboard embarqué s'ouvre dans une vraie fenêtre bureau — **identique au pixel près à l'interface navigateur** (thèmes, palette Ctrl+K, bibliothèque de jeux), sans fenêtre Edge, sans onglets, sans barre d'adresse. Si le runtime WebView2 manque, l'app retombe silencieusement sur la fenêtre native Direct2D au lieu d'ouvrir un navigateur. `--native` force la D2D. |
+| **Fenêtre améliorée** | Le titre suit l'onglet du dashboard (Firmware, Tweaks…), F5 / Ctrl+R rechargent, clic droit pour copier activé. |
+| **Launchers CLI autonomes** | `OptimizeKit.bat` est un menu de modules complet et `OptimizeKit-cli.bat` tourne partout — **sans exe** : tout passe par le moteur PowerShell (71 tweaks, profils, réseau, nettoyage, firmware, drivers, restauration générale), avec menus admin ET non-admin. |
+| **24 nouveaux tweaks PowerShell — 71 au total** | Le moteur rattrape le catalogue C++ : Widgets, Localisation, Services en manuel + tuning svchost, Delivery Optimization, Consumer features, recherche du Store, fin de tâche sur la taskbar, **blocage WPBT**, blocage Razer, Notifications, IPv4/IPv6/Teredo, nettoyage disque + WinSxS, hibernation off, BSoD verbeux, chemins longs, Game Mode (Win11), débloat Edge & Brave, horloge UTC, point de restauration — chacun avec application, restauration et état live. |
+| **Rapport firmware dans le moteur** | `-Firmware` / menu 7 : BIOS, Secure Boot, TPM, VT-x, hyperviseur, redémarrage en attente — strictement en lecture seule. |
+| **Captures fraîches** | Chaque vue du dashboard re-capturée depuis l'appli en direct avec de vraies données machine. |
+
+### Toujours valable depuis la 2.7.0
+
+| | |
+|---|---|
+| **Panneau firmware & plateforme (natif + `--firmware`)** | BIOS fournisseur/version, carte mère, mode boot, **Secure Boot**, **TPM**, VT-x/SVM + hyperviseur, modern standby vs S3, HPET, WPBT, dynamic tick / TSC, niveau de dump kernel, redémarrage en attente |
+| **Moteur de mise à jour des pilotes (natif + `--drvupdate`)** | Âge réel des pilotes, périphériques en erreur, **scan Windows Update**, rescan PnP, pages constructeurs |
+| **28 tweaks C++ — 77 au total** | Alignés sur le catalogue actuel de WinUtil, tout réversible |
 
 ### Toujours valable depuis la 2.6.0
 
@@ -68,46 +76,50 @@ Captures prises depuis l'appli en direct (v2.8, vraies données machine, zéro m
 
 | Release | Lien |
 |---|---|
-| **v2.7.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.7.0 |
+| **v2.8.0 (actuelle)** | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.8.0 |
+| v2.7.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.7.0 |
 | v2.6.0 | https://github.com/cameleonnbss/OptimizeKit/releases/tag/v2.6.0 |
 | Toutes les releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Journal des versions | [CHANGELOG.md](CHANGELOG.md) |
 
-`OptimizeKit.exe` est **entièrement statique** (MinGW-w64, ~6,6 Mo) : aucun runtime, aucune DLL, aucune installation, aucun composant navigateur. Un dossier `web/` optionnel à côté de l'exe active le dashboard web complet au lancement avec `--app`.
+`OptimizeKit.exe` est un **seul binaire statique** (MinGW-w64, ~6,6 Mo) : aucune installation. Le runtime WebView2 (préinstallé sur Windows 10/11) fournit le rendu de la fenêtre ; s'il manque, l'interface native Direct2D prend le relais — aucun navigateur n'est jamais lancé.
 
 ## ⚡ Démarrage rapide
 
 | Vous voulez | Faites ça |
 |---|---|
-| **L'appli, nativement** (par défaut) | Double-cliquez `dist\OptimizeKit.exe` — une vraie fenêtre s'ouvre, rien d'autre |
-| Le dashboard web dans une fenêtre dédiée | `OptimizeKit.bat` option 5, ou `dist\OptimizeKit.exe --app` |
-| Moteur PowerShell direct (sans exe) | `powershell -File PowerShell\OptimizeKit.ps1` ou `OptimizeKit.bat -Status` |
+| **L'appli** (par défaut) | Double-cliquez `dist\OptimizeKit.exe` — le dashboard s'ouvre dans sa propre fenêtre bureau, sans navigateur |
+| **La CLI complète, sans exe** | Lancez `OptimizeKit.bat` (menu de modules) ou `OptimizeKit-cli.bat` (menus numérotés, admin + user) |
+| Moteur PowerShell direct | `powershell -File PowerShell\OptimizeKit.ps1` ou `OptimizeKit.bat -Status` |
+| Fenêtre native Direct2D | `OptimizeKit.exe --native` |
 | Dashboard web headless | `OptimizeKit.exe --web 8765` (loopback uniquement) |
 
-La fenêtre par défaut **est l'application** : Direct2D + DirectWrite dessinent tout, avec le panneau firmware, le moteur pilotes, le benchmark et les 77 tweaks. Aucun port à ouvrir, aucun navigateur lancé.
+La fenêtre par défaut **est l'application** : exactement la même interface liquid-glass que le dashboard navigateur — thèmes, palette Ctrl+K, bibliothèque de jeux, panneau firmware, moteur pilotes, benchmark, 77 tweaks — rendue dans une fenêtre dédiée avec barre de titre sombre et titre dynamique.
 
-> 🛡️ **Sécurité** : chaque tweak possède une **restauration vers la valeur Windows d'origine** en un clic (UI native + web + CLI), le moteur PowerShell a `-RestoreAll`, et les sauvegardes `.reg` vivent dans `%LOCALAPPDATA%\OptimizeKit\`.
+> 🛡️ **Sécurité** : chaque tweak possède une **restauration vers la valeur Windows d'origine** en un clic (web + natif + CLI + PowerShell `-RestoreAll`), et les sauvegardes `.reg` vivent dans `%LOCALAPPDATA%\OptimizeKit\`.
 
-## 🎮 Ce qu'il y a dedans (fenêtre native)
+## 🎮 Ce qu'il y a dedans (fenêtre de l'app = dashboard web)
 
 - **Dashboard** — état live de la machine, indicateurs gaming, profils rapides, benchmark en un clic
 - **Tweaks** — les **77 tweaks** avec application/restauration instantanée, filtres, badges admin, étoiles d'impact
-- **Gaming** — profils un clic + 12 interrupteurs rapides + table de priorité/kill des processus
-- **Firmware** — identité BIOS, Secure Boot, TPM, VT, mode veille, état HPET/WPBT/tick, dump kernel, redémarrage en attente (lecture seule ; l'appli n'écrit jamais dans le firmware)
-- **Stockage** — disques avec détection de bus NVMe/SATA et barres d'usage, scan des plus gros fichiers, nettoyages TEMP/WinSxS
-- **Démarrage** — clés Run HKCU/HKLM + dossiers Startup, activation/désactivation réversible en un clic
-- **Paramètres** — confirmation des actions, sauvegarde auto, gestion DNS, restauration générale — persistés dans `config.json`
-- **Privacy / Pilotes / Réseau / Logs / À propos** — interrupteurs de confidentialité, rapport pilotes + scan Windows Update, moniteur de latence avec cibles personnalisées, journal d'activité
+- **Gaming Center** — profils un clic + 12 interrupteurs rapides + table de priorité/kill des processus
+- **Firmware (guide BIOS)** — identité BIOS, Secure Boot, TPM, VT, mode veille, état HPET/WPBT/tick, redémarrage en attente (lecture seule ; l'appli n'écrit jamais dans le firmware)
+- **Stockage** — disques avec détection de bus NVMe/SATA, cibles de nettoyage sûres, doublons, plus gros fichiers
+- **Réseau** — TCP autotuning / RSS / MTU, profils, moniteur de latence avec cibles personnalisées
+- **Analyse sécurité** — antivirus, pare-feu, ports en écoute + propriétaires, persistance au démarrage, correctifs un clic
+- **Réducteur de processus** — table live CPU/RAM, mode éco (EcoQoS), kill, nettoyage, restauration complète
+- **Jeux / Bibliothèque** — détection multi-store avec vraies jaquettes, icônes en lot, boost
+- **Outils** — 79 lanceurs Windows ; **Thèmes** — 12 packs complets + accent perso ; palette **Ctrl+K**
 
-Le **dashboard web** optionnel ajoute le set complet de modules : Smart Optimize (plans classés par objectif), bibliothèque de jeux (106 jaquettes + base de ~300 titres), packs, cinq centres de réglage, Réducteur de processus, Analyse sécurité, outils DiskScope, diagnostics, historique de benchmark, guide BIOS, thèmes (12 packs), palette de commandes.
+Sans l'exe, `OptimizeKit.bat` / `OptimizeKit-cli.bat` exposent le même ensemble via le moteur PowerShell : 71 tweaks avec état, profils gaming/privacy/debloat/full, centre réseau, nettoyage, rapport firmware, pilotes, restauration générale — en menus admin et non-admin.
 
 ## 🖥️ CLI
 
 `OptimizeKit-cli.bat` donne les menus numérotés (user ou admin). Flags directs :
 
 ```
-OptimizeKit.exe                    dashboard D2D natif (par défaut)
-OptimizeKit.exe --app              dashboard web dans une fenêtre WebView2 (comportement 2.6)
+OptimizeKit.exe                    dashboard web dans une fenêtre bureau (par défaut)
+OptimizeKit.exe --native           fenêtre dashboard native Direct2D
 OptimizeKit.exe --web [port]       sert le dashboard web, sans fenêtre
 OptimizeKit.exe --profile gaming|privacy|full|clean
 OptimizeKit.exe --apply <tweak-id>
@@ -118,6 +130,18 @@ OptimizeKit.exe --info             résumé système
 OptimizeKit.exe --firmware         rapport BIOS / SecureBoot / TPM / options kernel
 OptimizeKit.exe --drvupdate        rapport d'âge des pilotes + scan Windows Update
 OptimizeKit.exe --ping <hôte>      test de latence
+
+OptimizeKit.bat                    menu complet de modules, moteur PowerShell (sans exe)
+OptimizeKit.bat -Status            état des tweaks, lecture seule
+OptimizeKit.bat -Tweaks            application par numéro / r<N> restaure
+OptimizeKit.bat -Network           latence + benchmark DNS
+OptimizeKit.bat -Cleanup           nettoyage des fichiers temporaires
+OptimizeKit.bat -Firmware          BIOS / SecureBoot / TPM (lecture seule)
+OptimizeKit.bat -Drivers           infos GPU/pilotes + pages constructeurs
+OptimizeKit.bat -Profile gaming|privacy|debloat|full
+OptimizeKit.bat -Silent            profil gaming sans questions
+OptimizeKit.bat -RestoreAll        retour aux valeurs Windows
+OptimizeKit-cli.bat /exe           mêmes menus via la CLI C++ (si compilée)
 ```
 
 ## 🎛️ Firmware, kernel & pilotes — « plus proche de la machine »
