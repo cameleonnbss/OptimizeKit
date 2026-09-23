@@ -1831,7 +1831,1528 @@
    "pack": "esport",
    "cover": "epic_dead_by_daylight.jpg",
    "source": "epic-top"
+  },
+  {
+   "key": "a_way_out",
+   "name": "A Way Out",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "a_way_out.jpg",
+   "source": "steam:1222700"
+  },
+  {
+   "key": "ark_survival_evolved",
+   "name": "ARK: Survival Evolved",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "ark_survival_evolved.jpg",
+   "source": "steam:346110"
+  },
+  {
+   "key": "aerofly_fs_4",
+   "name": "Aerofly FS 4",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "aerofly_fs_4.jpg",
+   "source": "steam:1995890"
+  },
+  {
+   "key": "age_of_empires_iv",
+   "name": "Age of Empires IV",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "age_of_empires_iv.jpg",
+   "source": "steam:1466860"
+  },
+  {
+   "key": "albion_online",
+   "name": "Albion Online",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "albion_online.jpg",
+   "source": "steam:761890"
+  },
+  {
+   "key": "alien_isolation",
+   "name": "Alien: Isolation",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "alien_isolation.jpg",
+   "source": "steam:214490"
+  },
+  {
+   "key": "american_truck_simulator",
+   "name": "American Truck Simulator",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "american_truck_simulator.jpg",
+   "source": "steam:270880"
+  },
+  {
+   "key": "amnesia_the_dark_descent",
+   "name": "Amnesia: The Dark Descent",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "amnesia_the_dark_descent.jpg",
+   "source": "steam:57300"
+  },
+  {
+   "key": "anno_1800",
+   "name": "Anno 1800",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "anno_1800.jpg",
+   "source": "steam:916440"
+  },
+  {
+   "key": "arma_3",
+   "name": "Arma 3",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "arma_3.jpg",
+   "source": "steam:107410"
+  },
+  {
+   "key": "arma_reforger",
+   "name": "Arma Reforger",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "arma_reforger.jpg",
+   "source": "steam:1874880"
+  },
+  {
+   "key": "armored_core_vi",
+   "name": "Armored Core VI",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "armored_core_vi.jpg",
+   "source": "steam:1888160"
+  },
+  {
+   "key": "assetto_corsa_competizione",
+   "name": "Assetto Corsa Competizione",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "assetto_corsa_competizione.jpg",
+   "source": "steam:805550"
+  },
+  {
+   "key": "astroneer",
+   "name": "Astroneer",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "astroneer.jpg",
+   "source": "steam:361420"
+  },
+  {
+   "key": "automobilista_2",
+   "name": "Automobilista 2",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "automobilista_2.jpg",
+   "source": "steam:1066890"
+  },
+  {
+   "key": "back_4_blood",
+   "name": "Back 4 Blood",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "back_4_blood.jpg",
+   "source": "steam:924970"
+  },
+  {
+   "key": "backpack_hero",
+   "name": "Backpack Hero",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "backpack_hero.jpg",
+   "source": "steam:1970580"
+  },
+  {
+   "key": "balatro",
+   "name": "Balatro",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "balatro.jpg",
+   "source": "steam:2379780"
+  },
+  {
+   "key": "battlefield_1",
+   "name": "Battlefield 1",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "battlefield_1.jpg",
+   "source": "steam:1238840"
+  },
+  {
+   "key": "battlefield_4",
+   "name": "Battlefield 4",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "battlefield_4.jpg",
+   "source": "steam:1238860"
+  },
+  {
+   "key": "battlefield_v",
+   "name": "Battlefield V",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "battlefield_v.jpg",
+   "source": "steam:1238810"
+  },
+  {
+   "key": "borderlands_2",
+   "name": "Borderlands 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "borderlands_2.jpg",
+   "source": "steam:49520"
+  },
+  {
+   "key": "brick_rigs",
+   "name": "Brick Rigs",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "brick_rigs.jpg",
+   "source": "steam:552100"
+  },
+  {
+   "key": "brotato",
+   "name": "Brotato",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "brotato.jpg",
+   "source": "steam:1942280"
+  },
+  {
+   "key": "cities_skylines",
+   "name": "Cities: Skylines",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "cities_skylines.jpg",
+   "source": "steam:255710"
+  },
+  {
+   "key": "cities_skylines_ii",
+   "name": "Cities: Skylines II",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "cities_skylines_ii.jpg",
+   "source": "steam:949230"
+  },
+  {
+   "key": "company_of_heroes_3",
+   "name": "Company of Heroes 3",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "company_of_heroes_3.jpg",
+   "source": "steam:1677280"
+  },
+  {
+   "key": "conan_exiles",
+   "name": "Conan Exiles",
+   "family": "survival",
+   "pack": "cleanboot",
+   "cover": "conan_exiles.jpg",
+   "source": "steam:440900"
+  },
+  {
+   "key": "content_warning",
+   "name": "Content Warning",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "content_warning.jpg",
+   "source": "steam:2881650"
+  },
+  {
+   "key": "devour",
+   "name": "DEVOUR",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "devour.jpg",
+   "source": "steam:1274570"
+  },
+  {
+   "key": "doom_eternal",
+   "name": "DOOM Eternal",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "doom_eternal.jpg",
+   "source": "steam:782330"
+  },
+  {
+   "key": "dark_souls_ii",
+   "name": "Dark Souls II",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "dark_souls_ii.jpg",
+   "source": "steam:236430"
+  },
+  {
+   "key": "dark_souls_remastered",
+   "name": "Dark Souls: Remastered",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "dark_souls_remastered.jpg",
+   "source": "steam:570940"
+  },
+  {
+   "key": "dead_cells",
+   "name": "Dead Cells",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "dead_cells.jpg",
+   "source": "steam:588650"
+  },
+  {
+   "key": "dead_space",
+   "name": "Dead Space",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "dead_space.jpg",
+   "source": "steam:1693980"
+  },
+  {
+   "key": "demonologist",
+   "name": "Demonologist",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "demonologist.jpg",
+   "source": "steam:1929610"
+  },
+  {
+   "key": "destiny",
+   "name": "Destiny",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "destiny.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "dirt_rally_2_0",
+   "name": "DiRT Rally 2.0",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "dirt_rally_2_0.jpg",
+   "source": "steam:690790"
+  },
+  {
+   "key": "divinity_original_sin_2",
+   "name": "Divinity: Original Sin 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "divinity_original_sin_2.jpg",
+   "source": "steam:435150"
+  },
+  {
+   "key": "dragon_age_the_veilguard",
+   "name": "Dragon Age: The Veilguard",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "dragon_age_the_veilguard.jpg",
+   "source": "steam:1845910"
+  },
+  {
+   "key": "dragon_ball_fighterz",
+   "name": "Dragon Ball FighterZ",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "dragon_ball_fighterz.jpg",
+   "source": "steam:678950"
+  },
+  {
+   "key": "dragon_s_dogma_2",
+   "name": "Dragon's Dogma 2",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "dragon_s_dogma_2.jpg",
+   "source": "steam:2054970"
+  },
+  {
+   "key": "dungeon_defenders_ii",
+   "name": "Dungeon Defenders II",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "dungeon_defenders_ii.jpg",
+   "source": "steam:236110"
+  },
+  {
+   "key": "eve_online",
+   "name": "EVE Online",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "eve_online.jpg",
+   "source": "steam:8500"
+  },
+  {
+   "key": "elite_dangerous",
+   "name": "Elite Dangerous",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "elite_dangerous.jpg",
+   "source": "steam:359320"
+  },
+  {
+   "key": "enter_the_gungeon",
+   "name": "Enter the Gungeon",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "enter_the_gungeon.jpg",
+   "source": "steam:311690"
+  },
+  {
+   "key": "europa_universalis_iv",
+   "name": "Europa Universalis IV",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "europa_universalis_iv.jpg",
+   "source": "steam:236850"
+  },
+  {
+   "key": "f1_24",
+   "name": "F1 24",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "f1_24.jpg",
+   "source": "steam:2488620"
+  },
+  {
+   "key": "final_fantasy_vii_remake",
+   "name": "FINAL FANTASY VII REMAKE",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "final_fantasy_vii_remake.jpg",
+   "source": "steam:1462040"
+  },
+  {
+   "key": "final_fantasy_xvi",
+   "name": "FINAL FANTASY XVI",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "final_fantasy_xvi.jpg",
+   "source": "steam:2515020"
+  },
+  {
+   "key": "factorio",
+   "name": "Factorio",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "factorio.jpg",
+   "source": "steam:427520"
+  },
+  {
+   "key": "fallout_4",
+   "name": "Fallout 4",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "fallout_4.jpg",
+   "source": "steam:377160"
+  },
+  {
+   "key": "fallout_76",
+   "name": "Fallout 76",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "fallout_76.jpg",
+   "source": "steam:1151340"
+  },
+  {
+   "key": "far_cry_3",
+   "name": "Far Cry 3",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "far_cry_3.jpg",
+   "source": "steam:220240"
+  },
+  {
+   "key": "far_cry_4",
+   "name": "Far Cry 4",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "far_cry_4.jpg",
+   "source": "steam:298110"
+  },
+  {
+   "key": "far_cry_5",
+   "name": "Far Cry 5",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "far_cry_5.jpg",
+   "source": "steam:552520"
+  },
+  {
+   "key": "farming_simulator_22",
+   "name": "Farming Simulator 22",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "farming_simulator_22.jpg",
+   "source": "steam:1248130"
+  },
+  {
+   "key": "five_nights_at_freddy_s",
+   "name": "Five Nights at Freddy's",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "five_nights_at_freddy_s.jpg",
+   "source": "steam:319510"
+  },
+  {
+   "key": "forza_motorsport",
+   "name": "Forza Motorsport",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "forza_motorsport.jpg",
+   "source": "steam:2440510"
+  },
+  {
+   "key": "frostpunk",
+   "name": "Frostpunk",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "frostpunk.jpg",
+   "source": "steam:323190"
+  },
+  {
+   "key": "frostpunk_2",
+   "name": "Frostpunk 2",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "frostpunk_2.jpg",
+   "source": "steam:1601580"
+  },
+  {
+   "key": "gtfo",
+   "name": "GTFO",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "gtfo.jpg",
+   "source": "steam:493520"
+  },
+  {
+   "key": "gang_beasts",
+   "name": "Gang Beasts",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "gang_beasts.jpg",
+   "source": "steam:285900"
+  },
+  {
+   "key": "god_of_war",
+   "name": "God of War",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "god_of_war.jpg",
+   "source": "steam:1593500"
+  },
+  {
+   "key": "god_of_war_ragnar_k",
+   "name": "God of War Ragnarök",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "god_of_war_ragnar_k.jpg",
+   "source": "steam:2322010"
+  },
+  {
+   "key": "golf_with_your_friends",
+   "name": "Golf With Your Friends",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "golf_with_your_friends.jpg",
+   "source": "steam:431240"
+  },
+  {
+   "key": "granblue_fantasy_versus_rising",
+   "name": "Granblue Fantasy Versus: Rising",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "granblue_fantasy_versus_rising.jpg",
+   "source": "steam:2157560"
+  },
+  {
+   "key": "grand_theft_auto_iv",
+   "name": "Grand Theft Auto IV",
+   "family": "openworld",
+   "pack": "esport",
+   "cover": "grand_theft_auto_iv.jpg",
+   "source": "steam:12210"
+  },
+  {
+   "key": "greedfall",
+   "name": "GreedFall",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "greedfall.jpg",
+   "source": "steam:606880"
+  },
+  {
+   "key": "green_hell",
+   "name": "Green Hell",
+   "family": "survival",
+   "pack": "cleanboot",
+   "cover": "green_hell.jpg",
+   "source": "steam:815370"
+  },
+  {
+   "key": "grim_dawn",
+   "name": "Grim Dawn",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "grim_dawn.jpg",
+   "source": "steam:219990"
+  },
+  {
+   "key": "grounded",
+   "name": "Grounded",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "grounded.jpg",
+   "source": "steam:962130"
+  },
+  {
+   "key": "guild_wars_2",
+   "name": "Guild Wars 2",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "guild_wars_2.jpg",
+   "source": "steam:1284210"
+  },
+  {
+   "key": "guilty_gear_strive",
+   "name": "Guilty Gear -Strive-",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "guilty_gear_strive.jpg",
+   "source": "steam:1384160"
+  },
+  {
+   "key": "gunfire_reborn",
+   "name": "Gunfire Reborn",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "gunfire_reborn.jpg",
+   "source": "steam:1217060"
+  },
+  {
+   "key": "hades",
+   "name": "Hades",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "hades.jpg",
+   "source": "steam:1145360"
+  },
+  {
+   "key": "hades_ii",
+   "name": "Hades II",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "hades_ii.jpg",
+   "source": "steam:1145350"
+  },
+  {
+   "key": "half_life_2",
+   "name": "Half-Life 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "half_life_2.jpg",
+   "source": "steam:220"
+  },
+  {
+   "key": "horizon_zero_dawn",
+   "name": "Horizon Zero Dawn",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "horizon_zero_dawn.jpg",
+   "source": "steam:2561580"
+  },
+  {
+   "key": "house_flipper_2",
+   "name": "House Flipper 2",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "house_flipper_2.jpg",
+   "source": "steam:1190970"
+  },
+  {
+   "key": "human_fall_flat",
+   "name": "Human Fall Flat",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "human_fall_flat.jpg",
+   "source": "steam:477160"
+  },
+  {
+   "key": "icarus",
+   "name": "ICARUS",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "icarus.jpg",
+   "source": "steam:1149460"
+  },
+  {
+   "key": "insurgency_sandstorm",
+   "name": "Insurgency: Sandstorm",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "insurgency_sandstorm.jpg",
+   "source": "steam:581320"
+  },
+  {
+   "key": "it_takes_two",
+   "name": "It Takes Two",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "it_takes_two.jpg",
+   "source": "steam:1426210"
+  },
+  {
+   "key": "kerbal_space_program",
+   "name": "Kerbal Space Program",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "kerbal_space_program.jpg",
+   "source": "steam:220200"
+  },
+  {
+   "key": "lies_of_p",
+   "name": "Lies of P",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "lies_of_p.jpg",
+   "source": "steam:1627720"
+  },
+  {
+   "key": "mass_effect_legendary_edition",
+   "name": "Mass Effect Legendary Edition",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "mass_effect_legendary_edition.jpg",
+   "source": "steam:1328670"
+  },
+  {
+   "key": "microsoft_flight_simulator",
+   "name": "Microsoft Flight Simulator",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "microsoft_flight_simulator.jpg",
+   "source": "steam:2537590"
+  },
+  {
+   "key": "monster_hunter_rise",
+   "name": "Monster Hunter Rise",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "monster_hunter_rise.jpg",
+   "source": "steam:1446780"
+  },
+  {
+   "key": "mortal_kombat_1",
+   "name": "Mortal Kombat 1",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "mortal_kombat_1.jpg",
+   "source": "steam:1971870"
+  },
+  {
+   "key": "mortal_kombat_11",
+   "name": "Mortal Kombat 11",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "mortal_kombat_11.jpg",
+   "source": "steam:976310"
+  },
+  {
+   "key": "muck",
+   "name": "Muck",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "muck.jpg",
+   "source": "steam:1625450"
+  },
+  {
+   "key": "nba_2k25",
+   "name": "NBA 2K25",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "nba_2k25.jpg",
+   "source": "steam:2878980"
+  },
+  {
+   "key": "need_for_speed_heat",
+   "name": "Need for Speed Heat",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "need_for_speed_heat.jpg",
+   "source": "steam:1222680"
+  },
+  {
+   "key": "need_for_speed_unbound",
+   "name": "Need for Speed Unbound",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "need_for_speed_unbound.jpg",
+   "source": "steam:1846380"
+  },
+  {
+   "key": "nier_automata",
+   "name": "NieR:Automata",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "nier_automata.jpg",
+   "source": "steam:524220"
+  },
+  {
+   "key": "northgard",
+   "name": "Northgard",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "northgard.jpg",
+   "source": "steam:466560"
+  },
+  {
+   "key": "old_school_runescape",
+   "name": "Old School RuneScape",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "old_school_runescape.jpg",
+   "source": "steam:1343370"
+  },
+  {
+   "key": "outlast_2",
+   "name": "Outlast 2",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "outlast_2.jpg",
+   "source": "steam:414700"
+  },
+  {
+   "key": "overcooked_2",
+   "name": "Overcooked! 2",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "overcooked_2.jpg",
+   "source": "steam:728880"
+  },
+  {
+   "key": "oxygen_not_included",
+   "name": "Oxygen Not Included",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "oxygen_not_included.jpg",
+   "source": "steam:457140"
+  },
+  {
+   "key": "payday_2",
+   "name": "Payday 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "payday_2.jpg",
+   "source": "steam:218620"
+  },
+  {
+   "key": "payday_3",
+   "name": "Payday 3",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "payday_3.jpg",
+   "source": "steam:1272080"
+  },
+  {
+   "key": "persona_3_reload",
+   "name": "Persona 3 Reload",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "persona_3_reload.jpg",
+   "source": "steam:2161700"
+  },
+  {
+   "key": "persona_5_royal",
+   "name": "Persona 5 Royal",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "persona_5_royal.jpg",
+   "source": "steam:1687950"
+  },
+  {
+   "key": "pillars_of_eternity_ii",
+   "name": "Pillars of Eternity II",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "pillars_of_eternity_ii.jpg",
+   "source": "steam:560130"
+  },
+  {
+   "key": "planet_coaster_2",
+   "name": "Planet Coaster 2",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "planet_coaster_2.jpg",
+   "source": "steam:2688950"
+  },
+  {
+   "key": "planetside_2",
+   "name": "PlanetSide 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "planetside_2.jpg",
+   "source": "steam:218230"
+  },
+  {
+   "key": "portal_2",
+   "name": "Portal 2",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "portal_2.jpg",
+   "source": "steam:620"
+  },
+  {
+   "key": "predecessor",
+   "name": "Predecessor",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "predecessor.jpg",
+   "source": "steam:961200"
+  },
+  {
+   "key": "pummel_party",
+   "name": "Pummel Party",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "pummel_party.jpg",
+   "source": "steam:880940"
+  },
+  {
+   "key": "raft",
+   "name": "Raft",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "raft.jpg",
+   "source": "steam:648800"
+  },
+  {
+   "key": "ragnarok_online",
+   "name": "Ragnarok Online",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "ragnarok_online.jpg",
+   "source": "steam:215100"
+  },
+  {
+   "key": "resident_evil_2",
+   "name": "Resident Evil 2",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "resident_evil_2.jpg",
+   "source": "steam:883710"
+  },
+  {
+   "key": "resident_evil_3",
+   "name": "Resident Evil 3",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "resident_evil_3.jpg",
+   "source": "steam:952060"
+  },
+  {
+   "key": "resident_evil_7",
+   "name": "Resident Evil 7",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "resident_evil_7.jpg",
+   "source": "steam:418370"
+  },
+  {
+   "key": "resident_evil_village",
+   "name": "Resident Evil Village",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "resident_evil_village.jpg",
+   "source": "steam:1196590"
+  },
+  {
+   "key": "risk_of_rain_2",
+   "name": "Risk of Rain 2",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "risk_of_rain_2.jpg",
+   "source": "steam:632360"
+  },
+  {
+   "key": "runescape",
+   "name": "RuneScape",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "runescape.jpg",
+   "source": "steam:1343400"
+  },
+  {
+   "key": "soma",
+   "name": "SOMA",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "soma.jpg",
+   "source": "steam:282140"
+  },
+  {
+   "key": "scrap_mechanic",
+   "name": "Scrap Mechanic",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "scrap_mechanic.jpg",
+   "source": "steam:387990"
+  },
+  {
+   "key": "skullgirls_2nd_encore",
+   "name": "Skullgirls 2nd Encore",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "skullgirls_2nd_encore.jpg",
+   "source": "steam:245170"
+  },
+  {
+   "key": "skyrim_special_edition",
+   "name": "Skyrim Special Edition",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "skyrim_special_edition.jpg",
+   "source": "steam:1946180"
+  },
+  {
+   "key": "slay_the_spire",
+   "name": "Slay the Spire",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "slay_the_spire.jpg",
+   "source": "steam:646570"
+  },
+  {
+   "key": "snowrunner",
+   "name": "SnowRunner",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "snowrunner.jpg",
+   "source": "steam:1465360"
+  },
+  {
+   "key": "soulcalibur_vi",
+   "name": "Soulcalibur VI",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "soulcalibur_vi.jpg",
+   "source": "steam:544750"
+  },
+  {
+   "key": "space_engineers",
+   "name": "Space Engineers",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "space_engineers.jpg",
+   "source": "steam:244850"
+  },
+  {
+   "key": "star_wars_the_old_republic",
+   "name": "Star Wars: The Old Republic",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "star_wars_the_old_republic.jpg",
+   "source": "steam:1286830"
+  },
+  {
+   "key": "stellaris",
+   "name": "Stellaris",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "stellaris.jpg",
+   "source": "steam:281990"
+  },
+  {
+   "key": "stumble_guys",
+   "name": "Stumble Guys",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "stumble_guys.jpg",
+   "source": "steam:1677740"
+  },
+  {
+   "key": "subnautica",
+   "name": "Subnautica",
+   "family": "survival",
+   "pack": "cleanboot",
+   "cover": "subnautica.jpg",
+   "source": "steam:264710"
+  },
+  {
+   "key": "subnautica_below_zero",
+   "name": "Subnautica: Below Zero",
+   "family": "survival",
+   "pack": "cleanboot",
+   "cover": "subnautica_below_zero.jpg",
+   "source": "steam:848450"
+  },
+  {
+   "key": "super_people",
+   "name": "Super People",
+   "family": "br",
+   "pack": "esport",
+   "cover": "super_people.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "teardown",
+   "name": "Teardown",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "teardown.jpg",
+   "source": "steam:1167630"
+  },
+  {
+   "key": "tekken_7",
+   "name": "Tekken 7",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "tekken_7.jpg",
+   "source": "steam:389730"
+  },
+  {
+   "key": "the_crew_2",
+   "name": "The Crew 2",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "the_crew_2.jpg",
+   "source": "steam:646910"
+  },
+  {
+   "key": "the_elder_scrolls_online",
+   "name": "The Elder Scrolls Online",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "the_elder_scrolls_online.jpg",
+   "source": "steam:306130"
+  },
+  {
+   "key": "the_evil_within_2",
+   "name": "The Evil Within 2",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "the_evil_within_2.jpg",
+   "source": "steam:601430"
+  },
+  {
+   "key": "the_forest",
+   "name": "The Forest",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "the_forest.jpg",
+   "source": "steam:242760"
+  },
+  {
+   "key": "the_jackbox_party_pack",
+   "name": "The Jackbox Party Pack",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "the_jackbox_party_pack.jpg",
+   "source": "steam:331670"
+  },
+  {
+   "key": "the_king_of_fighters_xv",
+   "name": "The King of Fighters XV",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "the_king_of_fighters_xv.jpg",
+   "source": "steam:1498570"
+  },
+  {
+   "key": "the_last_of_us_part_ii_remastered",
+   "name": "The Last of Us Part II Remastered",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "the_last_of_us_part_ii_remastered.jpg",
+   "source": "steam:2531310"
+  },
+  {
+   "key": "the_outer_worlds",
+   "name": "The Outer Worlds",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "the_outer_worlds.jpg",
+   "source": "steam:1449110"
+  },
+  {
+   "key": "they_are_billions",
+   "name": "They Are Billions",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "they_are_billions.jpg",
+   "source": "steam:644930"
+  },
+  {
+   "key": "torchlight_iii",
+   "name": "Torchlight III",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "torchlight_iii.jpg",
+   "source": "steam:1030210"
+  },
+  {
+   "key": "total_war_rome_ii",
+   "name": "Total War: ROME II",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "total_war_rome_ii.jpg",
+   "source": "steam:214950"
+  },
+  {
+   "key": "total_war_three_kingdoms",
+   "name": "Total War: THREE KINGDOMS",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "total_war_three_kingdoms.jpg",
+   "source": "steam:779340"
+  },
+  {
+   "key": "tower_of_fantasy",
+   "name": "Tower of Fantasy",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "tower_of_fantasy.jpg",
+   "source": "steam:2064650"
+  },
+  {
+   "key": "trackmania",
+   "name": "Trackmania",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "trackmania.jpg",
+   "source": "steam:2225070"
+  },
+  {
+   "key": "tropico_6",
+   "name": "Tropico 6",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "tropico_6.jpg",
+   "source": "steam:492720"
+  },
+  {
+   "key": "two_point_museum",
+   "name": "Two Point Museum",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "two_point_museum.jpg",
+   "source": "steam:2185060"
+  },
+  {
+   "key": "vampire_survivors",
+   "name": "Vampire Survivors",
+   "family": "roguelike",
+   "pack": "cleanboot",
+   "cover": "vampire_survivors.jpg",
+   "source": "steam:1794680"
+  },
+  {
+   "key": "vampyr",
+   "name": "Vampyr",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "vampyr.jpg",
+   "source": "steam:427290"
+  },
+  {
+   "key": "visage",
+   "name": "Visage",
+   "family": "horror",
+   "pack": "lowlatency",
+   "cover": "visage.jpg",
+   "source": "steam:594330"
+  },
+  {
+   "key": "warhammer_vermintide_2",
+   "name": "Warhammer: Vermintide 2",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "warhammer_vermintide_2.jpg",
+   "source": "steam:552500"
+  },
+  {
+   "key": "world_of_warships",
+   "name": "World of Warships",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "world_of_warships.jpg",
+   "source": "steam:552990"
+  },
+  {
+   "key": "x_plane_12",
+   "name": "X-Plane 12",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "x_plane_12.jpg",
+   "source": "steam:2014780"
+  },
+  {
+   "key": "xcom_2",
+   "name": "XCOM 2",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "xcom_2.jpg",
+   "source": "steam:268500"
+  },
+  {
+   "key": "iracing",
+   "name": "iRacing",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "iracing.jpg",
+   "source": "steam:266410"
+  },
+  {
+   "key": "rfactor_2",
+   "name": "rFactor 2",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "rfactor_2.jpg",
+   "source": "steam:365960"
+  },
+  {
+   "key": "age_of_empires_ii_de",
+   "name": "Age of Empires II: DE",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "age_of_empires_ii_de.jpg",
+   "source": "steam:813780"
+  },
+  {
+   "key": "archeage",
+   "name": "ArcheAge",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "archeage.jpg",
+   "source": "steam:3331400"
+  },
+  {
+   "key": "call_of_duty_hq",
+   "name": "Call of Duty: HQ",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "call_of_duty_hq.jpg",
+   "source": "steam:1938090"
+  },
+  {
+   "key": "civilization_vii",
+   "name": "Civilization VII",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "civilization_vii.jpg",
+   "source": "steam:1290280"
+  },
+  {
+   "key": "cod_modern_warfare_2019",
+   "name": "CoD: Modern Warfare (2019)",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "cod_modern_warfare_2019.jpg",
+   "source": "steam:1938090"
+  },
+  {
+   "key": "cod_warzone",
+   "name": "CoD: Warzone",
+   "family": "br",
+   "pack": "esport",
+   "cover": "cod_warzone.jpg",
+   "source": "steam:1938090"
+  },
+  {
+   "key": "counter_strike_global_offensive",
+   "name": "Counter-Strike: Global Offensive",
+   "family": "fps",
+   "pack": "esport",
+   "cover": "counter_strike_global_offensive.jpg",
+   "source": "steam:730"
+  },
+  {
+   "key": "dcs_world",
+   "name": "DCS World",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "dcs_world.jpg",
+   "source": "steam:223750"
+  },
+  {
+   "key": "ea_sports_fc_24",
+   "name": "EA Sports FC 24",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "ea_sports_fc_24.jpg",
+   "source": "steam:2195250"
+  },
+  {
+   "key": "f1_23",
+   "name": "F1 23",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "f1_23.jpg",
+   "source": "steam:2488620"
+  },
+  {
+   "key": "forza_horizon_4",
+   "name": "Forza Horizon 4",
+   "family": "racing",
+   "pack": "esport",
+   "cover": "forza_horizon_4.jpg",
+   "source": "steam:1293830"
+  },
+  {
+   "key": "gothic",
+   "name": "Gothic",
+   "family": "rpg",
+   "pack": "esport",
+   "cover": "gothic.jpg",
+   "source": "steam:65540"
+  },
+  {
+   "key": "madden_nfl_25",
+   "name": "Madden NFL 25",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "madden_nfl_25.jpg",
+   "source": "steam:2807960"
+  },
+  {
+   "key": "multiversus",
+   "name": "MultiVersus",
+   "family": "fighting",
+   "pack": "esport",
+   "cover": "multiversus.jpg",
+   "source": "steam:1818750"
+  },
+  {
+   "key": "surviving_mars",
+   "name": "Surviving Mars",
+   "family": "strategy",
+   "pack": "cleanboot",
+   "cover": "surviving_mars.jpg",
+   "source": "steam:464920"
+  },
+  {
+   "key": "the_division",
+   "name": "The Division",
+   "family": "coop",
+   "pack": "lowlatency",
+   "cover": "the_division.jpg",
+   "source": "steam:335300"
+  },
+  {
+   "key": "blade_soul",
+   "name": "Blade & Soul",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "blade_soul.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "diablo_ii_resurrected",
+   "name": "Diablo II: Resurrected",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "diablo_ii_resurrected.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "diablo_iii",
+   "name": "Diablo III",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "diablo_iii.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "fifa_23",
+   "name": "FIFA 23",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "fifa_23.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "heroes_of_the_storm",
+   "name": "Heroes of the Storm",
+   "family": "moba",
+   "pack": "lowlatency",
+   "cover": "heroes_of_the_storm.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "star_citizen",
+   "name": "Star Citizen",
+   "family": "sim",
+   "pack": "cleanboot",
+   "cover": "star_citizen.jpg",
+   "source": "wikipedia"
+  },
+  {
+   "key": "honkai_star_rail",
+   "name": "Honkai: Star Rail",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "honkai_star_rail.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "nba_2k24",
+   "name": "NBA 2K24",
+   "family": "sports",
+   "pack": "esport",
+   "cover": "nba_2k24.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "the_cycle_frontier",
+   "name": "The Cycle: Frontier",
+   "family": "br",
+   "pack": "esport",
+   "cover": "the_cycle_frontier.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "world_of_warcraft",
+   "name": "World of Warcraft",
+   "family": "mmo",
+   "pack": "lowlatency",
+   "cover": "world_of_warcraft.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "minecraft_bedrock",
+   "name": "Minecraft (Bedrock)",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "minecraft_bedrock.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "vampire_bloodhunt",
+   "name": "Vampire: Bloodhunt",
+   "family": "br",
+   "pack": "cleanboot",
+   "cover": "vampire_bloodhunt.jpg",
+   "source": "wikipedia-thumb"
+  },
+  {
+   "key": "minecraft_java",
+   "name": "Minecraft (Java)",
+   "family": "sandbox",
+   "pack": "cleanboot",
+   "cover": "minecraft.jpg",
+   "source": "same-art-as-minecraft"
+  },
+  {
+   "key": "roblox_studio",
+   "name": "Roblox Studio",
+   "family": "party",
+   "pack": "cleanboot",
+   "cover": "roblox.jpg",
+   "source": "same-art-as-roblox"
   }
  ],
- "charts_note": "keys with source=steam-top carry rank (Steam most-played position) and peak (concurrent players at fetch time)"
+ "charts_note": "keys with source=steam-top carry rank (Steam most-played position) and peak (concurrent players at fetch time)",
+ "steam_fetch": "Covers for titles absent from the Khadafi extract were fetched from the official Steam CDN (store.steampowered.com search) with a Wikipedia lead-image fallback; thumbnails downscaled to 400px."
 }

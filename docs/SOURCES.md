@@ -71,7 +71,7 @@ shipped files), and both are cosmetic — no code, no behaviour:
 
 | Asset | Where it lives | What it is |
 |---|---|---|
-| **Game covers** (106 thumbnails) | `web/assets/gamelogos/` | Box art for the Game Library, downscaled to 400 px by [`tools/import_gamelogos.py`](../tools/import_gamelogos.py). Third-party artwork: it is **not** embedded in the exe and ships only as a side folder. |
+| **Game covers** (400+ thumbnails) | `web/assets/gamelogos/` | Box art for the Game Library — one cover for every title of the built-in database — downscaled to 400 px by [`tools/import_gamelogos.py`](../tools/import_gamelogos.py) (Khadafi extract) and [`tools/fetch_missing_covers.py`](../tools/fetch_missing_covers.py) (official Steam CDN search + Wikipedia lead-image fallback). Third-party artwork: it is **not** embedded in the exe and ships only as a side folder. |
 | **Palette + control surface** | `web/style.css` (`body[data-theme="khadafi"]` and the v2.3/v2.4 button rules) | Colour values read from Khadafi's own resource strings (`#0a0a0c`, `#ff3b4e`, `#ffb04d`, `#5865f2`, `#ff37c7`), squared letterspaced CTAs. |
 
 The modules that mirror Khadafi's feature set (Game Library, Input Lag center, Rendering,

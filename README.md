@@ -13,7 +13,7 @@
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
 [![Size](https://img.shields.io/badge/exe-~6.6%20MB%20static-ff9800?style=flat-square)](#-download)
 
-**Desktop window dashboard** · **Gaming score** · **77 reversible tweaks** · **Firmware panel (SecureBoot/TPM/VT)** · **Driver auto-update engine** · **Process Reducer (EcoQoS)** · **Security scan** · **DiskScope** · **5 tuning centers** · **300-title game database + 106 covers** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K palette** · **12 themes** · **EN/FR**
+**Desktop window dashboard** · **Gaming score** · **77 reversible tweaks** · **Firmware panel (SecureBoot/TPM/VT)** · **Driver auto-update engine** · **Process Reducer (EcoQoS)** · **Security scan** · **DiskScope** · **5 tuning centers** · **300-title game database, every title with cover art (400+ covers)** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K palette** · **12 themes** · **EN/FR**
 
 `C++20 / Win32 / WebView2 / cpp-httplib` · `zero runtime dependencies` · `no install` · `no driver, no injection`
 
