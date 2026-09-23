@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.9.0] — 2026-09-23
 
 The "v2.6 interface, perfected" release: the liquid-glass web dashboard is
-restored as THE interface with the v2.6 launch chain back (desktop WebView2
-window -> msedge --app -> browser), every 2.7/2.8 feature kept, plus new
-dashboard spotlights and the two requested CLI launchers.
+restored as THE interface with a dedicated desktop window (WebView2 frame,
+your default browser as fallback - any browser, never forced to Edge),
+every 2.7/2.8 feature kept, plus new dashboard spotlights and the two
+requested CLI launchers.
 
 ### Added
 
