@@ -3,12 +3,18 @@
 //  - Chris Titus Tech WinUtil (MIT)           https://github.com/ChrisTitusTech/winutil
 //  - Valve / Microsoft official docs (Game Bar, MPO, HAGS)
 //  - shadercache & network latency community guides (INDEPENDENT-NT, calypto)
+//  - v2.7 batch aligned on WinUtil's current tweaks.json (Activity, Location, Services,
+//    Delivery Optimization, ConsumerFeatures, WPBT, IPv6/Teredo, Edge/Brave policies,
+//    Hibernation, DiskCleanup, UTC, restore point, Razer block, verbose BSoD...)
 // Every tweak restores a documented Windows default via restore().
 #include "tweaks.h"
 #include "common.h"
 #include "sysinfo.h"
 #include "netprofile.h"
+#include "firmware.h"
+#include "cleaner.h"
 #include <shellapi.h>
+#include <stdlib.h>
 #include <fstream>
 #include <set>
 #include <utility>
@@ -78,6 +84,36 @@ const vector<Tweak>& catalog() {
         { "dns_cache_big",     L"Bigger DNS cache",                    L"[network] MaxCacheTtl 86400 + negative cache: fewer repeat DNS lookups while gaming.", true, 1, L"MS Tcpip docs" },
         { "shutdown_fast",     L"Fast startup ON",                      L"Hiberboot: faster cold boot (kernel hibernation). Disable if dual-booting Linux.", true, 1, L"MS" },
         { "recycle_bin_conf",  L"Recycle bin: immediate confirm",       L"Classic 'are you sure' dialog instead of silent delete - safety, not speed.", false, 1, L"community" },
+
+        // ---- v2.7: new batch curated from WinUtil's current catalog ----
+        { "widgets_remove",        L"Widgets - Remove",                    L"[debloat] Kills the Widgets process and uninstalls WidgetsPlatformRuntime + WebExperience (the taskbar panel).", true, 1, L"WinUtil" },
+        { "location_off",          L"Location tracking - Disable",         L"[privacy] lfsvc service off + location consent Deny + sensor override + map auto-update off.", true, 1, L"WinUtil" },
+        { "services_manual",       L"Services - Set to Manual",            L"CscService/DiagTrack/SharedAccess disabled, MapsBroker/StorSvc manual + SvcHostSplitThreshold matched to RAM (fewer svchost).", true, 2, L"WinUtil" },
+        { "store_search_off",      L"Store recommended search - Disable",  L"Denies write access to the Store's search DB, so Start no longer shows recommended apps.", false, 1, L"WinUtil" },
+        { "delivery_optimization", L"Delivery Optimization - Disable",     L"[network] DODownloadMode=0: Windows stops uploading updates to other PCs on your bandwidth.", true, 1, L"WinUtil" },
+        { "consumer_features",     L"Consumer features - Disable",         L"[debloat] No auto-installed sponsored games, apps and links from the Store.", true, 1, L"WinUtil" },
+        { "restore_point",         L"Restore point - Create",              L"[safety] Enables System Restore on C: and creates a MODIFY_SETTINGS checkpoint before the kit works.", true, 1, L"WinUtil" },
+        { "end_task_menu",         L"End task on right-click - Enable",    L"[gaming] Windows 11 TaskbarDeveloperSettings: kill a frozen game straight from the taskbar.", false, 1, L"WinUtil" },
+        { "wpbt_off",              L"WPBT execution - Disable",            L"[security] Blocks vendor firmware from launching code at every boot (Windows Platform Binary Table).", true, 1, L"WinUtil" },
+        { "razer_block",           L"Razer auto-install - Block",          L"[debloat] Disables driver co-installers so plugging Razer gear cannot silently install bloat.", true, 1, L"WinUtil" },
+        { "notifications_off",     L"Notifications & toast - Disable",     L"[focus] No balloons, toasts or banners while you play (including the calendar flyout).", false, 1, L"WinUtil" },
+        { "ipv4_preferred",        L"IPv6 - Set IPv4 preferred",           L"[network] DisabledComponents=32 on dual-stack LANs: lower latency, fewer v6 timeouts.", true, 1, L"WinUtil" },
+        { "ipv6_off",              L"IPv6 - Disable",                      L"[network] Full IPv6 off + adapter binding removed. Use restore if a game/VPN needs v6.", true, 1, L"WinUtil" },
+        { "teredo_off",            L"Teredo tunneling - Disable",          L"[network] Kills the IPv6-in-UDP tunnel some old games/NAT stacks probe at startup.", true, 1, L"WinUtil" },
+        { "temp_files",            L"Temp folders - Clean",                L"[cleanup] Empties user + Windows TEMP immediately (same pass as the junk cleaner).", true, 1, L"WinUtil" },
+        { "disk_cleanup",          L"Disk cleanup + WinSxS trim",          L"[cleanup] cleanmgr /VERYLOWDISK then DISM StartComponentCleanup /ResetBase: reclaims the updater leftovers.", true, 2, L"WinUtil" },
+        { "explorer_discovery",    L"Explorer auto-discovery - Disable",   L"[disk] Stops Explorer guessing folder types from contents (fewer disk spins when browsing). Sign out to take effect.", false, 1, L"WinUtil" },
+        { "hibernation_off",       L"Hibernation - Disable",               L"[disk] powercfg /hibernate off: frees a hiberfil sized like your RAM (re-check fast startup afterwards).", true, 2, L"WinUtil" },
+        { "verbose_bsod",          L"BSoD verbose mode",                   L"[diagnostic] Shows the stop code + failed module instead of the :( emoticon.", true, 1, L"WinUtil" },
+        { "battery_percent",       L"Battery % in tray",                   L"[laptop] Numeric percentage next to the tray battery icon.", false, 1, L"WinUtil" },
+        { "numlock_boot",          L"Num Lock on boot",                    L"[qol] Num Lock stays on through boot and logon.", true, 1, L"WinUtil" },
+        { "long_paths",            L"Long paths (>260 chars) - Enable",     L"[fs] Lets mods, dev toolchains and game caches use deep paths on modern NTFS.", true, 1, L"WinUtil" },
+        { "sticky_keys_off",       L"Sticky keys prompt - Disable",         L"[input] Shift 5x no longer pops the dialog mid-game.", false, 1, L"WinUtil" },
+        { "menu_show_delay",       L"Menu animation delay - 0ms",           L"[input] Hover menus react instantly.", false, 1, L"WinUtil" },
+        { "edge_debloat",          L"Edge - Debloat (telemetry & ads)",     L"[privacy] ~15 Edge policies: shopping assistant, rewards, coupons, collections, feedback, diagnostics, first-run off.", true, 1, L"WinUtil" },
+        { "brave_debloat",         L"Brave - Debloat (Rewards/Wallet/VPN)", L"[privacy] BraveRewards/Wallet/VPN/News/AI off, P3A + URL-keyed metrics off.", true, 1, L"WinUtil" },
+        { "utc_time",              L"Hardware clock - Set to UTC",          L"[dual-boot] RealTimeIsUniversal: fixes the clock drift between Windows and Linux.", true, 1, L"WinUtil" },
+        { "dns_default",           L"DNS - Reset to DHCP default",          L"[network] Clears the configured DNS on every active interface so the router decides again.", true, 1, L"WinUtil" },
     };
     return c;
 }
@@ -104,6 +140,9 @@ static LONG regDelValue(HKEY root, const wstring& path, const wstring& name) {
     rc = RegDeleteValueW(k, name.c_str());
     RegCloseKey(k);
     return rc;
+}
+static LONG regDelTree(HKEY root, const wstring& path) {
+    return RegDeleteTreeW(root, path.c_str());
 }
 static LONG regSetString(HKEY root, const wstring& path, const wstring& name, const wstring& v) {
     HKEY k;
@@ -220,6 +259,7 @@ State checkState(const string& id) {
     else if (id == "mouse_precision")  st.applied = (regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Mouse", L"MouseSpeed", 1) == 0);
     else if (id == "visual_fx_perf")   st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects", L"VisualFXSetting", 0) == 2;
     else if (id == "menu_delay_0")     st.applied = regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", 400) == 0;
+    else if (id == "menu_show_delay")  st.applied = regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", 400) == 0;
     else if (id == "background_apps")  st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications", L"GlobalUserDisabled", 0) == 1;
     else if (id == "storage_sense")    st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy", L"01", 0) == 1;
     else if (id == "search_index")     st.applied = svcIsDisabled(L"WSearch");
@@ -260,15 +300,48 @@ State checkState(const string& id) {
     else if (id == "dns_cache_big")     st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxCacheTtl", 86400) > 86400;
     else if (id == "shutdown_fast")     st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", L"HiberbootEnabled", 0) == 1;
     else if (id == "recycle_bin_conf")  st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"ConfirmFileDelete", 0) == 1;
+    // ---- v2.7 batch ----
+    else if (id == "widgets_remove")     st.applied = [] { HKEY k; if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Dsh", 0, KEY_READ, &k) != ERROR_SUCCESS) return false; DWORD v = 0, sz = sizeof(v), t = 0; LONG rc = RegGetValueW(k, nullptr, L"AllowNewsAndInterests", RRF_RT_REG_DWORD, &t, &v, &sz); RegCloseKey(k); return rc == ERROR_SUCCESS && v == 0; }();
+    else if (id == "location_off")       st.applied = svcIsDisabled(L"lfsvc") && regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}", L"SensorPermissionState", 1) == 0;
+    else if (id == "services_manual")    st.applied = svcIsDisabled(L"DiagTrack") && regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control", L"SvcHostSplitThresholdInKB", 0) > 0;
+    else if (id == "store_search_off")   st.applied = false;  // ACL probe is expensive; reapply is idempotent
+    else if (id == "delivery_optimization") st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization", L"DODownloadMode", 1) == 0;
+    else if (id == "consumer_features")  st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", L"DisableWindowsConsumerFeatures", 0) == 1;
+    else if (id == "restore_point")      st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore", L"SystemRestorePointCreationFrequency", 1440) == 0;
+    else if (id == "end_task_menu")      st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings", L"TaskbarEndTask", 0) == 1;
+    else if (id == "wpbt_off")           st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager", L"DisableWpbtExecution", 0) == 1;
+    else if (id == "razer_block")        st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer", L"DisableCoInstallers", 0) == 1;
+    else if (id == "notifications_off")  st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications", L"ToastEnabled", 1) == 0;
+    else if (id == "ipv4_preferred")     st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 0) == 32;
+    else if (id == "ipv6_off")           st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 0) == 255;
+    else if (id == "teredo_off")         st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 0) == 1;
+    else if (id == "temp_files")         st.applied = false;
+    else if (id == "disk_cleanup")       st.applied = false;
+    else if (id == "explorer_discovery") st.applied = [] { wstring v; DWORD sz = 64; wchar_t b[64]; DWORD t = 0; HKEY k; if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell", 0, KEY_READ, &k) != ERROR_SUCCESS) return false; LONG rc = RegGetValueW(k, L"Bags\\AllFolders\\Shell", L"FolderType", RRF_RT_REG_SZ, &t, b, &sz); RegCloseKey(k); return rc == ERROR_SUCCESS && wcscmp(b, L"NotSpecified") == 0; }();
+    else if (id == "hibernation_off")    st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", L"HibernateEnabled", 1) == 0;
+    else if (id == "verbose_bsod")       st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisplayParameters", 0) == 1 && regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisableEmoticon", 0) == 1;
+    else if (id == "battery_percent")    st.applied = regGetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"IsBatteryPercentageEnabled", 0) == 1;
+    else if (id == "numlock_boot")       st.applied = regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Keyboard", L"InitialKeyboardIndicators", 0) == 2;
+    else if (id == "long_paths")         st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\FileSystem", L"LongPathsEnabled", 0) == 1;
+    else if (id == "sticky_keys_off")    st.applied = regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Accessibility\\StickyKeys", L"Flags", 58) == 506;
+    else if (id == "menu_show_delay")    st.applied = regGetDword(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", 400) == 0;
+    else if (id == "edge_debloat")       st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Edge", L"EdgeShoppingAssistantEnabled", 1) == 0 && regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Edge", L"PersonalizationReportingEnabled", 1) == 0;
+    else if (id == "brave_debloat")      st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\BraveSoftware\\Brave", L"BraveRewardsDisabled", 0) == 1;
+    else if (id == "utc_time")           st.applied = regGetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", L"RealTimeIsUniversal", 0) == 1;
+    else if (id == "dns_default")        st.applied = false;
     return st;
 }
 
 // --------------------------------------------------------------- apply
 bool apply(const string& id, wstring& err) {
     backupAll();
+    uint64_t freed = 0; (void)freed;
     if (id == "game_mode") {
         regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\GameBar", L"AutoGameModeEnabled", 1);
         regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\GameBar", L"AllowAutoGameMode", 1);
+    }
+    else if (id == "menu_delay_0") {
+        regSetString(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", L"0");
     }
     else if (id == "game_dvr_off") {
         regSetDword(HKEY_CURRENT_USER, L"System\\GameConfigStore", L"GameDVR_Enabled", 0);
@@ -516,6 +589,178 @@ bool apply(const string& id, wstring& err) {
     else if (id == "taskbar_anim")       { regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"TaskbarAnimations", 0); }
     else if (id == "dns_cache_big")      { if (!isAdmin()) { err = L"administrator required"; return false; } regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxCacheTtl", 86400); regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxNegativeCacheTtl", 5); regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxCacheSize", 0x64000); }
     else if (id == "recycle_bin_conf")   { regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"ConfirmFileDelete", 1); }
+    // ---- v2.7 batch ----
+    else if (id == "widgets_remove") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Dsh", L"AllowNewsAndInterests", 0);
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"TaskbarDa", 0);
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"TaskbarMn", 0);
+        string o;
+        runCapture(L"powershell -NoProfile -Command \"Get-Process *Widget* -ErrorAction SilentlyContinue | Stop-Process -Force; Get-AppxPackage Microsoft.WidgetsPlatformRuntime -AllUsers | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue; Get-AppxPackage MicrosoftWindows.Client.WebExperience -AllUsers | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue\"", o, 180000);
+        runCapture(L"taskkill /f /im explorer.exe >nul 2>&1 & start explorer.exe", o, 20000);
+    }
+    else if (id == "location_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        svcDisable(L"lfsvc");
+        regSetString(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location", L"Value", L"Deny");
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}", L"SensorPermissionState", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\Maps", L"AutoUpdateEnabled", 0);
+    }
+    else if (id == "services_manual") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        svcDisable(L"CscService");
+        svcDisable(L"DiagTrack");
+        svcDisable(L"SharedAccess");
+        svcSetManual(L"MapsBroker");
+        svcSetManual(L"StorSvc");
+        // svchost split threshold = total physical RAM in KB: one process per service group
+        MEMORYSTATUSEX ms{ sizeof(ms) };
+        GlobalMemoryStatusEx(&ms);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control", L"SvcHostSplitThresholdInKB", (DWORD)(ms.ullTotalPhys / 1024));
+    }
+    else if (id == "store_search_off") {
+        wchar_t* la = _wgetenv(L"LOCALAPPDATA");
+        wstring local = la ? la : L"";
+        wstring db = local + L"\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db";
+        wstring c = L"icacls \"" + db + L"\" /deny Everyone:F";
+        string o; runCapture(c, o, 30000);
+    }
+    else if (id == "delivery_optimization") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization", L"DODownloadMode", 0);
+    }
+    else if (id == "consumer_features") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", L"DisableWindowsConsumerFeatures", 1);
+    }
+    else if (id == "restore_point") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore", L"SystemRestorePointCreationFrequency", 0);
+        string o;
+        runCapture(L"powershell -NoProfile -Command \"Enable-ComputerRestore -Drive $env:SystemDrive; Checkpoint-Computer -Description 'OptimizeKit checkpoint' -RestorePointType MODIFY_SETTINGS\"", o, 180000);
+    }
+    else if (id == "end_task_menu") {
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings", L"TaskbarEndTask", 1);
+    }
+    else if (id == "wpbt_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager", L"DisableWpbtExecution", 1);
+    }
+    else if (id == "razer_block") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching", L"SearchOrderConfig", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer", L"DisableCoInstallers", 1);
+    }
+    else if (id == "notifications_off") {
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Policies\\Microsoft\\Windows\\Explorer", L"DisableNotificationCenter", 1);
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications", L"ToastEnabled", 0);
+    }
+    else if (id == "ipv4_preferred") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 32);
+    }
+    else if (id == "ipv6_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 255);
+        string o; runCapture(L"powershell -NoProfile -Command \"Disable-NetAdapterBinding -Name '*' -ComponentID ms_tcpip6\"", o, 60000);
+    }
+    else if (id == "teredo_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents", 1);
+        string o; runCapture(L"netsh interface teredo set state disabled", o, 30000);
+    }
+    else if (id == "temp_files") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        freed = cleaner::purge();
+    }
+    else if (id == "disk_cleanup") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        string o;
+        runCapture(L"cleanmgr.exe /d C: /VERYLOWDISK", o, 300000);
+        runCapture(L"Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase", o, 600000);
+    }
+    else if (id == "explorer_discovery") {
+        regSetString(HKEY_CURRENT_USER, L"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell", L"FolderType", L"NotSpecified");
+        regDelTree(HKEY_CURRENT_USER, L"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags");
+        regDelTree(HKEY_CURRENT_USER, L"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU");
+    }
+    else if (id == "hibernation_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", L"HibernateEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FlyoutMenuSettings", L"ShowHibernateOption", 0);
+        string o; runCapture(L"powercfg.exe /hibernate off", o, 60000);
+    }
+    else if (id == "verbose_bsod") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisplayParameters", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisableEmoticon", 1);
+    }
+    else if (id == "battery_percent") {
+        regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"IsBatteryPercentageEnabled", 1);
+    }
+    else if (id == "numlock_boot") {
+        regSetString(HKEY_CURRENT_USER, L"Control Panel\\Keyboard", L"InitialKeyboardIndicators", L"2");
+        if (isAdmin()) regSetString(HKEY_USERS, L".DEFAULT\\Control Panel\\Keyboard", L"InitialKeyboardIndicators", L"2");
+    }
+    else if (id == "long_paths") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\FileSystem", L"LongPathsEnabled", 1);
+    }
+    else if (id == "sticky_keys_off") {
+        regSetDword(HKEY_CURRENT_USER, L"Control Panel\\Accessibility\\StickyKeys", L"Flags", 506);
+    }
+    else if (id == "menu_show_delay") {
+        regSetString(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", L"0");
+    }
+    else if (id == "edge_debloat") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        const wchar_t* ep = L"SOFTWARE\\Policies\\Microsoft\\Edge";
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"PersonalizationReportingEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"ShowRecommendationsEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"HideFirstRunExperience", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"UserFeedbackAllowed", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"ConfigureDoNotTrack", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"AlternateErrorPagesEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"EdgeCollectionsEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"EdgeShoppingAssistantEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"MicrosoftEdgeInsiderPromotionEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"ShowMicrosoftRewards", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"WebWidgetAllowed", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"DiagnosticData", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"EdgeAssetDeliveryServiceEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"WalletDonationEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, ep, L"DefaultBrowserSettingsCampaignEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\EdgeUpdate", L"CreateDesktopShortcutDefault", 0);
+    }
+    else if (id == "brave_debloat") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        const wchar_t* bp = L"SOFTWARE\\Policies\\BraveSoftware\\Brave";
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveRewardsDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveWalletDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveVPNDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveAIChatEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveStatsPingEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveNewsDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveTalkDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"TorDisabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"BraveP3AEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"UrlKeyedAnonymizedDataCollectionEnabled", 0);
+        regSetDword(HKEY_LOCAL_MACHINE, bp, L"MetricsReportingEnabled", 0);
+    }
+    else if (id == "utc_time") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        HKEY k;
+        if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, nullptr, 0, KEY_SET_VALUE, nullptr, &k, nullptr) == ERROR_SUCCESS) {
+            unsigned long long v = 1;
+            RegSetValueExW(k, L"RealTimeIsUniversal", 0, REG_QWORD, (const BYTE*)&v, sizeof(v));
+            RegCloseKey(k);
+        }
+    }
+    else if (id == "dns_default") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        wstring e2;
+        ok::netprofile::resetDnsToDhcp(e2);
+    }
     else {
         err = L"unknown tweak id: " + widen(id);
         return false;
@@ -586,6 +831,84 @@ bool restore(const string& id, wstring& err) {
     else if (id == "dns_cache_big")      { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxCacheTtl"); regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxNegativeCacheTtl"); regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters", L"MaxCacheSize"); }
     else if (id == "shutdown_fast")      { regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", L"HiberbootEnabled", 1); }
     else if (id == "recycle_bin_conf")   { regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"ConfirmFileDelete", 0); }
+    // ---- v2.7 batch ----
+    else if (id == "widgets_remove") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regDelValue(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Dsh", L"AllowNewsAndInterests");
+        regDelValue(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"TaskbarDa");
+        regDelValue(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"TaskbarMn");
+    }
+    else if (id == "location_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        svcSetManual(L"lfsvc");
+        regSetString(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location", L"Value", L"Allow");
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}", L"SensorPermissionState", 1);
+        regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\Maps", L"AutoUpdateEnabled");
+    }
+    else if (id == "services_manual") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        svcSetManual(L"CscService");
+        svcSetManual(L"DiagTrack");
+        svcSetManual(L"SharedAccess");
+        svcSetManual(L"MapsBroker");
+        svcSetManual(L"StorSvc");
+        regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control", L"SvcHostSplitThresholdInKB");
+    }
+    else if (id == "store_search_off") {
+        wchar_t* la = _wgetenv(L"LOCALAPPDATA");
+        wstring local = la ? la : L"";
+        wstring db = local + L"\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db";
+        wstring c = L"icacls \"" + db + L"\" /grant Everyone:F";
+        string o; runCapture(c, o, 30000);
+    }
+    else if (id == "delivery_optimization") { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization", L"DODownloadMode"); }
+    else if (id == "consumer_features")     { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", L"DisableWindowsConsumerFeatures"); }
+    else if (id == "restore_point")         { if (!isAdmin()) { err = L"administrator required"; return false; } regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore", L"SystemRestorePointCreationFrequency", 1440); }
+    else if (id == "end_task_menu")         { regDelValue(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings", L"TaskbarEndTask"); }
+    else if (id == "wpbt_off")              { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager", L"DisableWpbtExecution"); }
+    else if (id == "razer_block")           { if (!isAdmin()) { err = L"administrator required"; return false; } regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching", L"SearchOrderConfig", 1); regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer", L"DisableCoInstallers", 0); }
+    else if (id == "notifications_off")     { regDelValue(HKEY_CURRENT_USER, L"Software\\Policies\\Microsoft\\Windows\\Explorer", L"DisableNotificationCenter"); regSetDword(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications", L"ToastEnabled", 1); }
+    else if (id == "ipv4_preferred")        { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents"); }
+    else if (id == "ipv6_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents");
+        string o; runCapture(L"powershell -NoProfile -Command \"Enable-NetAdapterBinding -Name '*' -ComponentID ms_tcpip6\"", o, 60000);
+    }
+    else if (id == "teredo_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", L"DisabledComponents");
+        string o; runCapture(L"netsh interface teredo set state default", o, 30000);
+    }
+    else if (id == "temp_files")         { cleaner::purge(); }
+    else if (id == "disk_cleanup")       { /* DISM /ResetBase is one-way; nothing to roll back */ }
+    else if (id == "explorer_discovery") { regDelTree(HKEY_CURRENT_USER, L"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell"); }
+    else if (id == "hibernation_off") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", L"HibernateEnabled", 1);
+        regSetDword(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FlyoutMenuSettings", L"ShowHibernateOption", 1);
+        string o; runCapture(L"powercfg.exe /hibernate on", o, 60000);
+    }
+    else if (id == "verbose_bsod")       { if (!isAdmin()) { err = L"administrator required"; return false; } regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisplayParameters", 0); regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CrashControl", L"DisableEmoticon", 0); }
+    else if (id == "battery_percent")    { regDelValue(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"IsBatteryPercentageEnabled"); }
+    else if (id == "numlock_boot")       { regSetString(HKEY_CURRENT_USER, L"Control Panel\\Keyboard", L"InitialKeyboardIndicators", L"0"); if (isAdmin()) regSetString(HKEY_USERS, L".DEFAULT\\Control Panel\\Keyboard", L"InitialKeyboardIndicators", L"0"); }
+    else if (id == "long_paths")         { if (!isAdmin()) { err = L"administrator required"; return false; } regSetDword(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\FileSystem", L"LongPathsEnabled", 0); }
+    else if (id == "sticky_keys_off")    { regSetDword(HKEY_CURRENT_USER, L"Control Panel\\Accessibility\\StickyKeys", L"Flags", 58); }
+    else if (id == "menu_show_delay")    { regSetString(HKEY_CURRENT_USER, L"Control Panel\\Desktop", L"MenuShowDelay", L"400"); }
+    else if (id == "edge_debloat") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        const wchar_t* ep = L"SOFTWARE\\Policies\\Microsoft\\Edge";
+        for (wstring n : { L"PersonalizationReportingEnabled", L"ShowRecommendationsEnabled", L"HideFirstRunExperience", L"UserFeedbackAllowed", L"ConfigureDoNotTrack", L"AlternateErrorPagesEnabled", L"EdgeCollectionsEnabled", L"EdgeShoppingAssistantEnabled", L"MicrosoftEdgeInsiderPromotionEnabled", L"ShowMicrosoftRewards", L"WebWidgetAllowed", L"DiagnosticData", L"EdgeAssetDeliveryServiceEnabled", L"WalletDonationEnabled", L"DefaultBrowserSettingsCampaignEnabled" })
+            regDelValue(HKEY_LOCAL_MACHINE, ep, n.c_str());
+        regDelValue(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\EdgeUpdate", L"CreateDesktopShortcutDefault");
+    }
+    else if (id == "brave_debloat") {
+        if (!isAdmin()) { err = L"administrator required"; return false; }
+        const wchar_t* bp = L"SOFTWARE\\Policies\\BraveSoftware\\Brave";
+        for (wstring n : { L"BraveRewardsDisabled", L"BraveWalletDisabled", L"BraveVPNDisabled", L"BraveAIChatEnabled", L"BraveStatsPingEnabled", L"BraveNewsDisabled", L"BraveTalkDisabled", L"TorDisabled", L"BraveP3AEnabled", L"UrlKeyedAnonymizedDataCollectionEnabled", L"MetricsReportingEnabled" })
+            regDelValue(HKEY_LOCAL_MACHINE, bp, n.c_str());
+    }
+    else if (id == "utc_time")           { if (!isAdmin()) { err = L"administrator required"; return false; } regDelValue(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", L"RealTimeIsUniversal"); }
+    else if (id == "dns_default")        { /* already the default */ }
     else { err = L"unknown tweak id: " + widen(id); return false; }
     log::ok(L"restored defaults " + widen(id));
     return true;
@@ -609,13 +932,15 @@ int applyMany(const json& sel, vector<wstring>& errors) {
 json profilePreset(const string& name) {
     json j = json::object();
     if (name == "gaming") {
-        for (auto& t : catalog()) if (t.impact >= 2 && t.id != "onedrive_off") j[t.id] = true;
+        for (auto& t : catalog()) if (t.impact >= 2 && t.id != "onedrive_off" && t.id != "disk_cleanup" && t.id != "ipv6_off") j[t.id] = true;
         j["game_mode"] = true; j["storage_sense"] = true; j["gpu_preference"] = true;
     } else if (name == "privacy") {
         for (auto& t : catalog())
             if (t.id == "telemetry_off" || t.id == "advertising_off" || t.id == "activity_history"
              || t.id == "bing_search" || t.id == "tailored_experiences" || t.id == "telemetry_tasks"
-             || t.id == "windows_copilot" || t.id == "edge_bing_blocking") j[t.id] = true;
+             || t.id == "windows_copilot" || t.id == "edge_bing_blocking"
+             || t.id == "location_off" || t.id == "edge_debloat" || t.id == "brave_debloat"
+             || t.id == "consumer_features" || t.id == "wpbt_off") j[t.id] = true;
     } else if (name == "full") {
         for (auto& t : catalog()) j[t.id] = true;
     }

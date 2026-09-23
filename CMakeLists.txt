@@ -23,6 +23,8 @@ add_executable(OptimizeKit WIN32
     src/core/storage.cpp
     src/core/logging2.cpp
     src/core/diagnostics.cpp
+    src/core/firmware.cpp
+    src/core/drvupdate.cpp
     src/server/server.cpp
     src/ui/ui.cpp
     resources/OptimizeKit.rc
@@ -36,7 +38,7 @@ target_link_libraries(OptimizeKit PRIVATE
     d2d1 dwrite windowscodecs
     user32 gdi32 gdiplus shell32 advapi32 ole32 oleaut32
     shlwapi iphlpapi ws2_32 winmm uxtheme dwmapi uuid
-    powrprof setupapi psapi pdh wininet ntdll
+    powrprof setupapi psapi pdh wininet ntdll wbemuuid cfgmgr32
 )
 
 if (MINGW)

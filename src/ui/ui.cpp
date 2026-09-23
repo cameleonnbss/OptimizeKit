@@ -1,7 +1,14 @@
 // OptimizeKit - liquid glass dashboard (Direct2D + DirectWrite, no other deps)
 // Visual style inspired by WormGPT-desktop (cameleonnbss): dark glass, accent gradients.
+// v2.7: native-first (this window IS the app - no Edge, no WebView2 by default),
+// new tabs: Firmware, Storage, Startup, Settings; enriched Dashboard & Drivers.
 #include "ui.h"
 #include "engine.h"
+#include "firmware.h"
+#include "drvupdate.h"
+#include "storage.h"
+#include "ram.h"
+#include "json.hpp"
 #include <d2d1.h>
 #include <dwrite.h>
 #include <dwmapi.h>
@@ -9,6 +16,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <functional>
 
 #pragma comment(lib, "d2d1.lib")
@@ -35,7 +43,8 @@ static const D2D1_COLOR_F C_GLASS   = { 1.0f, 1.0f, 1.0f, 0.055f };
 static const D2D1_COLOR_F C_GLASSBR = { 1.0f, 1.0f, 1.0f, 0.14f };
 
 // ------------------------------------------------------------------ state
-enum Tab { T_DASH, T_TWEAKS, T_GAMING, T_PRIVACY, T_DRIVERS, T_PING, T_LOGS, T_ABOUT, T_COUNT };
+enum Tab { T_DASH, T_TWEAKS, T_GAMING, T_FIRMWARE, T_STORAGE, T_STARTUP, T_SETTINGS,
+           T_PRIVACY, T_DRIVERS, T_PING, T_LOGS, T_ABOUT, T_COUNT };
 
 struct PingRow {
     wstring name, host;
@@ -66,6 +75,34 @@ struct State {
     float  t0 = 0;                              // anim clock
     bool   sysDirty = true;
     sysinfo::Info si;
+
+    // ---- v2.7 native modules ----
+    // firmware
+    json      fw;
+    std::atomic<bool> fwBusy{ false };
+    bool      fwDirty = true;
+    // driver update
+    json      drvRep;
+    json      drvProblems;
+    std::atomic<bool> drvBusy{ false };
+    bool      drvDirty = true;
+    // storage
+    json      drives;
+    bool      drivesDirty = true;
+    json      largestFiles;
+    wstring   largestRoot = L"C:\\";
+    bool      largestBusy = false;
+    // startup
+    std::vector<startup::Entry> startupRows;
+    bool      startupBusy = false;
+    bool      startupDirty = true;
+    // settings toggles (persisted in config.json)
+    bool      setConfirm = true;
+    bool      setAutoback = true;
+    bool      setDnsManaged = false;
+    // benchmark summary (dashboard tile)
+    json      lastBench;
+    bool      benchBusy = false;
 } g;
 
 static ID2D1Factory*          g_fac = nullptr;
@@ -80,6 +117,7 @@ static D2D1_SIZE_F g_sz{ 1200, 760 };
 struct Action { std::function<void()> fn; };
 static std::vector<Action> g_actions;   // executed after paint
 static std::mutex g_pingMtx;
+static std::mutex g_dataMtx;            // guards fw/drv/startup/drives json swaps
 
 static float S(float v) { return v * g_dpiScale; }
 
@@ -107,6 +145,7 @@ static void actClean() {
     cleaner::emptyRecycleBin();
     g.status = L"Cleanup done — " + fmtBytes(freed) + L" freed";
     g.statusKind = 1;
+    g.drivesDirty = true;
 }
 static void actPings() {
     g.pingsBusy = true;
@@ -148,13 +187,9 @@ static void actRefreshProcs() {
     g.procsBusy = true;
     std::thread([] {
         auto p = gameboost::listProcesses();
-        // sort by pid, drop system pid 0/4
         p.erase(std::remove_if(p.begin(), p.end(), [](auto& x) { return x.pid <= 4; }), p.end());
-        {
-            // no mutex needed: vector swap under GIL-ish single UI thread read after flag
-            g.procs = p;
-            g.procsBusy = false;
-        }
+        g.procs = p;
+        g.procsBusy = false;
     }).detach();
 }
 static void actRefreshSys() {
@@ -165,6 +200,88 @@ static void actRefreshSys() {
     g.gpuDate = d.driverDate;
     g.planName = sysinfo::activePowerPlanName();
     g.sysDirty = false;
+}
+static void actRefreshStartup() {
+    g.startupBusy = true;
+    std::thread([] {
+        auto rows = startup::listEntries();
+        { std::lock_guard<std::mutex> lk(g_dataMtx); g.startupRows = rows; }
+        g.startupBusy = false;
+    }).detach();
+}
+static void actToggleStartup(const startup::Entry& e, bool enable) {
+    wstring err;
+    if (startup::setEnabled(e.location, e.name, enable, err)) {
+        g.status = (enable ? L"Enabled: " : L"Disabled: ") + e.name;
+        g.statusKind = 1;
+    } else {
+        g.status = L"Startup change failed: " + err;
+        g.statusKind = 2;
+    }
+    g.startupDirty = true;
+}
+static void actRefreshDrives() {
+    { std::lock_guard<std::mutex> lk(g_dataMtx); g.drives = storage::drivesJson(); }
+    g.drivesDirty = false;
+}
+static void actLargestFiles(const wstring& root) {
+    g.largestBusy = true;
+    g.largestRoot = root;
+    std::thread([root] {
+        json r = storage::largestFiles(root, 14);
+        { std::lock_guard<std::mutex> lk(g_dataMtx); g.largestFiles = r; }
+        g.largestBusy = false;
+    }).detach();
+}
+static void actRefreshFw() {
+    g.fwBusy = true;
+    std::thread([] {
+        firmware::FwInit();
+        json j = firmware::inventory();
+        { std::lock_guard<std::mutex> lk(g_dataMtx); g.fw = j; }
+        g.fwBusy = false;
+    }).detach();
+}
+static void actRefreshDrv() {
+    g.drvBusy = true;
+    std::thread([] {
+        drvupdate::DrvInit();
+        json rep = drvupdate::report();
+        json probs = drvupdate::problemDevices();
+        { std::lock_guard<std::mutex> lk(g_dataMtx); g.drvRep = rep; g.drvProblems = probs; }
+        g.drvBusy = false;
+    }).detach();
+}
+static void actWuDriverScan() {
+    g.status = L"Windows Update driver scan triggered — open the WU window to confirm";
+    g.statusKind = 1;
+    std::thread([] { drvupdate::scanWindowsUpdate(true); }).detach();
+}
+static void actBenchQuick() {
+    if (g.benchBusy) return;
+    g.benchBusy = true;
+    g.status = L"Benchmark running (~4 s)…"; g.statusKind = 0;
+    std::thread([] {
+        json b = storage::runBenchmarkAll();
+        g.lastBench = b;
+        g.benchBusy = false;
+        g.status = L"Benchmark done — score " + widen(std::to_string(b.value("total", 0)));
+        g.statusKind = 1;
+    }).detach();
+}
+static void saveSettings() {
+    json cfg = engine::loadConfig();
+    cfg["ui_confirm_actions"] = g.setConfirm;
+    cfg["ui_autobackup"] = g.setAutoback;
+    cfg["dns_managed"] = g.setDnsManaged;
+    engine::saveConfig(cfg);
+    g.status = L"Settings saved to config.json"; g.statusKind = 1;
+}
+static void loadSettings() {
+    json cfg = engine::loadConfig();
+    g.setConfirm = cfg.value("ui_confirm_actions", true);
+    g.setAutoback = cfg.value("ui_autobackup", true);
+    g.setDnsManaged = cfg.value("dns_managed", false);
 }
 
 // ------------------------------------------------------------------ d2d helpers
@@ -207,7 +324,6 @@ static void strokeRR(const D2D1_ROUNDED_RECT& r, const D2D1_COLOR_F& c, float w 
 static void glassPanel(const D2D1_RECT_F& r, float rad = 14.0f) {
     auto rr = RR(r, rad);
     fillRR(rr, C_GLASS);
-    // top highlight gradient
     ID2D1GradientStopCollection* gs = nullptr;
     D2D1_GRADIENT_STOP stops[2] = {
         { 0.0f, { 1,1,1, 0.10f } },
@@ -240,24 +356,40 @@ static bool button(const D2D1_RECT_F& r, const wstring& label, bool accent = fal
     D2D1_COLOR_F fill = accent ? D2D1_COLOR_F{ 0.30f, 0.62f, 1.0f, hover ? 0.95f : 0.80f }
                                : D2D1_COLOR_F{ 1,1,1, hover ? 0.14f : (down ? 0.10f : 0.07f) };
     fillRR(rr, fill);
-    if (accent) {
-        strokeRR(rr, D2D1_COLOR_F{ 1,1,1, 0.25f });
-    } else {
-        strokeRR(rr, D2D1_COLOR_F{ 1,1,1, hover ? 0.30f : 0.14f });
-    }
+    if (accent) strokeRR(rr, D2D1_COLOR_F{ 1,1,1, 0.25f });
+    else        strokeRR(rr, D2D1_COLOR_F{ 1,1,1, hover ? 0.30f : 0.14f });
     D2D1_COLOR_F tc = enabled ? (accent ? D2D1_COLOR_F{ 0.02f,0.05f,0.12f,1 } : C_TEXT)
                               : D2D1_COLOR_F{ 1,1,1, 0.25f };
     auto fmt = f ? f : g_fBody;
     D2D1_RECT_F tr = r; tr.left += 12; tr.right -= 12;
     drawText(label, fmt, tr, tc);
-    bool hit = enabled && clickedIn(r);
-    return hit;
+    return enabled && clickedIn(r);
+}
+
+// small glass switch showing a boolean state; returns true when clicked
+static bool switchRow(const D2D1_RECT_F& r, const wstring& label, const wstring& sub, bool on, bool adminReq = false) {
+    bool hover = inRect(r, g.mouse);
+    if (hover) fillRect(r, D2D1_COLOR_F{ 1,1,1,0.04f });
+    float sw = S(34), sh = S(18);
+    D2D1_RECT_F swr = Rc(r.right - sw - S(12), r.top + (r.bottom - r.top - sh) / 2, sw, sh);
+    D2D1_COLOR_F onC = { 0.30f,0.62f,1.0f,0.9f };
+    fillRR(RR(swr, sh / 2), on ? onC : D2D1_COLOR_F{ 1,1,1,0.10f });
+    strokeRR(RR(swr, sh / 2), on ? D2D1_COLOR_F{ 1,1,1,0.35f } : C_GLASSBR);
+    float knobR = sh * 0.42f;
+    float kx = on ? swr.right - sh / 2 : swr.left + sh / 2;
+    drawDot(kx, swr.top + sh / 2, knobR, on ? D2D1_COLOR_F{ 0.05f,0.08f,0.16f,1 } : C_DIM);
+    D2D1_RECT_F tr = r; tr.right = swr.left - S(10);
+    drawText(label, g_fBody, { tr.left + S(8), r.top + S(5), tr.right, r.top + S(24) }, adminReq ? C_TEXT : C_TEXT);
+    if (!sub.empty())
+        drawText(sub, g_fSmall, { tr.left + S(8), r.top + S(25), tr.right, r.bottom }, C_DIM);
+    if (adminReq)
+        drawText(L"ADMIN", g_fSmall, { r.right - sw - S(70), r.top + S(6), r.right - sw - S(16), r.top + S(22) }, C_WARN);
+    return clickedIn(r);
 }
 
 static bool checkboxRow(D2D1_RECT_F& r, const wstring& label, bool& checked, bool adminReq) {
     bool hover = inRect(r, g.mouse);
     if (hover) fillRect(r, D2D1_COLOR_F{ 1,1,1,0.04f });
-    // box
     float bs = S(18);
     D2D1_RECT_F box = Rc(r.left + S(6), r.top + (r.bottom - r.top - bs) / 2, bs, bs);
     fillRR(RR(box, 5), checked ? D2D1_COLOR_F{ 0.30f,0.62f,1.0f,0.9f } : D2D1_COLOR_F{ 1,1,1,0.08f });
@@ -276,14 +408,12 @@ static bool checkboxRow(D2D1_RECT_F& r, const wstring& label, bool& checked, boo
     D2D1_RECT_F tr = r;
     tr.left += bs + S(16);
     drawText(label, g_fBody, tr, adminReq ? C_TEXT : C_DIM);
-    bool hit = clickedIn(r);
-    return hit;
+    return clickedIn(r);
 }
 
 // ------------------------------------------------------------------ background
 static void drawBackground(float t) {
     g_rt->Clear(C_BASE);
-    // animated blobs
     struct Blob { float cx, cy, r; D2D1_COLOR_F c; float sx, sy, ph; };
     Blob blobs[3] = {
         { 0.25f, 0.30f, 0.55f, { 0.35f, 0.25f, 0.95f, 0.16f }, 0.11f, 0.07f, 0.0f },
@@ -316,18 +446,22 @@ static float sidebarX() { return S(210); }
 
 static void drawSidebar() {
     static const struct { Tab t; const wchar_t* name; } tabs[T_COUNT] = {
-        { T_DASH,    L"Dashboard"   },
-        { T_TWEAKS,  L"Tweaks"      },
-        { T_GAMING,  L"Gaming"      },
-        { T_PRIVACY, L"Privacy"     },
-        { T_DRIVERS, L"Drivers"     },
-        { T_PING,    L"Network"     },
-        { T_LOGS,    L"Logs"        },
-        { T_ABOUT,   L"About"       },
+        { T_DASH,     L"Dashboard"   },
+        { T_TWEAKS,   L"Tweaks"      },
+        { T_GAMING,   L"Gaming"      },
+        { T_FIRMWARE, L"Firmware"    },
+        { T_STORAGE,  L"Storage"     },
+        { T_STARTUP,  L"Startup"     },
+        { T_SETTINGS, L"Settings"    },
+        { T_PRIVACY,  L"Privacy"     },
+        { T_DRIVERS,  L"Drivers"     },
+        { T_PING,     L"Network"     },
+        { T_LOGS,     L"Logs"        },
+        { T_ABOUT,    L"About"       },
     };
     float x = S(16), y = S(72), w = sidebarX() - S(28);
     for (int i = 0; i < T_COUNT; ++i) {
-        D2D1_RECT_F r = Rc(x, y, w, S(38));
+        D2D1_RECT_F r = Rc(x, y, w, S(34));
         bool active = g.tab == tabs[i].t;
         bool hover = inRect(r, g.mouse);
         if (active) {
@@ -340,9 +474,8 @@ static void drawSidebar() {
         D2D1_RECT_F tr = r; tr.left += S(14);
         drawText(tabs[i].name, g_fBody, tr, active ? C_TEXT : (hover ? C_TEXT : C_DIM));
         if (clickedIn(r)) g.tab = tabs[i].t;
-        y += S(44);
+        y += S(39);
     }
-    // admin badge
     D2D1_RECT_F r = Rc(S(16), g_sz.height - S(56), w, S(40));
     glassPanel(r, 10);
     drawText(isAdmin() ? L"● Elevated (admin)" : L"○ Standard user",
@@ -351,12 +484,9 @@ static void drawSidebar() {
 }
 
 static void drawTitlebar() {
-    // drag area handled in WM_NCHITTEST; here draw title
     drawText(L"OPTIMIZEKIT", g_fTitle, { S(20), S(14), sidebarX(), S(52) }, C_TEXT);
-    D2D1_COLOR_F acc = C_ACC;
-    drawDot(S(20) - S(10), S(30) * 1.0f, S(5), acc);
+    drawDot(S(20) - S(10), S(30) * 1.0f, S(5), C_ACC);
 
-    // window buttons
     float bw = S(40), bh = S(28);
     D2D1_RECT_F bmin = Rc(g_sz.width - bw * 2 - S(10), S(10), bw, bh);
     D2D1_RECT_F bcls = Rc(g_sz.width - bw - S(10), S(10), bw, bh);
@@ -379,25 +509,30 @@ static void drawStatusbar() {
     drawText(g.status, g_fSmall, { r.left + S(10), r.top + S(5), r.right, r.bottom }, c);
 }
 
+// shared: one key/value card
+static void kvCard(const D2D1_RECT_F& r, const wstring& k, const wstring& v, const D2D1_COLOR_F& vc = C_TEXT) {
+    glassPanel(r, 10);
+    drawText(k, g_fSmall, { r.left + S(14), r.top + S(6), r.right - S(10), r.top + S(22) }, C_FAINT);
+    drawText(v, g_fBody, { r.left + S(14), r.top + S(20), r.right - S(10), r.bottom }, vc);
+}
+
 // ---- dashboard
 static void drawDashboard() {
     auto cr = contentRect();
     if (g.sysDirty) actRefreshSys();
     float x = cr.left, y = cr.top + S(6);
 
-    // hero
-    D2D1_RECT_F hero = Rc(x, y, cr.right - cr.left, S(120));
+    D2D1_RECT_F hero = Rc(x, y, cr.right - cr.left, S(110));
     glassPanel(hero, 16);
-    drawText(L"Optimize your PC.", g_fH1, { x + S(22), y + S(16), x + S(500), y + S(60) }, C_TEXT);
-    drawText(L"Gaming · Privacy · Debloat — one kit, fully logged.", g_fBody,
-             { x + S(22), y + S(62), x + S(600), y + S(90) }, C_DIM);
-    D2D1_RECT_F b1 = Rc(x + S(620), y + S(34), S(160), S(40));
-    D2D1_RECT_F b2 = Rc(x + S(795), y + S(34), S(140), S(40));
+    drawText(L"Optimize your PC — natively.", g_fH1, { x + S(22), y + S(14), x + S(560), y + S(58) }, C_TEXT);
+    drawText(L"Gaming · Privacy · Firmware · Storage — one exe, zero browser, fully logged.",
+             g_fBody, { x + S(22), y + S(58), x + S(640), y + S(86) }, C_DIM);
+    D2D1_RECT_F b1 = Rc(x + S(660), y + S(32), S(160), S(40));
+    D2D1_RECT_F b2 = Rc(x + S(830), y + S(32), S(140), S(40));
     if (button(b1, L"⚡ Quick Optimize", true)) actProfile("gaming");
     if (button(b2, L"🧹 Clean junk")) actClean();
-    y += S(140);
+    y += S(126);
 
-    // system grid (2 cols)
     struct Row { wstring k, v; };
     vector<Row> rows = {
         { L"OS",           g.si.osName + L" build " + g.si.osBuild + L" (" + g.si.osArch + L")" },
@@ -410,31 +545,32 @@ static void drawDashboard() {
         { L"Uptime",       g.si.uptime },
     };
     float colW = (cr.right - cr.left - S(12)) / 2;
-    float rowH = S(46);
+    float rowH = S(44);
     for (size_t i = 0; i < rows.size(); ++i) {
         float cx = x + (i % 2) * (colW + S(12));
         float cy = y + (i / 2) * (rowH + S(8));
-        D2D1_RECT_F r = Rc(cx, cy, colW, rowH);
-        glassPanel(r, 10);
-        drawText(rows[i].k, g_fSmall, { cx + S(14), cy + S(6), cx + colW, cy + S(22) }, C_FAINT);
-        drawText(rows[i].v, g_fBody, { cx + S(14), cy + S(20), cx + colW - S(10), cy + rowH }, C_TEXT);
+        kvCard(Rc(cx, cy, colW, rowH), rows[i].k, rows[i].v);
     }
-    y += (rows.size() / 2 + (rows.size() % 2)) * (rowH + S(8)) + S(16);
+    y += (rows.size() / 2) * (rowH + S(8)) + S(14);
 
-    // quick actions
-    D2D1_RECT_F r = Rc(x, y, cr.right - cr.left, S(150));
-    glassPanel(r, 14);
-    drawText(L"Quick actions", g_fH2, { x + S(18), y + S(10), x + S(400), y + S(40) }, C_TEXT);
-    D2D1_RECT_F q1 = Rc(x + S(18),  y + S(52), S(190), S(38));
-    D2D1_RECT_F q2 = Rc(x + S(220), y + S(52), S(190), S(38));
-    D2D1_RECT_F q3 = Rc(x + S(422), y + S(52), S(190), S(38));
-    D2D1_RECT_F q4 = Rc(x + S(624), y + S(52), S(190), S(38));
-    if (button(q1, L"Apply GAMING profile", true)) actProfile("gaming");
-    if (button(q2, L"Apply PRIVACY profile")) actProfile("privacy");
-    if (button(q3, L"Apply FULL kit")) actProfile("full");
-    if (button(q4, L"Open log folder")) shellOpen(appDataDir());
-    drawText(L"Everything the kit does is written to OptimizeKit.log — open the Logs tab anytime.",
-             g_fSmall, { x + S(18), y + S(104), x + S(700), y + S(130) }, C_FAINT);
+    // benchmark + quick actions row
+    {
+        D2D1_RECT_F r = Rc(x, y, cr.right - cr.left, S(96));
+        glassPanel(r, 14);
+        drawText(L"Benchmark & actions", g_fH2, { x + S(18), y + S(10), x + S(420), y + S(38) }, C_TEXT);
+        wstring bench = g.benchBusy ? L"measuring…"
+            : (g.lastBench.contains("total") ? (L"last score: " + widen(std::to_string(g.lastBench["total"].get<int>()))) : L"not measured yet");
+        drawText(bench, g_fSmall, { x + S(18), y + S(40), x + S(300), y + S(60) }, C_ACC);
+        D2D1_RECT_F q1 = Rc(x + S(320), y + S(28), S(170), S(38));
+        D2D1_RECT_F q2 = Rc(x + S(500), y + S(28), S(190), S(38));
+        D2D1_RECT_F q3 = Rc(x + S(700), y + S(28), S(190), S(38));
+        D2D1_RECT_F q4 = Rc(x + S(900), y + S(28), S(170), S(38));
+        if (button(q1, L"▲ Run benchmark", true, !g.benchBusy)) actBenchQuick();
+        if (button(q2, L"⚡ Apply GAMING profile")) actProfile("gaming");
+        if (button(q3, L"🛡 Apply PRIVACY profile")) actProfile("privacy");
+        if (button(q4, L"Open log folder")) shellOpen(appDataDir());
+        y += S(110);
+    }
 }
 
 // ---- tweaks
@@ -446,7 +582,6 @@ static void drawTweaks() {
     drawText(L"Tweaks", g_fH1, { x, y, x + S(300), y + S(34) }, C_TEXT);
     y += S(40);
 
-    // filter pills
     static const wchar_t* pills[] = { L"All", L"Gaming", L"Privacy", L"Debloat" };
     float px = x;
     for (int i = 0; i < 4; ++i) {
@@ -461,7 +596,6 @@ static void drawTweaks() {
     }
     y += S(42);
 
-    // action bar
     D2D1_RECT_F ba = Rc(x, y, S(200), S(36));
     D2D1_RECT_F br = Rc(x + S(210), y, S(220), S(36));
     D2D1_RECT_F bs = Rc(x + w - S(190), y, S(190), S(36));
@@ -490,7 +624,6 @@ static void drawTweaks() {
     }
     y += S(48);
 
-    // list
     float listTop = y, listBottom = cr.bottom - S(8);
     float scroll = g.scroll["tweaks"];
     float cy = listTop - scroll;
@@ -503,9 +636,12 @@ static void drawTweaks() {
             || (g.tweakFilter == 2 && (t.id.find("telemetry") != string::npos || t.id.find("advertising") != string::npos
                 || t.id.find("activity") != string::npos || t.id.find("bing") != string::npos
                 || t.id.find("tailored") != string::npos || t.id.find("copilot") != string::npos
-                || t.id.find("edge") != string::npos))
+                || t.id.find("edge") != string::npos || t.id.find("brave") != string::npos
+                || t.id.find("location") != string::npos))
             || (g.tweakFilter == 3 && (t.id.find("bloat") != string::npos || t.id.find("onedrive") != string::npos
-                || t.id.find("xbox") != string::npos || t.id.find("sysmain") != string::npos));
+                || t.id.find("xbox") != string::npos || t.id.find("sysmain") != string::npos
+                || t.id.find("widgets") != string::npos || t.id.find("consumer") != string::npos
+                || t.id.find("razer") != string::npos));
         if (!pass) continue;
 
         if (cy + rowH < listTop || cy > listBottom) { cy += rowH + S(8); continue; }
@@ -517,17 +653,14 @@ static void drawTweaks() {
         D2D1_RECT_F tr = { r.left + S(56), r.top + S(8), r.right - S(180), r.bottom };
         drawText(t.name, g_fBody, { tr.left, tr.top, tr.right, tr.top + S(22) }, C_TEXT);
         drawText(t.desc, g_fSmall, { tr.left, tr.top + S(24), tr.right, tr.bottom }, C_DIM);
-        // badges
         wstring badge = t.admin ? L"ADMIN" : L"USER";
         D2D1_COLOR_F bc = t.admin ? C_WARN : C_OK;
         D2D1_RECT_F brr = { r.right - S(170), r.top + S(10), r.right - S(96), r.top + S(28) };
         fillRR(RR(brr, 9), D2D1_COLOR_F{ bc.r, bc.g, bc.b, 0.18f });
         drawText(badge, g_fSmall, brr, bc);
-        // impact stars
         wstring stars;
         for (int i = 0; i < t.impact; ++i) stars += L"★";
         drawText(stars, g_fSmall, { r.right - S(88), r.top + S(8), r.right - S(10), r.top + S(28) }, C_ACC2);
-        // source + click-to-apply hint
         D2D1_RECT_F applyB = { r.right - S(88), r.top + S(30), r.right - S(10), r.top + S(50) };
         if (button(applyB, L"apply", false, true, g_fSmall)) actApplyTweak(t.id);
 
@@ -556,7 +689,6 @@ static void drawGaming() {
              g_fSmall, { x + S(18), y + S(134), x + w - S(20), y + S(160) }, C_FAINT);
     y += S(204);
 
-    // individual quick tweaks
     struct Quick { const char* id; const wchar_t* label; };
     static const Quick quicks[] = {
         { "game_dvr_off",   L"Game DVR off" },
@@ -566,18 +698,21 @@ static void drawGaming() {
         { "mpo_off",        L"MPO fix" },
         { "power_ultimate", L"Ultimate plan" },
         { "mouse_precision",L"Raw mouse" },
-        { "fso_on",         L"Exclusive FS" },
+        { "end_task_menu",  L"End-task menu" },
+        { "sticky_keys_off",L"Sticky keys off" },
+        { "notifications_off", L"No notifications" },
+        { "game_bar_off",   L"Game Bar off" },
+        { "xbox_live_off",  L"Xbox services off" },
     };
     float bw = (w - S(8) * 3) / 4;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 12; ++i) {
         float bx = x + (i % 4) * (bw + S(8));
         float by = y + (i / 4) * S(48);
         D2D1_RECT_F r = Rc(bx, by, bw, S(40));
         if (button(r, quicks[i].label)) actApplyTweak(quicks[i].id);
     }
-    y += S(120);
+    y += S(168);
 
-    // process priority
     D2D1_RECT_F pr = Rc(x, y, w, cr.bottom - y - S(4));
     glassPanel(pr, 14);
     drawText(L"Running processes — boost priority or kill", g_fH2, { x + S(18), y + S(12), x + S(600), y + S(42) }, C_TEXT);
@@ -591,7 +726,6 @@ static void drawGaming() {
     auto clip = pr;
     g_rt->PushAxisAlignedClip(clip, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     float py = ly - scroll;
-    int shown = 0;
     for (auto& pr2 : g.procs) {
         if (py > pr.bottom) break;
         if (py + lh > pr.top + S(50)) {
@@ -613,10 +747,252 @@ static void drawGaming() {
                 g.procsDirty = true;
             }
         }
-        py += lh; shown++;
+        py += lh;
     }
     g_rt->PopAxisAlignedClip();
     g.scroll["procs"] = scroll;
+}
+
+// ---- firmware
+static void drawFirmware() {
+    auto cr = contentRect();
+    float x = cr.left, y = cr.top + S(6);
+    float w = cr.right - cr.left;
+
+    drawText(L"Firmware & platform", g_fH1, { x, y, x + S(460), y + S(34) }, C_TEXT);
+    D2D1_RECT_F rb = Rc(x + w - S(150), y + S(2), S(150), S(32));
+    if (button(rb, g.fwBusy ? L"Reading…" : L"↻ Read platform", !g.fwBusy) && !g.fwBusy) actRefreshFw();
+    if (g.fwDirty && !g.fwBusy) { g.fwDirty = false; actRefreshFw(); }
+    y += S(44);
+
+    if (g.fwBusy && !g.fw.contains("secureBoot")) {
+        drawText(L"Reading BIOS, SecureBoot, TPM and kernel options…", g_fBody,
+                 { x + S(8), y + S(8), x + w, y + S(36) }, C_DIM);
+        return;
+    }
+    if (!g.fw.contains("secureBoot")) return;
+
+    json& f = g.fw;
+    auto sv = [&](const char* k, const wstring& def = L"?") -> wstring {
+        return f.contains(k) && !f[k].is_null() ? widen(f[k].get<std::string>()) : def;
+    };
+    auto stateColor = [](const wstring& s, const wstring& good) {
+        return s.find(good) != wstring::npos ? C_OK : C_WARN;
+    };
+
+    // row 1: identity
+    {
+        float cw = (w - S(24)) / 3;
+        kvCard(Rc(x, y, cw, S(64)), L"BIOS", sv("biosVendor") + L"  " + sv("biosVersion") + L"  (" + sv("biosDate") + L")");
+        kvCard(Rc(x + cw + S(12), y, cw, S(64)), L"Motherboard", sv("motherboard"));
+        wstring boot = sv("bootMode") + L" · SecureBoot " + sv("secureBoot");
+        kvCard(Rc(x + (cw + S(12)) * 2, y, cw, S(64)), L"Boot", boot,
+               stateColor(sv("secureBoot"), L"on"));
+        y += S(76);
+    }
+    // row 2: security
+    {
+        float cw = (w - S(24)) / 3;
+        json& tpm = f["tpm"];
+        wstring tpmS = tpm.value("present", false)
+            ? (L"TPM " + widen(tpm.value("version", std::string("2.0")))) : L"absent";
+        kvCard(Rc(x, y, cw, S(64)), L"TPM", tpmS, tpm.value("present", false) ? C_OK : C_ERR);
+        wstring vt = sv("virtualization") + (f.value("hypervisorRunning", false) ? L" · hypervisor on" : L"");
+        kvCard(Rc(x + cw + S(12), y, cw, S(64)), L"Virtualization", vt,
+               stateColor(sv("virtualization"), L"on"));
+        wstring standby = sv("modernStandby") + L" · " + sv("deviceType");
+        kvCard(Rc(x + (cw + S(12)) * 2, y, cw, S(64)), L"Power profile", standby);
+        y += S(76);
+    }
+    // row 3: kernel options (what our tweaks changed, read live)
+    {
+        float cw = (w - S(24)) / 4;
+        kvCard(Rc(x, y, cw, S(58)), L"HPET", sv("hpet"), stateColor(sv("hpet"), L"on"));
+        kvCard(Rc(x + cw + S(8), y, cw, S(58)), L"WPBT", sv("wpbt"));
+        kvCard(Rc(x + (cw + S(8)) * 2, y, cw, S(58)), L"Dynamic tick", sv("dynamicTick"));
+        kvCard(Rc(x + (cw + S(8)) * 3, y, cw, S(58)), L"Platform tick", sv("useplatformtick"));
+        y += S(70);
+    }
+    // note panel
+    {
+        D2D1_RECT_F r = Rc(x, y, w, S(88));
+        glassPanel(r, 12);
+        drawText(L"This panel is read-only — OptimizeKit never writes to your firmware.", g_fBody,
+                 { x + S(18), y + S(12), x + w - S(20), y + S(38) }, C_TEXT);
+        drawText(L"The BIOS guide (web dashboard or About) explains XMP/EXPO, ReBAR, Above-4G, C-states and fan curves,",
+                 g_fSmall, { x + S(18), y + S(40), x + w - S(20), y + S(60) }, C_DIM);
+        drawText(L"and every change is done by you, in the vendor setup, at the brand logo (Del / F2).",
+                 g_fSmall, { x + S(18), y + S(58), x + w - S(20), y + S(78) }, C_DIM);
+    }
+}
+
+// ---- storage
+static void drawStorage() {
+    auto cr = contentRect();
+    float x = cr.left, y = cr.top + S(6);
+    float w = cr.right - cr.left;
+
+    drawText(L"Storage", g_fH1, { x, y, x + S(300), y + S(34) }, C_TEXT);
+    D2D1_RECT_F rf = Rc(x + w - S(130), y + S(2), S(130), S(32));
+    if (button(rf, L"↻ Refresh")) g.drivesDirty = true;
+    y += S(44);
+
+    if (g.drivesDirty) actRefreshDrives();
+
+    // drives
+    {
+        std::lock_guard<std::mutex> lk(g_dataMtx);
+        if (g.drives.is_array()) {
+            int n = (int)g.drives.size();
+            float cw = (std::min(n, 4) > 0) ? (w - S(12) * (std::min(n, 4) - 1)) / std::min(n, 4) : w;
+            int i = 0;
+            for (auto& d : g.drives) {
+                if (i >= 4) break;
+                wstring letter = widen(d.value("letter", std::string("?")));
+                uint64_t total = d.value("total", (uint64_t)0), freeq = d.value("free", (uint64_t)0);
+                uint64_t used = total > freeq ? total - freeq : 0;
+                float pct = total ? (float)((double)used / (double)total * 100.0) : 0.f;
+                D2D1_RECT_F r = Rc(x + i * (cw + S(12)), y, cw, S(86));
+                glassPanel(r, 12);
+                drawText(letter + L"  " + widen(d.value("label", std::string(""))), g_fBody,
+                         { r.left + S(12), r.top + S(8), r.right - S(10), r.top + S(30) }, C_TEXT);
+                drawText(fmtBytes(used) + L" / " + fmtBytes(total), g_fSmall,
+                         { r.left + S(12), r.top + S(32), r.right - S(10), r.top + S(50) }, C_DIM);
+                // usage bar
+                D2D1_RECT_F bar = { r.left + S(12), r.top + S(58), r.right - S(12), r.top + S(68) };
+                fillRR(RR(bar, 4), D2D1_COLOR_F{ 1,1,1,0.08f });
+                D2D1_RECT_F fillB = bar; fillB.right = bar.left + (bar.right - bar.left) * (pct / 100.0f);
+                D2D1_COLOR_F c = pct > 90 ? C_ERR : pct > 75 ? C_WARN : C_OK;
+                if (fillB.right > fillB.left) fillRR(RR(fillB, 4), c);
+                drawText(widen(d.value("bus", std::string(""))), g_fSmall,
+                         { r.left + S(12), r.top + S(68), r.right - S(10), r.top + S(86) }, C_FAINT);
+                ++i;
+            }
+            y += S(100);
+        }
+    }
+
+    // actions
+    D2D1_RECT_F b1 = Rc(x, y, S(190), S(38));
+    D2D1_RECT_F b2 = Rc(x + S(200), y, S(190), S(38));
+    D2D1_RECT_F b3 = Rc(x + S(400), y, S(230), S(38));
+    if (button(b1, L"🧹 Clean junk now", true)) actClean();
+    if (button(b2, L"⏬ Temp files tweak")) actApplyTweak("temp_files");
+    if (button(b3, L"🧰 Disk cleanup + WinSxS")) actApplyTweak("disk_cleanup");
+    y += S(52);
+
+    // largest files
+    D2D1_RECT_F p = Rc(x, y, w, cr.bottom - y - S(4));
+    glassPanel(p, 14);
+    drawText(L"Largest files on " + g.largestRoot, g_fH2, { x + S(18), y + S(12), x + S(420), y + S(40) }, C_TEXT);
+    D2D1_RECT_F cb = Rc(x + w - S(150), y + S(12), S(130), S(30));
+    if (button(cb, g.largestBusy ? L"Scanning…" : L"Scan " + g.largestRoot, false, !g.largestBusy, g_fSmall) && !g.largestBusy)
+        actLargestFiles(g.largestRoot);
+    D2D1_RECT_F swC = Rc(x + w - S(300), y + S(12), S(140), S(30));
+    if (button(swC, g.largestRoot == L"C:\\" ? L"Switch to D:\\" : L"Switch to C:\\", false, true, g_fSmall))
+        actLargestFiles(g.largestRoot == L"C:\\" ? L"D:\\" : L"C:\\");
+    g_rt->PushAxisAlignedClip(p, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    float ry = y + S(52) - g.scroll["storage"];
+    {
+        std::lock_guard<std::mutex> lk(g_dataMtx);
+        if (g.largestFiles.is_array()) {
+            for (auto& f2 : g.largestFiles) {
+                if (ry > p.bottom) break;
+                if (ry + S(26) > p.top + S(44)) {
+                    uint64_t szb = f2.value("bytes", (uint64_t)0);
+                    wstring path = widen(f2.value("path", std::string("")));
+                    drawText(fmtBytes(szb), g_fMono, { p.left + S(16), ry, p.left + S(120), ry + S(22) }, C_ACC);
+                    drawText(path, g_fSmall, { p.left + S(130), ry, p.right - S(16), ry + S(22) }, C_DIM);
+                }
+                ry += S(26);
+            }
+        } else {
+            drawText(L"Press Scan to walk the drive (bounded, read-only).", g_fSmall,
+                     { p.left + S(16), ry, p.right - S(16), ry + S(22) }, C_FAINT);
+        }
+    }
+    g_rt->PopAxisAlignedClip();
+}
+
+// ---- startup
+static void drawStartup() {
+    auto cr = contentRect();
+    float x = cr.left, y = cr.top + S(6);
+    float w = cr.right - cr.left;
+
+    drawText(L"Startup apps", g_fH1, { x, y, x + S(300), y + S(34) }, C_TEXT);
+    D2D1_RECT_F rb = Rc(x + w - S(130), y + S(2), S(130), S(32));
+    if (button(rb, g.startupBusy ? L"Reading…" : L"↻ Refresh", !g.startupBusy) && !g.startupBusy)
+        actRefreshStartup();
+    if (g.startupDirty && !g.startupBusy) { g.startupDirty = false; actRefreshStartup(); }
+    y += S(44);
+
+    D2D1_RECT_F listP = Rc(x, y, w, cr.bottom - y - S(4));
+    glassPanel(listP, 14);
+    g_rt->PushAxisAlignedClip(listP, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    float ry = listP.top + S(12) - g.scroll["startup"];
+    std::lock_guard<std::mutex> lk(g_dataMtx);
+    for (auto& e : g.startupRows) {
+        if (ry > listP.bottom) break;
+        if (ry + S(34) > listP.top + S(6)) {
+            D2D1_RECT_F row = { listP.left + S(10), ry, listP.right - S(10), ry + S(32) };
+            if (inRect(row, g.mouse)) fillRect(row, D2D1_COLOR_F{ 1,1,1,0.05f });
+            drawText(e.name, g_fBody, { row.left + S(8), ry + S(5), row.left + S(320), ry + S(28) }, C_TEXT);
+            drawText(e.command, g_fSmall, { row.left + S(330), ry + S(6), row.right - S(220), ry + S(26) }, C_FAINT);
+            drawText(e.location, g_fSmall, { row.left + S(8), ry + S(24), row.left + S(330), ry + S(40) }, C_FAINT);
+            D2D1_RECT_F tb = { row.right - S(110), ry + S(3), row.right - S(10), ry + S(29) };
+            wstring tl = e.enabled ? L"Disable" : L"Enable";
+            if (button(tb, tl, !e.enabled, true, g_fSmall)) actToggleStartup(e, !e.enabled);
+        }
+        ry += S(36);
+    }
+    g_rt->PopAxisAlignedClip();
+}
+
+// ---- settings
+static void drawSettings() {
+    auto cr = contentRect();
+    float x = cr.left, y = cr.top + S(6);
+    float w = cr.right - cr.left;
+
+    drawText(L"Settings", g_fH1, { x, y, x + S(300), y + S(34) }, C_TEXT);
+    y += S(48);
+
+    // behavior
+    {
+        D2D1_RECT_F r = Rc(x, y, w, S(128));
+        glassPanel(r, 14);
+        drawText(L"Behavior", g_fH2, { x + S(18), y + S(10), x + S(400), y + S(38) }, C_TEXT);
+        D2D1_RECT_F c1 = { x + S(18), y + S(44), x + S(520), y + S(68) };
+        if (checkboxRow(c1, L"Confirm destructive actions before running them", g.setConfirm, false)) g.setConfirm = !g.setConfirm;
+        D2D1_RECT_F c2 = { x + S(18), y + S(70), x + S(520), y + S(94) };
+        if (checkboxRow(c2, L"Automatic registry backup before every tweak (recommended)", g.setAutoback, false)) g.setAutoback = !g.setAutoback;
+        D2D1_RECT_F c3 = { x + S(18), y + S(96), x + S(520), y + S(120) };
+        if (checkboxRow(c3, L"Allow gaming network profiles to set DNS (1.1.1.1 / 8.8.8.8)", g.setDnsManaged, false)) g.setDnsManaged = !g.setDnsManaged;
+        y += S(142);
+    }
+    // backups + about data
+    {
+        D2D1_RECT_F r = Rc(x, y, w, S(96));
+        glassPanel(r, 14);
+        drawText(L"Backups & data", g_fH2, { x + S(18), y + S(10), x + S(400), y + S(38) }, C_TEXT);
+        drawText(L"Registry snapshots and logs live in:", g_fSmall, { x + S(18), y + S(42), x + w - S(20), y + S(62) }, C_DIM);
+        drawText(appDataDir(), g_fMono, { x + S(18), y + S(62), x + w - S(20), y + S(86) }, C_ACC);
+        D2D1_RECT_F ob = Rc(x + w - S(190), y + S(40), S(170), S(34));
+        if (button(ob, L"Open folder")) shellOpen(appDataDir());
+        y += S(110);
+    }
+    // save + gaming extras
+    {
+        D2D1_RECT_F sb = Rc(x, y, S(220), S(42));
+        if (button(sb, L"✔ Save settings", true)) saveSettings();
+        D2D1_RECT_F sb2 = Rc(x + S(232), y, S(220), S(42));
+        if (button(sb2, L"↺ Restore ALL defaults")) {
+            auto rep = engine::runProfile("restore");
+            g.status = rep.summary; g.statusKind = rep.failed ? 2 : 1;
+            g.sysDirty = true;
+        }
+    }
 }
 
 // ---- privacy
@@ -644,12 +1020,14 @@ static void drawPrivacy() {
         { "tailored_experiences", L"Tailored ads off" },
         { "telemetry_tasks",  L"CEIP tasks off" },
         { "windows_copilot",  L"Copilot off" },
-        { "edge_bing_blocking", L"Edge background off" },
-        { "bloat_uninstall",  L"Store bloat removal" },
-        { "onedrive_off",     L"OneDrive removal" },
+        { "edge_debloat",     L"Edge debloat" },
+        { "brave_debloat",    L"Brave debloat" },
+        { "location_off",     L"Location tracking off" },
+        { "consumer_features", L"Store suggestions off" },
+        { "wpbt_off",         L"WPBT execution off" },
     };
     float bw = (w - S(8) * 2) / 3;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 12; ++i) {
         float bx = x + (i % 3) * (bw + S(8));
         float by = y + (i / 3) * S(48);
         D2D1_RECT_F r = Rc(bx, by, bw, S(40));
@@ -664,22 +1042,69 @@ static void drawDrivers() {
     float w = cr.right - cr.left;
     if (g.sysDirty) actRefreshSys();
     drawText(L"Drivers", g_fH1, { x, y, x + S(300), y + S(34) }, C_TEXT);
+    D2D1_RECT_F rs = Rc(x + w - S(150), y + S(2), S(150), S(32));
+    if (button(rs, g.drvBusy ? L"Reading…" : L"↻ Driver report", !g.drvBusy) && !g.drvBusy) actRefreshDrv();
+    if (g.drvDirty && !g.drvBusy) { g.drvDirty = false; actRefreshDrv(); }
     y += S(44);
 
-    D2D1_RECT_F p = Rc(x, y, w, S(120));
+    D2D1_RECT_F p = Rc(x, y, w, S(110));
     glassPanel(p, 14);
     drawText(g.gpuName.empty() ? L"GPU: (unknown)" : L"GPU: " + g.gpuName, g_fH2,
              { x + S(18), y + S(14), x + w - S(20), y + S(44) }, C_TEXT);
     drawText(g.gpuDrv.empty() ? L"Driver: unknown" : L"Driver: " + g.gpuDrv + L"   ·   " + g.gpuDate,
              g_fBody, { x + S(18), y + S(48), x + w - S(20), y + S(76) }, C_DIM);
-    D2D1_RECT_F b1 = Rc(x + S(18), y + S(74), S(200), S(36));
+    D2D1_RECT_F b1 = Rc(x + S(18), y + S(70), S(200), S(32));
+    D2D1_RECT_F b2 = Rc(x + S(228), y + S(70), S(240), S(32));
     if (button(b1, L"Open vendor page", true)) drivers::openVendorPage();
-    y += S(134);
+    if (button(b2, L"⤓ Scan Windows Update for drivers")) actWuDriverScan();
+    y += S(124);
+
+    // live driver report
+    if (g.drvRep.contains("gpu")) {
+        D2D1_RECT_F rp = Rc(x, y, w, S(150));
+        glassPanel(rp, 12);
+        drawText(L"Driver store — measured ages", g_fH2, { x + S(16), y + S(8), x + S(420), y + S(34) }, C_TEXT);
+        float ry = y + S(40);
+        auto line = [&](const json& d) {
+            wstring l = L"  " + widen(d.value("name", std::string("?")))
+                + L"   v" + widen(d.value("version", std::string("?")))
+                + L"   [" + widen(d.value("date", std::string("?"))) + L"]";
+            wstring age = d.contains("ageDays") && !d["ageDays"].is_null()
+                ? (std::to_wstring(d["ageDays"].get<long long>()) + L" days — " + widen(d.value("age", std::string("ok"))))
+                : L"";
+            drawText(l, g_fSmall, { x + S(16), ry, x + w - S(150), ry + S(18) }, C_DIM);
+            D2D1_COLOR_F ac = widen(d.value("age", std::string())).find(L"stale") != wstring::npos ? C_ERR
+                            : widen(d.value("age", std::string())).find(L"old") != wstring::npos ? C_WARN : C_OK;
+            drawText(age, g_fSmall, { x + w - S(150), ry, x + w - S(16), ry + S(18) }, ac);
+            ry += S(19);
+        };
+        if (g.drvRep["gpu"].is_object()) line(g.drvRep["gpu"]);
+        int shown = 0;
+        for (auto& d : g.drvRep["net"])   { if (shown++ > 2) break; line(d); }
+        for (auto& d : g.drvRep["audio"]) { if (shown++ > 4) break; line(d); }
+        y += S(160);
+    }
+    // problem devices
+    if (g.drvProblems.is_array() && !g.drvProblems.empty()) {
+        D2D1_RECT_F pp = Rc(x, y, w, S(34) * (float)std::min<size_t>(g.drvProblems.size() + 1, 5));
+        glassPanel(pp, 12);
+        drawText(L"Devices with a problem", g_fH2, { x + S(16), y + S(8), x + S(420), y + S(32) }, C_WARN);
+        float ry = y + S(36);
+        int i = 0;
+        for (auto& d : g.drvProblems) {
+            if (i++ >= 3) break;
+            wchar_t code[24]; swprintf(code, 24, L" (code %lld)", d.value("problem", (long long)0));
+            drawText(L"[!] " + widen(d.value("name", std::string("?"))) + code, g_fSmall,
+                     { x + S(16), ry, x + w - S(16), ry + S(18) }, C_ERR);
+            ry += S(19);
+        }
+        y += pp.bottom - pp.top + S(10);
+    }
 
     struct Q { const wchar_t* label; std::function<void()> fn; };
     static const Q qs[] = {
         { L"DirectX diagnostics (dxdiag)",  [] { drivers::openDxdiag(); } },
-        { L"Scan Windows Update for drivers", [] { drivers::scanWindowsUpdateDrivers(); } },
+        { L"Windows Update window (drivers)", [] { drvupdate::openWindowsUpdateUi(); } },
         { L"NVIDIA driver page",            [] { shellOpen(L"https://www.nvidia.com/Download/index.aspx"); } },
         { L"AMD driver page",               [] { shellOpen(L"https://www.amd.com/en/support"); } },
         { L"Intel driver page",             [] { shellOpen(L"https://www.intel.com/content/www/us/en/download-center/home.html"); } },
@@ -714,13 +1139,11 @@ static void drawPing() {
     if (button(rb, g.pingsBusy ? L"Testing…" : L"↻ Test all", !g.pingsBusy) && !g.pingsBusy) actPings();
     if (g.pingsDirty && !g.pingsBusy) { g.pingsDirty = false; actPings(); }
 
-    // table header
     D2D1_RECT_F hd = Rc(x, y + S(40), w, S(30));
     fillRR(RR(hd, 8), D2D1_COLOR_F{ 1,1,1,0.08f });
     drawText(L"NAME", g_fSmall, { x + S(14), y + S(46), x + S(220), y + S(66) }, C_FAINT);
     drawText(L"HOST", g_fSmall, { x + S(220), y + S(46), x + S(430), y + S(66) }, C_FAINT);
     drawText(L"LATENCY", g_fSmall, { x + S(430), y + S(46), x + S(560), y + S(66) }, C_FAINT);
-    drawText(L"", g_fSmall, hd, C_FAINT);
 
     float ry = y + S(78);
     {
@@ -743,11 +1166,9 @@ static void drawPing() {
         }
     }
 
-    // add target input
     float iy = ry + S(10);
     D2D1_RECT_F in = Rc(x, iy, w - S(150), S(38));
     glassPanel(in, 10);
-    D2D1_COLOR_F bc = g.pingHostFocused ? C_ACC : C_GLASSBR;
     strokeRR(RR(in, 10), g.pingHostFocused ? D2D1_COLOR_F{ 0.30f,0.62f,1.0f,0.9f } : C_GLASSBR);
     wstring shown = g.pingHostInput + (g.pingHostFocused && ((int)(g.t0 * 2) % 2) ? L"|" : L"");
     drawText(g.pingHostInput.empty() && !g.pingHostFocused ? L"Add host (IP or domain)…" : shown,
@@ -771,7 +1192,6 @@ static void drawLogs() {
     D2D1_RECT_F p = Rc(x, y, w, h - (y - cr.top) - S(2));
     glassPanel(p, 12);
     wstring all = log::readAll();
-    // show the tail (last ~2000 chars)
     if (all.size() > 2000) all = all.substr(all.size() - 2000);
     float scroll = g.scroll["logs"];
     g_rt->PushAxisAlignedClip(p, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
@@ -788,12 +1208,12 @@ static void drawAbout() {
     y += S(48);
     D2D1_RECT_F p = Rc(x, y, w, S(210));
     glassPanel(p, 14);
-    drawText(L"OptimizeKit v1.0", g_fH2, { x + S(20), y + S(14), x + S(400), y + S(44) }, C_TEXT);
-    drawText(L"Windows optimization kit — native C++ dashboard + PowerShell/Batch engines.",
+    drawText(L"OptimizeKit v2.7", g_fH2, { x + S(20), y + S(14), x + S(400), y + S(44) }, C_TEXT);
+    drawText(L"Native C++ dashboard (Direct2D) — no browser, no Electron, no injection.",
              g_fBody, { x + S(20), y + S(46), x + w - S(20), y + S(72) }, C_DIM);
-    drawText(L"Tweaks curated from Chris Titus Tech's WinUtil (MIT), Valve/Microsoft docs and the",
+    drawText(L"Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC",
              g_fSmall, { x + S(20), y + S(76), x + w - S(20), y + S(96) }, C_FAINT);
-    drawText(L"PC gaming community. Every tweak can be restored to Windows defaults.",
+    drawText(L"gaming community. Every tweak can be restored to Windows defaults.",
              g_fSmall, { x + S(20), y + S(94), x + w - S(20), y + S(114) }, C_FAINT);
     D2D1_RECT_F b1 = Rc(x + S(20), y + S(130), S(220), S(38));
     D2D1_RECT_F b2 = Rc(x + S(254), y + S(130), S(220), S(38));
@@ -819,14 +1239,18 @@ static void render() {
     drawSidebar();
     drawTitlebar();
     switch (g.tab) {
-        case T_DASH:    drawDashboard(); break;
-        case T_TWEAKS:  drawTweaks(); break;
-        case T_GAMING:  drawGaming(); break;
-        case T_PRIVACY: drawPrivacy(); break;
-        case T_DRIVERS: drawDrivers(); break;
-        case T_PING:    drawPing(); break;
-        case T_LOGS:    drawLogs(); break;
-        case T_ABOUT:   drawAbout(); break;
+        case T_DASH:     drawDashboard(); break;
+        case T_TWEAKS:   drawTweaks(); break;
+        case T_GAMING:   drawGaming(); break;
+        case T_FIRMWARE: drawFirmware(); break;
+        case T_STORAGE:  drawStorage(); break;
+        case T_STARTUP:  drawStartup(); break;
+        case T_SETTINGS: drawSettings(); break;
+        case T_PRIVACY:  drawPrivacy(); break;
+        case T_DRIVERS:  drawDrivers(); break;
+        case T_PING:     drawPing(); break;
+        case T_LOGS:     drawLogs(); break;
+        case T_ABOUT:    drawAbout(); break;
         default: break;
     }
     drawStatusbar();
@@ -845,6 +1269,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
     switch (m) {
         case WM_CREATE: {
             SetTimer(h, 1, 16, nullptr);
+            loadSettings();
             return 0;
         }
         case WM_TIMER: InvalidateRect(h, nullptr, FALSE); return 0;
@@ -875,6 +1300,8 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
             if (g.tab == T_TWEAKS) key = "tweaks";
             else if (g.tab == T_GAMING) key = "procs";
             else if (g.tab == T_LOGS) key = "logs";
+            else if (g.tab == T_STARTUP) key = "startup";
+            else if (g.tab == T_STORAGE) key = "storage";
             float& s = g.scroll[key];
             s = std::max(0.0f, s - d * 0.5f * g_dpiScale);
             return 0;
@@ -895,7 +1322,6 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
             return 0;
         }
         case WM_NCHITTEST: {
-            // custom title bar drag area (everything above content, left of buttons)
             POINT pt{ GET_X_LPARAM(lp), GET_Y_LPARAM(lp) };
             ScreenToClient(h, &pt);
             if (pt.y < S(56) && pt.x > S(140) && pt.x < g_sz.width - S(100))
@@ -910,13 +1336,15 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM wp, LPARAM lp) {
 
 int runDashboard() {
     log::clear();
-    log::info(L"dashboard started");
+    log::info(L"native dashboard started (no browser components)");
 
     WNDCLASSEXW wc{ sizeof(wc) };
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WndProc;
     wc.hInstance = GetModuleHandleW(nullptr);
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    wc.hIcon = LoadIconW(wc.hInstance, MAKEINTRESOURCEW(1));
+    wc.hIconSm = LoadIconW(wc.hInstance, MAKEINTRESOURCEW(1));
     wc.lpszClassName = L"OptimizeKitWnd";
     RegisterClassExW(&wc);
 
@@ -931,7 +1359,6 @@ int runDashboard() {
     UINT dpi = GetDpiForWindow(g_hwnd);
     g_dpiScale = dpi / 96.0f;
 
-    // D2D
     D2D1_FACTORY_OPTIONS fo{};
     D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), &fo, (void**)&g_fac);
     RECT rc; GetClientRect(g_hwnd, &rc);

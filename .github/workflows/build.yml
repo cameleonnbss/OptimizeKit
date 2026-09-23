@@ -41,6 +41,7 @@ jobs:
             src/core/monitor.cpp src/core/netprofile.cpp src/core/scan.cpp `
             src/core/games.cpp src/core/ram.cpp src/core/storage.cpp src/core/logging2.cpp `
             src/core/diagnostics.cpp `
+            src/core/firmware.cpp src/core/drvupdate.cpp `
             src/server/server.cpp `
             src/ui/ui.cpp src/ui/webframe.cpp `
             build/OptimizeKit.res `
@@ -48,7 +49,7 @@ jobs:
             -Ithird_party/webview2/include `
             -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 `
             -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi `
-            -lpdh -lwininet -luuid -lntdll `
+            -lpdh -lwininet -luuid -lntdll -lwbemuuid -lcfgmgr32 `
             -static -static-libgcc -static-libstdc++
           if (-not (Test-Path dist/OptimizeKit.exe)) { throw "build failed" }
 

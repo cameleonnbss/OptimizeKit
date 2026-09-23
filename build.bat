@@ -20,7 +20,8 @@ if not exist build mkdir build
 if not exist dist  mkdir dist
 
 rem --- embed the web dashboard into the exe (single-file guarantee) ---
-where python >nul 2>nul && (python tools\embed_web.py || exit /b 1) || echo [!] python missing - keeping the last generated webassets.h
+rem the WindowsApps "python" can be a Store stub that hangs cmd; call it with an explicit flag
+where python >nul 2>nul && (python -I tools\embed_web.py || exit /b 1) || echo [!] python missing - keeping the last generated webassets.h
 
 echo [1/2] Compiling resources...
 windres resources\OptimizeKit.rc -O coff -o build\OptimizeKit.res
@@ -36,6 +37,7 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     src\core\games.cpp src\core\ram.cpp src\core\storage.cpp src\core\logging2.cpp ^
     src\core\diagnostics.cpp ^
     src\core\reducer.cpp src\core\security.cpp src\core\diskscope.cpp ^
+    src\core\firmware.cpp src\core\drvupdate.cpp ^
     src\server\server.cpp ^
     src\ui\ui.cpp src\ui\webframe.cpp ^
     build\OptimizeKit.res ^
@@ -43,7 +45,7 @@ g++ -std=c++20 -O2 -municode -mwindows ^
     -Ithird_party\webview2\include ^
     -ld2d1 -ldwrite -lwindowscodecs -luser32 -lgdi32 -lgdiplus -lshell32 -ladvapi32 -lole32 -loleaut32 ^
     -lshlwapi -liphlpapi -lws2_32 -lwinmm -luxtheme -ldwmapi -lpowrprof -lsetupapi -lpsapi ^
-    -lpdh -lwininet -luuid -lntdll -lwintrust ^
+    -lpdh -lwininet -luuid -lntdll -lwintrust -lwbemuuid -lcfgmgr32 ^
     -static -static-libgcc -static-libstdc++
 if errorlevel 1 exit /b 1
 

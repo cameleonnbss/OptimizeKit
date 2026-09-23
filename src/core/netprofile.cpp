@@ -177,6 +177,16 @@ bool setDns(const wstring& primary, const wstring& secondary, wstring& err) {
     return true;
 }
 
+bool resetDnsToDhcp(wstring& err) {
+    string out;
+    wstring script = L"Get-NetAdapter -Physical -ErrorAction SilentlyContinue | "
+                     L"Set-DnsClientServerAddress -ResetServerAddresses";
+    if (!runPs(script, out)) { err = L"Set-DnsClientServerAddress -ResetServerAddresses failed (admin required)"; return false; }
+    string o2; runCapture(L"ipconfig /flushdns", o2, 15000);
+    log::ok(L"DNS reset to DHCP default on every physical adapter");
+    return true;
+}
+
 Result apply(const string& profile) {
     Result r;
     log::section(L"NETWORK PROFILE: " + widen(profile));

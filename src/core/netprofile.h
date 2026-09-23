@@ -40,5 +40,7 @@ bool setAutotuning(const wstring& level, wstring& err); // normal|disabled|exper
 bool setMtu(int mtu, wstring& err);
 bool flushDns(wstring& err);
 bool setDns(const wstring& primary, const wstring& secondary, wstring& err);
+// WinUtil "DNS - Default": clear the static servers on every physical adapter (DHCP wins again)
+bool resetDnsToDhcp(wstring& err);
 
 } // namespace ok::netprofile

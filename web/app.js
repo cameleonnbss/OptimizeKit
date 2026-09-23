@@ -1,7 +1,8 @@
-/* OptimizeKit v2.6 — Windows Gaming Control Center
-   Shell: grouped rail + command bar · 32 modules · 12 themes · Ctrl+K palette
+/* OptimizeKit v2.7 — Windows Gaming Control Center
+   Shell: grouped rail + command bar · 34 modules · 12 themes · Ctrl+K palette
    Games: every store + every fixed drive, matched against the built-in game database;
-   Library: cover art plus that database, installed titles badged with their real icon. */
+   Library: cover art plus that database, installed titles badged with their real icon.
+   v2.7: Firmware panel (live SecureBoot/TPM/VT/kernel state) + driver auto-update engine. */
 "use strict";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -104,11 +105,11 @@ const monitorColors = () => ({
 const I18N = {
   en: { themes:"Themes", dashboard:"Dashboard", smart:"Smart Optimize", gaming:"Gaming Center", scan:"Scan PC", optimize:"Optimize", tweaks:"Tweaks", games:"Games",
         library:"Game Library", packs:"Packs", inputlag:"Input Lag", render:"Rendering & FPS", background:"Background load", power:"Power & thermals", debloat:"Debloat & boot",
-        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", bios:"BIOS guide", privacy:"Privacy",
+        network:"Network", ram:"RAM", storage:"Storage", startup:"Startup", drivers:"Drivers", bios:"Firmware", privacy:"Privacy",
         diag:"Diagnostics", bench:"Benchmark", tools:"Tools", logs:"Logs", settings:"Settings", about:"About" },
   fr: { themes:"Thèmes", dashboard:"Tableau de bord", smart:"Optimisation intelligente", gaming:"Centre Gaming", scan:"Analyser le PC", optimize:"Optimiser", tweaks:"Tweaks", games:"Jeux",
         library:"Bibliothèque de jeux", packs:"Packs", inputlag:"Latence d'entrée", render:"Rendu & FPS", background:"Charge de fond", power:"Énergie & thermique", debloat:"Débloat & démarrage",
-        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", bios:"Guide BIOS", privacy:"Confidentialité",
+        network:"Réseau", ram:"RAM", storage:"Stockage", startup:"Démarrage", drivers:"Pilotes", bios:"Micrologiciel", privacy:"Confidentialité",
         diag:"Diagnostics", bench:"Benchmark", tools:"Outils", logs:"Journaux", settings:"Paramètres", about:"À propos" }
 };
 function applyLang(lang) {
@@ -246,7 +247,8 @@ function show(view) {
   if (view === "packs") renderPacks();
   if (view === "reducer") refreshReducer();
   if (view === "security") refreshSecurity(false);
-  if (view === "bios") renderBios();
+  if (view === "bios") { renderBios(); refreshFirmware(); }
+  if (view === "drivers") refreshDriverReport(false);
   if (view === "library") renderLibrary();
   if (view === "themes") renderThemes();
   if (view === "dashboard") refreshKpis(null);
@@ -1304,6 +1306,8 @@ async function loadSettings() {
     $("#set-autoback").checked = s.auto_backup !== false;
     $("#set-dns").checked = s.dns_managed === true;
     $("#set-killlist").value = (s.gaming_kill_list || []).join(", ");
+    const dlOpt = $("#set-dl-opt"); if (dlOpt) dlOpt.checked = s.delivery_optimization_off === true;
+    const cons = $("#set-consumer"); if (cons) cons.checked = s.consumer_features_off === true;
     applyAccent(s.ui_accent || "#ff3d57");
   } catch (e) { }
 }
@@ -1328,6 +1332,34 @@ on("#btn-set-save", async () => {
   $("#set-saved").textContent = "saved ✓";
   setTimeout(() => ($("#set-saved").textContent = ""), 2200);
   toast("✔ Settings saved");
+});
+on("#btn-set-dns-reset", async () => {
+  if (window.confirm("Clear the configured DNS on every physical adapter and go back to the router's DHCP?")) {
+    const r = await api("/api/net/dns/reset", {});
+    toast(r.ok ? "↺ DNS back to DHCP default" : "✖ " + (r.error || "failed"), 4000);
+  }
+});
+on("#btn-set-fw", () => show("bios"));
+on("#btn-set-drvscan", async () => {
+  try { await api("/api/drvupdate/scan", { driversOnly: true }); toast("⤓ driver scan triggered"); }
+  catch (e) { toast("✖ scan failed"); }
+});
+// the two update toggles apply their matching tweak instantly (reversible from Tweaks)
+document.addEventListener("change", async (e) => {
+  if (e.target && e.target.id === "set-dl-opt") {
+    const onb = e.target.checked;
+    await api("/api/tweaks/" + (onb ? "apply" : "restore"), ["delivery_optimization"]);
+    await api("/api/settings", { delivery_optimization_off: onb });
+    toast(onb ? "⏬ Delivery Optimization disabled (P2P upload off)" : "↺ Delivery Optimization back to Windows default");
+    updateTweakState(true);
+  }
+  if (e.target && e.target.id === "set-consumer") {
+    const onb = e.target.checked;
+    await api("/api/tweaks/" + (onb ? "apply" : "restore"), ["consumer_features"]);
+    await api("/api/settings", { consumer_features_off: onb });
+    toast(onb ? "⏬ Store suggestions & sponsored apps blocked" : "↺ Store suggestions back to default");
+    updateTweakState(true);
+  }
 });
 
 /* ===================== DIAGNOSTICS ===================== */
@@ -2184,6 +2216,106 @@ async function refreshKpis(mon) {
 }
 
 /* ===================== BIOS GUIDE ===================== */
+/* ===================== FIRMWARE (live platform state) =====================
+   Read-only bridge to /api/firmware: SecureBoot, TPM, VT, BIOS identity, S0/S3,
+   HPET / WPBT / dynamic tick as the kernel actually sees them. The guide below
+   stays a guide - the app never writes firmware. */
+let fwCache = null;
+const fwBadge = (val, good, warn) => val === good ? "good" : val && val.includes("off") ? "warn" : (warn || "");
+async function refreshFirmware(force) {
+  if (fwCache && !force) return renderFirmware();
+  $("#fw-cards").innerHTML = `<div class="stat-card"><b>…</b><span>reading the platform</span></div>`;
+  try {
+    fwCache = await api("/api/firmware");
+    renderFirmware();
+    const navBadge = $("#nav-fw-badge");
+    if (navBadge) { navBadge.textContent = ""; navBadge.classList.remove("show"); }
+  } catch (e) {
+    $("#fw-cards").innerHTML = `<div class="stat-card warn"><b>n/a</b><span>platform read failed</span></div>`;
+  }
+}
+function fwCard(title, value, cls) {
+  return `<div class="stat-card ${cls || ""}"><b>${esc(value)}</b><span>${esc(title)}</span></div>`;
+}
+function renderFirmware() {
+  const f = fwCache; if (!f) return;
+  const tpm = f.tpm || {};
+  const sb = f.secureBoot || "unknown";
+  const vt = f.virtualization || "unknown";
+  const tpmS = tpm.present ? (tpm.version || "present") + (tpm.activated === false ? " (inactive)" : "") : "absent";
+  $("#fw-cards").innerHTML = [
+    fwCard("BIOS", (f.biosVendor || "?") + " " + (f.biosVersion || "")),
+    fwCard("Motherboard", f.motherboard || "?"),
+    fwCard("Boot mode", f.bootMode || "?", sb === "on" ? "good" : "warn"),
+    fwCard("Secure Boot", sb, sb === "on" ? "good" : sb === "off" ? "bad" : "warn"),
+    fwCard("TPM", tpmS, tpm.present ? "good" : "bad"),
+    fwCard("Virtualization", vt + (f.hypervisorRunning ? " · hv on" : ""), vt === "on" ? "good" : "warn"),
+    fwCard("Standby", f.modernStandby || "?", ""),
+    fwCard("HPET", f.hpet || "?", f.hpet === "on" ? "good" : "warn"),
+    fwCard("WPBT", f.wpbt || "?", String(f.wpbt || "").startsWith("blocked") ? "good" : "warn"),
+    fwCard("Dynamic tick", f.dynamicTick || "?", ""),
+    fwCard("Kernel dump", f.dumpLevel || "?", ""),
+    fwCard("Reboot pending", f.rebootNeeded ? "yes" : "no", f.rebootNeeded ? "warn" : "good"),
+  ].join("");
+}
+on("#btn-fw-refresh", () => refreshFirmware(true));
+
+/* ===================== DRIVERS — auto-update engine =====================
+   The app cannot silently install drivers (and should not), so it does what a
+   careful human would: report real driver ages from the driver store, list
+   devices with a problem code, then trigger the Windows Update orchestrator
+   and open the vendor page for the manual confirm. */
+let drvCache = null;
+async function refreshDriverReport(force) {
+  if (drvCache && !force) return renderDriverReport();
+  $("#drv-table").innerHTML = `<div class="muted" style="padding:12px">reading the driver store…</div>`;
+  try {
+    const [rep, probs] = await Promise.all([api("/api/drvupdate/report"), api("/api/drvupdate/problems")]);
+    drvCache = { rep, probs };
+    renderDriverReport();
+  } catch (e) {
+    $("#drv-table").innerHTML = `<div class="muted" style="padding:12px">driver report failed</div>`;
+  }
+}
+function renderDriverReport() {
+  if (!drvCache) return;
+  const { rep, probs } = drvCache;
+  const ageCls = (d) => !d || d.ageDays == null ? "" : d.ageDays > 365 ? "bad" : d.ageDays > 180 ? "warn" : "good";
+  const row = (d) => {
+    if (!d) return "";
+    const age = d.ageDays != null ? `${d.ageDays} days · ${d.age}` : "date unknown";
+    return `<div class="proc-row"><span class="p-name">${esc(d.name)}</span>
+      <span class="p-host mono">v${esc(d.version || "?")}</span>
+      <span class="p-ms mono">${esc(d.date || "—")}</span>
+      <span class="p-ms mono ${ageCls(d)}">${esc(age)}</span></div>`;
+  };
+  const gpu = rep.gpu || {};
+  $("#st-gpu-h").textContent = "GPU — " + (gpu.name || "unknown");
+  $("#st-gpu-d").textContent = `driver ${gpu.version || "?"} · ${gpu.date || "date unknown"}${gpu.ageDays != null ? " · " + gpu.ageDays + " days old" : ""}`;
+  const sum = (rep.summary || {});
+  $("#drv-sum").textContent = `${sum.devices ?? 0} devices read · ${sum.stale ?? 0} older than a year`;
+  $("#drv-table").innerHTML =
+    row(gpu) + (rep.net || []).slice(0, 3).map(row).join("") + (rep.audio || []).slice(0, 4).map(row).join("")
+    || `<div class="muted" style="padding:12px">no driver metadata found</div>`;
+  const pl = probs || [];
+  $("#drv-problems").innerHTML = pl.length
+    ? pl.map((d) => `<div class="proc-row"><span class="p-name" style="color:var(--err)">[!] ${esc(d.name)}</span><span class="p-host mono">code ${d.problem}</span><span class="p-ms mono muted">${esc(d.hint || "")}</span></div>`).join("")
+    : `<div class="muted" style="padding:12px">✓ no device reports a problem code</div>`;
+}
+on("#btn-drv-report", () => refreshDriverReport(true));
+on("#btn-drv-wu", async () => {
+  toast("⤓ Windows Update driver scan triggered…", 3600);
+  try { await api("/api/drvupdate/scan", { driversOnly: true }); toast("✔ Windows Update is looking for driver updates — open its window to confirm"); }
+  catch (e) { toast("✖ scan failed — admin?", 4000); }
+});
+on("#btn-drv-wuwin", () => api("/api/drvupdate/wu-window", {}));
+on("#btn-drv-rescan", async () => {
+  const r = await api("/api/drvupdate/rescan", {});
+  toast(r.triggered ? "↻ PnP rescan done" : "✖ rescan failed");
+});
+on("#btn-dxdiag", () => fetch("/api/open?what=dxdiag"));
+on("#btn-devmgmt", () => fetch("/api/open?what=devmgmt"));
+
 const BIOS_ITEMS = [
   ["XMP / EXPO", "Memory profile", "Loads your RAM kit's rated speed (e.g. 6000 MT/s) instead of the JEDEC fallback around 4800. On most builds this is the single biggest free gain — and it is vendor-sanctioned.", "safe"],
   ["Resizable BAR / ReBAR", "PCIe · graphics", "Lets the CPU address the whole GPU VRAM at once. Supported on RTX 30/40, RX 6000/7000 with a modern CPU. Free FPS in many titles.", "safe"],

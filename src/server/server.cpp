@@ -10,6 +10,8 @@
 #include "reducer.h"
 #include "security.h"
 #include "diskscope.h"
+#include "firmware.h"
+#include "drvupdate.h"
 #include "logging2.h"
 #include "diagnostics.h"
 #include "webassets.h"
@@ -105,6 +107,9 @@ int serve(unsigned short preferredPort) {
     httplib::Server svr;
     g_svr = &svr;
     atexit([]() { reducer::restoreAll(); });   // never leave a machine throttled
+    // One shared COM apartment for the WMI-backed modules (firmware inventory, security scan)
+    drvupdate::DrvInit();
+    firmware::FwInit();
 
     // ------------- embedded dashboard fallback (exe works with zero files on disk) -------------
     const bool diskWeb = fs::exists(webRoot());
@@ -271,6 +276,11 @@ int serve(unsigned short preferredPort) {
     svr.Post("/api/net/flush", [](const httplib::Request&, httplib::Response& res) {
         wstring err;
         bool okb = netprofile::flushDns(err);
+        res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+    svr.Post("/api/net/dns/reset", [](const httplib::Request&, httplib::Response& res) {
+        wstring err;
+        bool okb = netprofile::resetDnsToDhcp(err);
         res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
     });
     svr.Post("/api/net/mtu", [](const httplib::Request& req, httplib::Response& res) {
@@ -493,6 +503,35 @@ int serve(unsigned short preferredPort) {
         bool okb = body.value("restore", false) ? secscan::restoreEntry(widen(body.value("id", "")), err)
                                                 : secscan::revokeEntry(widen(body.value("id", "")), err);
         res.set_content(json({ {"ok", okb}, {"error", narrow(err)} }).dump(), "application/json");
+    });
+
+    // ============ v2.7: firmware / platform inventory (read-only) ============
+    svr.Get("/api/firmware", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(firmware::inventory().dump(), "application/json");
+    });
+
+    // ============ v2.7: driver update engine ============
+    svr.Get("/api/drvupdate/report", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(drvupdate::report().dump(), "application/json");
+    });
+    svr.Get("/api/drvupdate/problems", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(drvupdate::problemDevices().dump(), "application/json");
+    });
+    svr.Post("/api/drvupdate/scan", [](const httplib::Request& req, httplib::Response& res) {
+        json body;
+        try { body = json::parse(req.body); } catch (...) { body = json::object(); }
+        res.set_content(drvupdate::scanWindowsUpdate(body.value("driversOnly", true)).dump(), "application/json");
+    });
+    svr.Post("/api/drvupdate/rescan", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content(drvupdate::rescanDevices().dump(), "application/json");
+    });
+    svr.Post("/api/drvupdate/vendor", [](const httplib::Request&, httplib::Response& res) {
+        bool okb = drvupdate::openVendorPage();
+        res.set_content(json({ {"ok", okb} }).dump(), "application/json");
+    });
+    svr.Post("/api/drvupdate/wu-window", [](const httplib::Request&, httplib::Response& res) {
+        drvupdate::openWindowsUpdateUi();
+        res.set_content(json({ {"ok", true} }).dump(), "application/json");
     });
 
     // ============ v2.6: DiskScope storage ============

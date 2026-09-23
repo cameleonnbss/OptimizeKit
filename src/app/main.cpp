@@ -1,10 +1,14 @@
 // OptimizeKit - entry point.
-// No arguments -> a real desktop window (WebView2 frame) hosting the embedded
+// No arguments -> the NATIVE Direct2D liquid-glass dashboard in a real Win32
+//                window. No Edge, no browser, no port, no extra process: one
+//                exe, one window, one loopback listener for the UI data only.
+// --app         -> (v2.6 behaviour) WebView2 frame window hosting the web
 //                dashboard; falls back to msedge --app, then the default browser.
-// --native      -> the native Direct2D liquid-glass dashboard (no web view).
 // With arguments (from OptimizeKit-cli.bat) -> attaches to the parent console and runs the CLI.
 #include "core/common.h"
 #include "core/engine.h"
+#include "core/firmware.h"
+#include "core/drvupdate.h"
 #include "ui/ui.h"
 #include "ui/webframe.h"
 #include "app/cli.h"
@@ -19,6 +23,7 @@
 #include <cstdio>
 
 using namespace ok;
+using json = nlohmann::json;
 
 static void attachParentConsole() {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -49,10 +54,10 @@ static std::vector<wstring> getArgs() {
 
 static void printHelp() {
     std::wcout <<
-        L"OptimizeKit v2.6 - Windows Gaming & Performance Control Center\n"
+        L"OptimizeKit v2.7 - Windows Gaming & Performance Control Center\n"
         L"usage:\n"
-        L"  OptimizeKit.exe                 desktop app window (embedded dashboard)\n"
-        L"  OptimizeKit.exe --native        native Direct2D dashboard\n"
+        L"  OptimizeKit.exe                 native Direct2D window (default, no browser)\n"
+        L"  OptimizeKit.exe --app           WebView2 frame window (web dashboard)\n"
         L"  OptimizeKit.exe --web [port]    serve the dashboard without opening a window\n"
         L"  OptimizeKit.exe --cli           numbered CLI menu (user or admin)\n"
         L"  OptimizeKit.exe --profile gaming|privacy|full|clean\n"
@@ -61,6 +66,8 @@ static void printHelp() {
         L"  OptimizeKit.exe --list          list tweak ids\n"
         L"  OptimizeKit.exe --clean         junk cleanup\n"
         L"  OptimizeKit.exe --info          system summary\n"
+        L"  OptimizeKit.exe --firmware      BIOS / SecureBoot / TPM / kernel report\n"
+        L"  OptimizeKit.exe --drvupdate     driver age report + Windows Update scan\n"
         L"  OptimizeKit.exe --ping <host>   latency test\n";
 }
 
@@ -100,22 +107,27 @@ static int probeServer(int port) {
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     auto args = getArgs();
 
-    if (args.empty()) {
-        // default: real desktop window hosting the embedded dashboard
+    if (args.empty() || args[0] == L"--native") {
+        // v2.7 default: the NATIVE Direct2D dashboard. One exe, one Win32 window,
+        // zero browser components - the dashboard is drawn by Direct2D/DirectWrite.
+        return ui::runDashboard();
+    }
+
+    if (args[0] == L"--app") {
+        // legacy v2.6 behaviour kept for users who prefer the web surface:
+        // a WebView2 frame hosting the embedded dashboard.
         std::thread srv([] { ok::server::serve(8765); });
         int port = probeServer(8765);
         if (port > 0) {
             wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
-            if (webframe::runWindow(wstring(url)) == 0)
-                ok::server::stop(); // native window closed - exit cleanly
-            else
+            if (webframe::runWindow(wstring(url)) != 0)
                 openAppWindow(url); // WebView2 unavailable -> browser app window
         }
+        ok::server::stop();
         srv.join();
         return 0;
     }
 
-    if (args[0] == L"--native") return ui::runDashboard();
     if (args[0] == L"--web") {
         unsigned short port = 8765;
         if (args.size() > 1) port = (unsigned short)_wtoi(args[1].c_str());
@@ -151,6 +163,48 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         std::wcout << L"RAM    : " << fmtBytes(si.ramTotal) << L" total / " << fmtBytes(si.ramAvail) << L" avail\n";
         std::wcout << L"Plan   : " << sysinfo::activePowerPlanName() << L"\n";
         std::wcout << L"Admin  : " << (isAdmin() ? L"yes" : L"no") << L"\n";
+    }
+    else if (a1 == L"--firmware") {
+        firmware::FwInit();
+        json f = firmware::inventory();
+        std::wcout << L"BIOS        : " << widen(f.value("biosVendor", std::string("?")))
+                   << L"  " << widen(f.value("biosVersion", std::string("?")))
+                   << L"  (" << widen(f.value("biosDate", std::string("?"))) << L")\n";
+        std::wcout << L"Board       : " << widen(f.value("motherboard", std::string("?"))) << L"\n";
+        std::wcout << L"Boot mode   : " << widen(f.value("bootMode", std::string("?")))
+                   << L"   SecureBoot: " << widen(f.value("secureBoot", std::string("?"))) << L"\n";
+        std::wcout << L"TPM         : " << widen(f["tpm"].value("version", std::string("n/a")))
+                   << L"  (" << (f["tpm"].value("present", false) ? L"present" : L"absent") << L")\n";
+        std::wcout << L"VT-x / SVM  : " << widen(f.value("virtualization", std::string("?")))
+                   << L"   Hypervisor running: " << (f.value("hypervisorRunning", false) ? L"yes" : L"no") << L"\n";
+        std::wcout << L"HPET        : " << widen(f.value("hpet", std::string("?")))
+                   << L"   WPBT: " << widen(f.value("wpbt", std::string("?")))
+                   << L"   dynamicTick: " << widen(f.value("dynamicTick", std::string("?"))) << L"\n";
+        std::wcout << L"Standby     : " << widen(f.value("modernStandby", std::string("?")))
+                   << L"   PatchGuard: " << widen(f.value("patchGuard", std::string("?"))) << L"\n";
+        std::wcout << L"Reboot pending: " << (f.value("rebootNeeded", false) ? L"yes" : L"no") << L"\n";
+    }
+    else if (a1 == L"--drvupdate") {
+        drvupdate::DrvInit();
+        json r = drvupdate::report();
+        auto printDev = [](const json& d) {
+            wstring line = L"  " + widen(d.value("name", std::string("?")))
+                + L"  v" + widen(d.value("version", std::string("?")))
+                + L"  [" + widen(d.value("date", std::string("?"))) + L"]";
+            if (d.contains("ageDays") && !d["ageDays"].is_null())
+                line += L"  " + std::to_wstring(d["ageDays"].get<long long>()) + L" days (" + widen(d.value("age", std::string("?"))) + L")";
+            std::wcout << line << L"\n";
+        };
+        std::wcout << L"GPU:\n";    printDev(r["gpu"]);
+        std::wcout << L"Audio:\n"; for (auto& d : r["audio"]) printDev(d);
+        std::wcout << L"Network:\n"; for (auto& d : r["net"]) printDev(d);
+        auto probs = drvupdate::problemDevices();
+        std::wcout << L"Devices with a problem: " << probs.size() << L"\n";
+        for (auto& d : probs)
+            std::wcout << L"  [!] " << widen(d.value("name", std::string("?")))
+                       << L" (code " << d.value("problem", 0) << L")\n";
+        std::wcout << L"Triggering the Windows Update driver scan...\n";
+        drvupdate::scanWindowsUpdate(true);
     }
     else if (a1 == L"--ping") {
         auto r = ping::measure(a2.empty() ? L"1.1.1.1" : a2);

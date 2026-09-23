@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  OptimizeKit v2.2 - Windows Gaming & Performance Control Center (PowerShell engine)
+  OptimizeKit v2.7 - Windows Gaming & Performance Control Center (PowerShell engine)
 
 .DESCRIPTION
   Full CLI parity with the C++ dashboard: ~48 tweaks, live status, profiles,
@@ -17,7 +17,7 @@
     -Profile gaming|privacy|debloat|full
 
 .NOTES
-  Version 2.2 - cameleonnbss - MIT license
+  Version 2.7 - cameleonnbss - MIT license
 #>
 [CmdletBinding()]
 param(
