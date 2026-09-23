@@ -85,8 +85,9 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
+          $ver = $tag -replace '^v', ''   # CHANGELOG headings are "## [2.9.0]", tags are v2.9.0
           $lines = Get-Content CHANGELOG.md
-          $start = ($lines | Select-String -Pattern "^##\s+\[?$([regex]::Escape($tag))" | Select-Object -First 1).LineNumber
+          $start = ($lines | Select-String -Pattern "^##\s+\[?$([regex]::Escape($ver))" | Select-Object -First 1).LineNumber
           if (-not $start) { "See CHANGELOG.md for the full history." | Set-Content release-body.md; exit 0 }
           $body = @()
           for ($i = $start; $i -lt $lines.Count; $i++) {
