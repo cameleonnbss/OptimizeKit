@@ -50,29 +50,23 @@ Full detail in [CHANGELOG.md](CHANGELOG.md).
 
 ## 📸 Screenshots
 
-| Gaming Center | Dashboard |
-|---|---|
-| ![Gaming Center](docs/screenshots/gaming.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+All shots captured from the live app (v2.8, real machine data, no mockups).
 
-| Tweaks — instant ON/OFF switches | Games — real icons |
+| Dashboard | Tweaks |
 |---|---|
-| ![Tweaks](docs/screenshots/tweaks.png) | ![Games](docs/screenshots/games.png) |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Tweaks](docs/screenshots/tweaks.png) |
 
-| Network Center | PC Scanner |
+| Gaming Center | Games — real icons |
 |---|---|
-| ![Network](docs/screenshots/network.png) | ![Scan](docs/screenshots/scan.png) |
+| ![Gaming Center](docs/screenshots/gaming.png) | ![Games](docs/screenshots/games.png) |
 
-| Benchmark — AnTuTu-style score | Theme packs (Ocean) |
+| Network Center | Storage |
 |---|---|
-| ![Benchmark](docs/screenshots/bench.png) | ![Theme Ocean](docs/screenshots/theme-ocean.png) |
+| ![Network](docs/screenshots/network.png) | ![Storage](docs/screenshots/storage.png) |
 
-| Tools — 79-launcher catalog | Storage |
+| Tools — 79-launcher catalog | Themes — 12 packs |
 |---|---|
-| ![Tools](docs/screenshots/tools.png) | ![Storage](docs/screenshots/storage.png) |
-
-| Splash screen | |
-|---|---|
-| ![Splash](docs/screenshots/dashboard.png) | |
+| ![Tools](docs/screenshots/tools.png) | ![Themes](docs/screenshots/themes.png) |
 
 ## 📦 Download
 

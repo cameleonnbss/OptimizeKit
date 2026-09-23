@@ -22,6 +22,10 @@ __CRT_UUID_DECL(ICoreWebView2CreateCoreWebView2ControllerCompletedHandler,
                 0x6c4819f3, 0xc9b7, 0x4260, 0x81, 0x27, 0xc9, 0xf5, 0xbd, 0xe7, 0xf6, 0x8c)
 __CRT_UUID_DECL(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler,
                 0x4e8a3389, 0xc9d8, 0x4bd2, 0xb6, 0xb5, 0x12, 0x4f, 0xee, 0x6c, 0xc1, 0x4d)
+__CRT_UUID_DECL(ICoreWebView2DocumentTitleChangedEventHandler,
+                0xf50f11d9, 0x8ea0, 0x4ba0, 0xa3, 0xf1, 0xa3, 0x97, 0x15, 0xd4, 0x6b, 0x3e)
+__CRT_UUID_DECL(ICoreWebView2_12,
+                0xb48663da, 0x09da, 0x4aa9, 0xb9, 0xf9, 0xd0, 0x35, 0x5c, 0x27, 0xc3, 0x9d)
 
 namespace ok::webframe {
 
@@ -144,8 +148,50 @@ private:
                     st->put_AreDevToolsEnabled(FALSE);
                     st->put_IsStatusBarEnabled(FALSE);
                     st->put_IsZoomControlEnabled(FALSE);
-                    st->put_AreDefaultContextMenusEnabled(FALSE);
+                    // context menu stays ON: users copy ping values / tweak ids from it
                     st->Release();
+                }
+                // dynamic window title -> the tab header the dashboard shows (v2.3+)
+                ICoreWebView2_12* wv12 = nullptr;
+                if (SUCCEEDED(g_st.wv->QueryInterface(__uuidof(ICoreWebView2_12),
+                                                      reinterpret_cast<void**>(&wv12))) &&
+                    wv12) {
+                    class TitleHandler
+                        : public ICoreWebView2DocumentTitleChangedEventHandler {
+                    public:
+                        explicit TitleHandler(LONG refs = 1) : refs_(refs) {}
+                        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+                            if (!ppv) return E_POINTER;
+                            *ppv = nullptr;
+                            if (riid == __uuidof(IUnknown) ||
+                                riid == __uuidof(ICoreWebView2DocumentTitleChangedEventHandler)) {
+                                *ppv = static_cast<IUnknown*>(this);
+                                AddRef();
+                                return S_OK;
+                            }
+                            return E_NOINTERFACE;
+                        }
+                        ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&refs_); }
+                        ULONG STDMETHODCALLTYPE Release() override {
+                            const ULONG r = InterlockedDecrement(&refs_);
+                            if (!r) delete this;
+                            return r;
+                        }
+                        HRESULT STDMETHODCALLTYPE Invoke(ICoreWebView2* sender, IUnknown*) override {
+                            LPWSTR t = nullptr;
+                            if (SUCCEEDED(sender->get_DocumentTitle(&t)) && t) {
+                                wchar_t full[256];
+                                swprintf(full, 256, L"%ls - OptimizeKit", t);
+                                SetWindowTextW(GetForegroundWindow(), full);
+                                CoTaskMemFree(t);
+                            }
+                            return S_OK;
+                        }
+                        LONG refs_;
+                    };
+                    EventRegistrationToken titleTok;
+                    wv12->add_DocumentTitleChanged(new TitleHandler(), &titleTok);
+                    wv12->Release();
                 }
                 g_st.wv->Navigate(g_st.url.c_str());
             }
@@ -179,6 +225,12 @@ static LRESULT CALLBACK frameProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             mmi->ptMinTrackSize = {980, 620};
             return 0;
         }
+        case WM_ACTIVATE:
+            // keep browser shortcuts alive inside the frame (F5, Ctrl+R, Ctrl+F, Ctrl+P)
+            if (LOWORD(wp) != WA_INACTIVE && g_st.ctrl) {
+                g_st.ctrl->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+            }
+            return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

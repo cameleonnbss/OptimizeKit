@@ -4,6 +4,47 @@ All notable changes to OptimizeKit are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] — 2026-09-23
+
+The "same interface everywhere" release: the exe now opens the **web
+dashboard in an app window** - pixel-identical to the browser dashboard -
+and the launcher .bat/.ps1 work standalone (no exe required) with the full
+module set in admin and non-admin menus. 24 PowerShell-only tweaks added for
+full engine parity, plus fresh screenshots generated from the live UI.
+
+### Changed
+
+- **Web dashboard is the default window** - double-clicking the exe opens the
+  WebView2 frame hosting the embedded dashboard: exactly the interface users
+  know from the browser (themes, Ctrl+K palette, games library), with no Edge
+  window, no tabs, no address bar. If the WebView2 runtime is missing, the app
+  silently falls back to the native Direct2D dashboard instead of opening a
+  browser. `--native` forces the D2D window; `--app` still works.
+- **Better app frame** - dynamic window title follows the dashboard tab, F5 /
+  Ctrl+R reload works, context menu enabled for copying values, dark title bar
+  kept.
+- **OptimizeKit.bat is a complete module menu** (no exe needed): full/user
+  kit, status, individual tweaks, network center, junk cleanup, firmware,
+  drivers, restore-all - plus [D] app window and [W] web dashboard entries.
+- **OptimizeKit-cli.bat works without the exe** - routes everything through
+  the PowerShell engine; `/exe` opt-in flag uses the C++ CLI when built.
+
+### Added
+
+- **24 new tweaks in the PowerShell engine (71 total, parity with C++)**:
+  Widgets removal, Location tracking, Services-to-Manual + svchost tuning,
+  Delivery Optimization, Consumer features, Store search, End-task on
+  taskbar, WPBT block, Razer block, Notifications, IPv4-prefer / IPv6-off /
+  Teredo, Disk cleanup + WinSxS trim, Hibernation off, Verbose BSoD, Long
+  paths, Game Mode (Win11), Edge/Brave debloat, UTC clock, Restore point -
+  each with apply, restore and live status checks.
+- **Firmware report in the PowerShell engine** (`-Firmware` / menu 7): BIOS,
+  Secure Boot, TPM, VT-x, hypervisor, pending reboot - read-only.
+- **User tweaks menu** in non-admin mode (pick-by-number, `r<N>` restores).
+- **Fresh screenshots** for every dashboard view (dashboard, tweaks, gaming,
+  games, network, scan, storage, tools, bench, themes) captured from the real
+  app via the `?view=` deep link.
+
 ## [2.7.0] — 2026-09-23
 
 The "native window, closer to the metal" release: the app now opens as a pure

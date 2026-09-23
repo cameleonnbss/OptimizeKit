@@ -2411,7 +2411,7 @@ function maybeWizard(state) {
     try { await api("/api/settings", { ui_theme: currentTheme, ui_accent: currentAccent }); } catch (e) { }
   }
   try { const s = await api("/api/settings"); applyVisualPrefs(s.ui_particles, s.ui_glitch_text); } catch (e) { }
-  // deep link: index.html?view=gaming
+  // deep link: index.html?view=gaming (used by the docs screenshot harness)
   const want = new URLSearchParams(location.search).get("view");
   if (want && $(".nav-item[data-view=" + want + "]")) show(want);
   const st = await loadState();

@@ -1208,7 +1208,7 @@ static void drawAbout() {
     y += S(48);
     D2D1_RECT_F p = Rc(x, y, w, S(210));
     glassPanel(p, 14);
-    drawText(L"OptimizeKit v2.7", g_fH2, { x + S(20), y + S(14), x + S(400), y + S(44) }, C_TEXT);
+    drawText(L"OptimizeKit v2.8", g_fH2, { x + S(20), y + S(14), x + S(400), y + S(44) }, C_TEXT);
     drawText(L"Native C++ dashboard (Direct2D) — no browser, no Electron, no injection.",
              g_fBody, { x + S(20), y + S(46), x + w - S(20), y + S(72) }, C_DIM);
     drawText(L"Tweaks curated from Chris Titus Tech's WinUtil (MIT), Microsoft docs and the PC",

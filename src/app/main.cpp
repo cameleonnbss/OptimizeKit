@@ -1,9 +1,12 @@
 // OptimizeKit - entry point.
-// No arguments -> the NATIVE Direct2D liquid-glass dashboard in a real Win32
-//                window. No Edge, no browser, no port, no extra process: one
-//                exe, one window, one loopback listener for the UI data only.
-// --app         -> (v2.6 behaviour) WebView2 frame window hosting the web
-//                dashboard; falls back to msedge --app, then the default browser.
+// No arguments -> the WEB DASHBOARD in a real desktop window: the same
+//                liquid-glass interface as the browser dashboard, hosted in our
+//                own WebView2 frame. No Edge window, no visible browser, no
+//                tabs - one exe, one frame, one loopback listener. If the
+//                WebView2 runtime is missing, falls back to the native
+//                Direct2D dashboard (same data, native rendering).
+// --native      -> force the Direct2D dashboard window.
+// --app/--d2d   -> aliases kept for compatibility (--d2d forces D2D too).
 // With arguments (from OptimizeKit-cli.bat) -> attaches to the parent console and runs the CLI.
 #include "core/common.h"
 #include "core/engine.h"
@@ -54,10 +57,10 @@ static std::vector<wstring> getArgs() {
 
 static void printHelp() {
     std::wcout <<
-        L"OptimizeKit v2.7 - Windows Gaming & Performance Control Center\n"
+        L"OptimizeKit v2.8 - Windows Gaming & Performance Control Center\n"
         L"usage:\n"
-        L"  OptimizeKit.exe                 native Direct2D window (default, no browser)\n"
-        L"  OptimizeKit.exe --app           WebView2 frame window (web dashboard)\n"
+        L"  OptimizeKit.exe                 web dashboard in an app window (default)\n"
+        L"  OptimizeKit.exe --native        native Direct2D dashboard window\n"
         L"  OptimizeKit.exe --web [port]    serve the dashboard without opening a window\n"
         L"  OptimizeKit.exe --cli           numbered CLI menu (user or admin)\n"
         L"  OptimizeKit.exe --profile gaming|privacy|full|clean\n"
@@ -107,25 +110,29 @@ static int probeServer(int port) {
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     auto args = getArgs();
 
-    if (args.empty() || args[0] == L"--native") {
-        // v2.7 default: the NATIVE Direct2D dashboard. One exe, one Win32 window,
-        // zero browser components - the dashboard is drawn by Direct2D/DirectWrite.
-        return ui::runDashboard();
-    }
-
-    if (args[0] == L"--app") {
-        // legacy v2.6 behaviour kept for users who prefer the web surface:
-        // a WebView2 frame hosting the embedded dashboard.
+    if (args.empty() || args[0] == L"--app") {
+        // Default: the WEB dashboard (same UI as the browser) inside our own
+        // desktop frame. If the WebView2 runtime is unavailable, fall back to
+        // the native Direct2D dashboard rather than opening any browser.
         std::thread srv([] { ok::server::serve(8765); });
         int port = probeServer(8765);
         if (port > 0) {
             wchar_t url[64]; swprintf(url, 64, L"http://127.0.0.1:%d", port);
-            if (webframe::runWindow(wstring(url)) != 0)
-                openAppWindow(url); // WebView2 unavailable -> browser app window
+            if (webframe::runWindow(wstring(url)) != 0) {
+                ok::server::stop();
+                return ui::runDashboard(); // no WebView2 runtime: native D2D window
+            }
+        } else {
+            return ui::runDashboard(); // server failed to start: native window
         }
         ok::server::stop();
         srv.join();
         return 0;
+    }
+
+    if (args[0] == L"--native" || args[0] == L"--d2d") {
+        // Force the native Direct2D dashboard window.
+        return ui::runDashboard();
     }
 
     if (args[0] == L"--web") {

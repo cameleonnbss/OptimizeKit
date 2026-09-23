@@ -46,25 +46,23 @@ Détail complet dans [CHANGELOG.md](CHANGELOG.md).
 
 ## 📸 Captures d'écran
 
-| Gaming Center | Dashboard |
-|---|---|
-| ![Gaming Center](docs/screenshots/gaming.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+Captures prises depuis l'appli en direct (v2.8, vraies données machine, zéro mockup).
 
-| Tweaks — interrupteurs ON/OFF instantanés | Jeux — vraies icônes |
+| Dashboard | Tweaks |
 |---|---|
-| ![Tweaks](docs/screenshots/tweaks.png) | ![Games](docs/screenshots/games.png) |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Tweaks](docs/screenshots/tweaks.png) |
 
-| Centre réseau | Scanner PC |
+| Gaming Center | Jeux — vraies icônes |
 |---|---|
-| ![Network](docs/screenshots/network.png) | ![Scan](docs/screenshots/scan.png) |
+| ![Gaming Center](docs/screenshots/gaming.png) | ![Games](docs/screenshots/games.png) |
 
-| Benchmark — score style AnTuTu | Packs de thèmes (Ocean) |
+| Centre réseau | Stockage |
 |---|---|
-| ![Benchmark](docs/screenshots/bench.png) | ![Theme Ocean](docs/screenshots/theme-ocean.png) |
+| ![Network](docs/screenshots/network.png) | ![Storage](docs/screenshots/storage.png) |
 
-| Outils — 79 lanceurs | Stockage |
+| Outils — 79 lanceurs | Thèmes — 12 packs |
 |---|---|
-| ![Tools](docs/screenshots/tools.png) | ![Storage](docs/screenshots/storage.png) |
+| ![Tools](docs/screenshots/tools.png) | ![Themes](docs/screenshots/themes.png) |
 
 ## 📦 Téléchargement
 

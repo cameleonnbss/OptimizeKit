@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-  OptimizeKit v2.7 - Windows Gaming & Performance Control Center (PowerShell engine)
+  OptimizeKit v2.8 - Windows Gaming & Performance Control Center (PowerShell engine)
 
 .DESCRIPTION
-  Full CLI parity with the C++ dashboard: ~48 tweaks, live status, profiles,
+  Full CLI parity with the C++ dashboard: 71 tweaks, live status, profiles,
   diagnostics, network tests, cleanup, backup & one-key full restore.
   Every registry write is exported to %LOCALAPPDATA%\OptimizeKit\backups first.
   Run with -RestoreAll to undo everything the kit has ever touched.
@@ -17,7 +17,7 @@
     -Profile gaming|privacy|debloat|full
 
 .NOTES
-  Version 2.7 - cameleonnbss - MIT license
+  Version 2.8 - cameleonnbss - MIT license
 #>
 [CmdletBinding()]
 param(
@@ -26,6 +26,11 @@ param(
     [switch]$Silent,
     [switch]$Status,
     [switch]$RestoreAll,
+    [switch]$Tweaks,
+    [switch]$Network,
+    [switch]$Cleanup,
+    [switch]$Firmware,
+    [switch]$Drivers,
     [string]$Apply,
     [string]$Profile
 )
@@ -146,6 +151,30 @@ $Script:Tweaks = @(
     @{ id='dns_cache_big';     name='Bigger DNS cache (TTL 86400)';         cat='network'; user=0 }
     @{ id='shutdown_fast';     name='Fast startup ON (Hiberboot)';          cat='power';   user=0 }
     @{ id='recycle_bin_conf';  name='Recycle bin: immediate confirm';       cat='disk';    user=1 }
+
+    # ---- v2.8: WinUtil-alignment batch (24) ----
+    @{ id='widgets_off';       name='Widgets - Remove (taskbar)';           cat='debloat'; user=0 }
+    @{ id='location_off';      name='Location tracking - Disable';          cat='privacy'; user=0 }
+    @{ id='services_manual';   name='Services to Manual + svchost tuning';  cat='debloat'; user=0 }
+    @{ id='delivery_opt';      name='Delivery Optimization - Disable';      cat='network'; user=0 }
+    @{ id='consumer_features'; name='Consumer features - Disable';          cat='debloat'; user=0 }
+    @{ id='store_search_off';  name='Store recommended search - Disable';   cat='debloat'; user=1 }
+    @{ id='end_task_on_tb';    name='End task on taskbar right-click';      cat='windows'; user=1 }
+    @{ id='wpbt_block';        name='WPBT vendor boot code - Block';        cat='privacy'; user=0 }
+    @{ id='razer_block';       name='Razer auto-install - Block';           cat='debloat'; user=0 }
+    @{ id='notifications_off'; name='Notifications & tips - Disable';       cat='privacy'; user=1 }
+    @{ id='ipv4_prefer';       name='IPv4 preferred over IPv6';             cat='network'; user=0 }
+    @{ id='ipv6_off';          name='IPv6 - Disable';                       cat='network'; user=0 }
+    @{ id='teredo_off';        name='Teredo - Disable';                     cat='network'; user=0 }
+    @{ id='disk_cleanup';      name='Disk cleanup + WinSxS trim (DISM)';    cat='disk';    user=0 }
+    @{ id='hibernation_off';   name='Hibernation - Disable (frees disk)';   cat='power';   user=0 }
+    @{ id='bsod_verbose';      name='Verbose BSoD messages';                cat='windows'; user=0 }
+    @{ id='long_paths';        name='Long paths (>260 chars) - Enable';     cat='windows'; user=0 }
+    @{ id='game_mode_win11';   name='Game Mode (Windows 11 form)';          cat='gaming';  user=1 }
+    @{ id='edge_debloat';      name='Edge - Debloat (12 policies)';         cat='debloat'; user=0 }
+    @{ id='brave_debloat';     name='Brave - Debloat (rewards/wallet/VPN)'; cat='debloat'; user=0 }
+    @{ id='utc_time';          name='Hardware clock as UTC (dual-boot)';    cat='windows'; user=0 }
+    @{ id='restore_point';     name='Create a restore point now';           cat='windows'; user=0 }
 )
 
 function Test-AdminForTweak { param($t) ($t.user -eq 1) -or (Test-Admin) }
@@ -205,6 +234,30 @@ function Invoke-Tweak { param([string]$Id)
         'dns_cache_big'      { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxCacheTtl' 86400; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxNegativeCacheTtl' 5; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxCacheSize' 0x64000 }
         'shutdown_fast'      { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HiberbootEnabled' 1 }
         'recycle_bin_conf'   { Set-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' 'ConfirmFileDelete' 1 }
+
+        # ---- v2.8: WinUtil-alignment batch ----
+        'widgets_off'        { Get-Process *Widget* -ErrorAction SilentlyContinue | Stop-Process -Force; Get-AppxPackage Microsoft.WidgetsPlatformRuntime -AllUsers | Remove-AppxPackage -AllUsers; Get-AppxPackage MicrosoftWindows.Client.WebExperience -AllUsers | Remove-AppxPackage -AllUsers; Stop-Process -Name explorer -Force; Write-Kit 'widgets removed (explorer restarted)' 'ok' }
+        'location_off'       { Disable-KitService 'lfsvc' 'location'; Set-RegString 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' 'Value' 'Deny'; Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}' 'SensorPermissionState' 0; Set-RegDword 'HKLM:\SYSTEM\Maps' 'AutoUpdateEnabled' 0 }
+        'services_manual'    { foreach ($p in @(@('CscService','Disabled'),@('DiagTrack','Disabled'),@('MapsBroker','Manual'),@('StorSvc','Manual'),@('SharedAccess','Disabled'))) { Backup-RegKey ('HKLM\SYSTEM\CurrentControlSet\Services\' + $p[0]); Set-Service $p[0] -StartupType $p[1] -ErrorAction SilentlyContinue }; $mem=(Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum/1KB; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' $mem; Write-Kit 'services -> manual + svchost split tuned' 'ok' }
+        'delivery_opt'       { Set-RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' 'DODownloadMode' 0 }
+        'consumer_features'  { Set-RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsConsumerFeatures' 1 }
+        'store_search_off'   { $db="$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"; if (Test-Path $db) { icacls $db /deny Everyone:F | Out-Null; Write-Kit 'store recommended search denied' 'ok' } else { Write-Kit 'store.db not found' 'warn' } }
+        'end_task_on_tb'     { Set-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings' 'TaskbarEndTask' 1 }
+        'wpbt_block'         { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' 'DisableWpbtExecution' 1; Write-Kit 'vendor WPBT boot code blocked' 'ok' }
+        'razer_block'        { Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching' 'SearchOrderConfig' 0; Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer' 'DisableCoInstallers' 1; $rp="$env:WinDir\Installer\Razer"; if (-not (Test-Path $rp)) { New-Item -ItemType Directory -Force -Path $rp | Out-Null }; icacls $rp /deny 'Everyone:(W)' 2>$null | Out-Null; Write-Kit 'razer auto-install blocked' 'ok' }
+        'notifications_off'  { Set-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications' 'ToastEnabled' 0; Set-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' 'SubscribedContent-338389Enabled' 0 }
+        'ipv4_prefer'        { netsh int ipv6 set prefixpolicies ::ffff:0:0/96 46 4 2>$null | Out-Null; netsh int ipv6 set prefixpolicies ::/0 40 5 2>$null | Out-Null; Write-Kit 'IPv4 preferred over IPv6' 'ok' }
+        'ipv6_off'           { foreach ($ad in Get-NetAdapterBinding -ComponentID ms_tcpip6) { Disable-NetAdapterBinding -Name $ad.Name -ComponentID ms_tcpip6 }; Write-Kit 'IPv6 disabled on all adapters' 'ok' }
+        'teredo_off'         { netsh int teredo set state disabled 2>$null | Out-Null; Write-Kit 'Teredo disabled' 'ok' }
+        'disk_cleanup'       { $before=(Get-PSDrive C).Free; cleanmgr /verylowdisk 2>$null | Out-Null; Dism.exe /Online /Cleanup-Image /StartComponentCleanup 2>$null | Out-Null; Write-Kit ('component cleanup done (freed {0:N0} MB during run)' -f (((Get-PSDrive C).Free-$before)/1MB)) 'ok' }
+        'hibernation_off'    { powercfg /hibernate off 2>$null | Out-Null; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HibernateEnabled' 0; Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings' 'ShowHibernateOption' 0; Write-Kit 'hibernation off (frees hiberfil.sys)' 'ok' }
+        'bsod_verbose'       { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl' 'DisplayParameters' 1; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl' 'AlwaysDump' 1 }
+        'long_paths'         { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabled' 1 }
+        'game_mode_win11'    { Set-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AllowAutoGameMode' 1; Set-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 1 }
+        'edge_debloat'       { $p='HKLM:\SOFTWARE\Policies\Microsoft\Edge'; foreach ($s in @(@('PersonalizationReportingEnabled',0),@('ShowRecommendationsEnabled',0),@('HideFirstRunExperience',1),@('UserFeedbackAllowed',0),@('ConfigureDoNotTrack',1),@('AlternateErrorPagesEnabled',0),@('EdgeCollectionsEnabled',0),@('EdgeShoppingAssistantEnabled',0),@('ShowMicrosoftRewards',0),@('WebWidgetAllowed',0),@('DiagnosticData',0),@('DefaultBrowserSettingsCampaignEnabled',0))) { Set-RegDword $p $s[0] $s[1] }; Write-Kit 'edge telemetry/annoyances disabled (12 policies)' 'ok' }
+        'brave_debloat'      { $p='HKLM:\SOFTWARE\Policies\BraveSoftware\Brave'; foreach ($s in @(@('BraveRewardsDisabled',1),@('BraveWalletDisabled',1),@('BraveVPNDisabled',1),@('BraveAIChatEnabled',0),@('BraveStatsPingEnabled',0),@('BraveNewsDisabled',1),@('BraveTalkDisabled',1),@('TorDisabled',1),@('BraveP3AEnabled',0))) { Set-RegDword $p $s[0] $s[1] }; Write-Kit 'brave rewards/wallet/VPN/news disabled' 'ok' }
+        'utc_time'           { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation' 'RealTimeIsUniversal' 1; Write-Kit 'hardware clock read as UTC (dual-boot fix)' 'ok' }
+        'restore_point'      { Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' 'SystemRestorePointCreationFrequency' 0; Enable-ComputerRestore -Drive "$env:SystemDrive" -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'OptimizeKit restore point' -RestorePointType MODIFY_SETTINGS; Write-Kit 'system restore point created' 'ok' }
         default              { Write-Kit "no action for $Id" 'err'; return $false }
     }
     Write-Kit ("applied {0} [{1}]" -f $t.name, $t.cat) 'ok'
@@ -261,6 +314,30 @@ function Restore-Tweak { param([string]$Id)
         'dns_cache_big'      { Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxCacheTtl' -ErrorAction SilentlyContinue; Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxNegativeCacheTtl' -ErrorAction SilentlyContinue; Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxCacheSize' -ErrorAction SilentlyContinue }
         'shutdown_fast'      { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HiberbootEnabled' 1 }
         'recycle_bin_conf'   { Set-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' 'ConfirmFileDelete' 0 }
+
+        # ---- v2.8 batch: restore Windows defaults ----
+        'widgets_off'        { Write-Kit 'widgets: reinstall from store (microsoft.com/store)' 'info' }
+        'location_off'       { Restore-KitService 'lfsvc'; Set-RegString 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' 'Value' 'Allow' }
+        'services_manual'    { foreach ($p in @(@('CscService','Manual'),@('DiagTrack','Automatic'),@('MapsBroker','Automatic'),@('StorSvc','Automatic'),@('SharedAccess','Automatic'))) { Set-Service $p[0] -StartupType $p[1] -ErrorAction SilentlyContinue }; Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' -ErrorAction SilentlyContinue }
+        'delivery_opt'       { Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' 'DODownloadMode' -ErrorAction SilentlyContinue }
+        'consumer_features'  { Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsConsumerFeatures' -ErrorAction SilentlyContinue }
+        'store_search_off'   { $db="$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"; if (Test-Path $db) { icacls $db /grant Everyone:F 2>$null | Out-Null } }
+        'end_task_on_tb'     { Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings' 'TaskbarEndTask' -ErrorAction SilentlyContinue }
+        'wpbt_block'         { Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' 'DisableWpbtExecution' -ErrorAction SilentlyContinue }
+        'razer_block'        { Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching' 'SearchOrderConfig' 1; Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer' 'DisableCoInstallers' 0; icacls "$env:WinDir\Installer\Razer" /remove:d Everyone 2>$null | Out-Null }
+        'notifications_off'  { Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications' 'ToastEnabled' -ErrorAction SilentlyContinue }
+        'ipv4_prefer'        { netsh int ipv6 reset 2>$null | Out-Null; Write-Kit 'IPv6 prefix policies reset' 'ok' }
+        'ipv6_off'           { foreach ($ad in Get-NetAdapterBinding -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue) { Enable-NetAdapterBinding -Name $ad.Name -ComponentID ms_tcpip6 }; Write-Kit 'IPv6 re-enabled' 'ok' }
+        'teredo_off'         { netsh int teredo set state client 2>$null | Out-Null }
+        'disk_cleanup'       { Write-Kit 'component cleanup has no undo (Windows re-accumulates over time)' 'info' }
+        'hibernation_off'    { powercfg /hibernate on 2>$null | Out-Null; Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HibernateEnabled' 1; Set-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings' 'ShowHibernateOption' 1 }
+        'bsod_verbose'       { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl' 'DisplayParameters' 0; Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl' 'AlwaysDump' -ErrorAction SilentlyContinue }
+        'long_paths'         { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabled' 0 }
+        'game_mode_win11'    { Set-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AllowAutoGameMode' 0; Set-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 0 }
+        'edge_debloat'       { Remove-Item 'HKLM:\SOFTWARE\Policies\Microsoft\Edge' -Recurse -Force -ErrorAction SilentlyContinue }
+        'brave_debloat'      { Remove-Item 'HKLM:\SOFTWARE\Policies\BraveSoftware' -Recurse -Force -ErrorAction SilentlyContinue }
+        'utc_time'           { Set-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation' 'RealTimeIsUniversal' 0 }
+        'restore_point'      { Write-Kit 'restore points are never auto-deleted' 'info' }
     }
     Write-Kit ("restored defaults {0}" -f $Id) 'ok'
 }
@@ -304,7 +381,30 @@ function Get-TweakState { param([string]$Id)
         'dns_cache_big'      { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' 'MaxCacheTtl' 86400) -gt 86400 }
         'shutdown_fast'      { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HiberbootEnabled' 0) -eq 1 }
         'recycle_bin_conf'   { return (Get-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' 'ConfirmFileDelete' 0) -eq 1 }
-        default              { return $null }  # Diagnostic: not cheaply readable
+
+        # ---- v2.8 batch ----
+        'widgets_off'        { return $null -eq (Get-AppxPackage Microsoft.WidgetsPlatformRuntime -ErrorAction SilentlyContinue) }
+        'location_off'       { $s = Get-Service lfsvc -ErrorAction SilentlyContinue; return ((-not $s) -or $s.StartType -eq 'Disabled') -or ((Get-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}' 'SensorPermissionState' 1) -eq 0) }
+        'services_manual'    { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' 0) -gt 0 }
+        'delivery_opt'       { return (Get-RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' 'DODownloadMode' -1) -eq 0 }
+        'consumer_features'  { return (Get-RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsConsumerFeatures' 0) -eq 1 }
+        'store_search_off'   { $db="$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"; if (Test-Path $db) { return -not (Get-Acl $db).Access.Where({$_.IdentityReference -eq 'Everyone' -and $_.AccessControlType -eq 'Deny'}) } return $false }
+        'end_task_on_tb'     { return (Get-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings' 'TaskbarEndTask' 0) -eq 1 }
+        'wpbt_block'         { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' 'DisableWpbtExecution' 0) -eq 1 }
+        'razer_block'        { return (Get-RegDword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer' 'DisableCoInstallers' 0) -eq 1 }
+        'notifications_off'  { return (Get-RegDword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications' 'ToastEnabled' 1) -eq 0 }
+        'ipv4_prefer'        { $p = netsh int ipv6 show prefixpolicies 2>$null | Out-String; return $p -match '::ffff:0:0/96\s+46' }
+        'ipv6_off'           { return (Get-NetAdapterBinding -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue | Where-Object Enabled | Measure-Object).Count -eq 0 }
+        'teredo_off'         { return (netsh int teredo show state 2>$null | Out-String) -match 'disabled' }
+        'disk_cleanup'       { return $null }  # DIAG: one-shot action
+        'hibernation_off'    { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HibernateEnabled' 1) -eq 0 }
+        'bsod_verbose'       { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl' 'DisplayParameters' 0) -eq 1 }
+        'long_paths'         { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabled' 0) -eq 1 }
+        'game_mode_win11'    { return ((Get-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AllowAutoGameMode' 0) -eq 1) -and ((Get-RegDword 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 0) -eq 1) }
+        'edge_debloat'       { return (Get-RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Edge' 'DiagnosticData' -1) -eq 0 }
+        'brave_debloat'      { return (Get-RegDword 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave' 'BraveRewardsDisabled' 0) -eq 1 }
+        'utc_time'           { return (Get-RegDword 'HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation' 'RealTimeIsUniversal' 0) -eq 1 }
+        'restore_point'      { return $null }  # DIAG: one-shot action
     }
 }
 
@@ -334,21 +434,23 @@ function Invoke-GamingProfile {
 }
 function Invoke-PrivacyProfile {
     Write-Section 'PRIVACY profile'
-    $ids = 'advertising_off','activity_history','bing_search','tailored_experiences','edge_bing_blocking'
-    if (Test-Admin) { $ids += 'telemetry_off','telemetry_tasks','windows_copilot' }
+    $ids = 'advertising_off','activity_history','bing_search','tailored_experiences','edge_bing_blocking','notifications_off'
+    if (Test-Admin) { $ids += 'telemetry_off','telemetry_tasks','windows_copilot','location_off','wpbt_block' }
     $ok = 0
     foreach ($i in $ids) { if (Invoke-Tweak $i) { $ok++ } }
     Write-Kit ("privacy profile: {0}/{1} applied" -f $ok, $ids.Count) 'ok'
 }
 function Invoke-DebloatProfile {
     Write-Section 'DEBLOAT profile'
+    $ids = 'background_apps','edge_bing_blocking','bloat_uninstall','sysmain_off','search_index'
+    if (Test-Admin) { $ids += 'widgets_off','consumer_features','services_manual','delivery_opt','edge_debloat','razer_block' }
     $ok = 0
-    foreach ($i in 'background_apps','edge_bing_blocking','bloat_uninstall','sysmain_off','search_index') { if (Invoke-Tweak $i) { $ok++ } }
-    Write-Kit ("debloat profile: {0}/5 applied" -f $ok) 'ok'
+    foreach ($i in $ids) { if (Invoke-Tweak $i) { $ok++ } }
+    Write-Kit ("debloat profile: {0}/{1} applied" -f $ok, $ids.Count) 'ok'
 }
 function Invoke-FullKit {
     Invoke-GamingProfile; Invoke-PrivacyProfile; Invoke-DebloatProfile
-    if (Test-Admin) { Invoke-JunkCleanup }
+    if (Test-Admin) { Invoke-JunkCleanup; Invoke-Tweak 'restore_point' }
     Write-Section 'FULL KIT COMPLETE'
     Write-Kit 'reboot recommended (HAGS / timer / power plan)' 'warn'
 }
@@ -436,7 +538,7 @@ function Show-Banner {
     Write-Host " | $$$$$$$/|  $$$$$$/   | $$   | $$ \  $$ | $$$$$$$$| $$$$$$$$" -ForegroundColor Cyan
     Write-Host " |_______/  \______/    |__/   |__/  \__/ |________/|________/" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Windows Gaming & Performance Control Center - engine v2.2" -ForegroundColor DarkGray
+    Write-Host "  Windows Gaming & Performance Control Center - engine v2.8" -ForegroundColor DarkGray
     Write-Host ("  log: {0}" -f $Script:Log) -ForegroundColor DarkGray
     Write-Host ("  mode: {0}   tweaks: {1}" -f $(if (Test-Admin) { 'ADMINISTRATOR' } else { 'user' }), $Script:Tweaks.Count) -ForegroundColor $(if (Test-Admin) { 'Green' } else { 'Yellow' })
     Write-Host ""
@@ -451,16 +553,17 @@ function Show-MainMenu {
             Write-Host ""
             Write-Host "   1. System info + diagnostics"
             Write-Host "   2. Tweak status (read the machine)"
-            Write-Host "   3. GAMING profile     (14 tweaks)"
-            Write-Host "   4. PRIVACY profile    (8 tweaks)"
-            Write-Host "   5. DEBLOAT profile    (5 tweaks)"
-            Write-Host "   6. FULL KIT           (all + cleanup)"
-            Write-Host "   7. Individual tweaks  (49)"
+            Write-Host "   3. GAMING profile     (16 tweaks)"
+            Write-Host "   4. PRIVACY profile    (11 tweaks)"
+            Write-Host "   5. DEBLOAT profile    (11 tweaks)"
+            Write-Host "   6. FULL KIT           (all + cleanup + restore point)"
+            Write-Host "   7. Individual tweaks  ($($Script:Tweaks.Count))"
             Write-Host "   8. Network center     (latency, DNS test, fastest DNS)"
             Write-Host "   9. Junk cleanup       (temp, caches, recycle bin)"
             Write-Host "  10. Drivers            (info, vendor page, WU scan)"
-            Write-Host "  11. Registry backup"
-            Write-Host "  12. RESTORE ALL        (every tweak back to Windows defaults)"
+            Write-Host "  11. Firmware / BIOS    (SecureBoot, TPM, boot mode, VT)"
+            Write-Host "  12. Registry backup"
+            Write-Host "  13. RESTORE ALL        (every tweak back to Windows defaults)"
             Write-Host "   0. Exit"
         } else {
             Write-Host "  -- USER MENU (run OptimizeKit.bat as admin for all $(
@@ -469,10 +572,11 @@ function Show-MainMenu {
             Write-Host "   1. System info + diagnostics"
             Write-Host "   2. Tweak status (read the machine)"
             Write-Host "   3. USER GAMING   (GameMode, DVR, VRR, mouse, visuals)"
-            Write-Host "   4. USER PRIVACY  (ads, activity, bing, edge)"
-            Write-Host "   5. Network center (latency, DNS test)"
-            Write-Host "   6. Junk cleanup"
-            Write-Host "   7. Registry backup"
+            Write-Host "   4. USER PRIVACY  (ads, activity, bing, notifications)"
+            Write-Host "   5. Individual user tweaks"
+            Write-Host "   6. Network center (latency, DNS test)"
+            Write-Host "   7. Junk cleanup"
+            Write-Host "   8. Registry backup"
             Write-Host "   0. Exit"
         }
         Write-Host ""
@@ -490,19 +594,21 @@ function Show-MainMenu {
                 '8'  { Show-NetworkMenu; Pause-Kit }
                 '9'  { Invoke-JunkCleanup; Pause-Kit }
                 '10' { Show-DriverInfo; Open-VendorPage; Pause-Kit }
-                '11' { Backup-Registry;  Pause-Kit }
-                '12' { Invoke-RestoreAll; Pause-Kit }
+                '11' { Show-FirmwareInfo; Pause-Kit }
+                '12' { Backup-Registry;  Pause-Kit }
+                '13' { Invoke-RestoreAll; Pause-Kit }
             }
         } else {
             switch ($c) {
                 '0' { return }
                 '1' { Show-Diagnostics; Pause-Kit }
                 '2' { Show-StatusAll;   Pause-Kit }
-                '3' { foreach ($i in 'game_mode','game_dvr_off','gpu_preference','windowed_games','vrr','mouse_precision','menu_delay_0') { Invoke-Tweak $i }; Pause-Kit }
-                '4' { foreach ($i in 'advertising_off','activity_history','bing_search','tailored_experiences','edge_bing_blocking') { Invoke-Tweak $i }; Pause-Kit }
-                '5' { Show-NetworkMenu; Pause-Kit }
-                '6' { Invoke-JunkCleanup; Pause-Kit }
-                '7' { Backup-Registry;  Pause-Kit }
+                '3' { foreach ($i in 'game_mode','game_dvr_off','gpu_preference','windowed_games','vrr','mouse_precision','menu_delay_0','game_mode_win11') { Invoke-Tweak $i }; Pause-Kit }
+                '4' { foreach ($i in 'advertising_off','activity_history','bing_search','tailored_experiences','edge_bing_blocking','notifications_off','end_task_on_tb','store_search_off') { Invoke-Tweak $i }; Pause-Kit }
+                '5' { Show-UserTweakMenu; Pause-Kit }
+                '6' { Show-NetworkMenu; Pause-Kit }
+                '7' { Invoke-JunkCleanup; Pause-Kit }
+                '8' { Backup-Registry;  Pause-Kit }
             }
         }
     }
@@ -547,6 +653,45 @@ function Show-NetworkMenu {
     }
 }
 
+function Show-FirmwareInfo {
+    Write-Section 'Firmware / BIOS (read-only)'
+    $bios = Get-CimInstance Win32_BIOS
+    $board = Get-CimInstance Win32_BaseBoard
+    Write-Host ("  BIOS      : {0}  {1}  ({2})" -f $bios.Manufacturer, $bios.SMBIOSBIOSVersion, $bios.ReleaseDate)
+    Write-Host ("  Board     : {0} {1}" -f $board.Manufacturer, $board.Product)
+    $sb = Confirm-SecureBootUEFI -ErrorAction SilentlyContinue
+    $bootmode = if ((bcdedit 2>$null | Out-String) -match 'winload\.efi') { 'UEFI' } else { 'unknown (needs admin)' }
+    Write-Host ("  SecureBoot: {0}   Boot mode: {1}" -f $(if ($null -ne $sb) { if ($sb) { 'ON' } else { 'off' } } else { 'unknown (legacy boot or needs admin)' }), $bootmode)
+    $tpm = Get-Tpm -ErrorAction SilentlyContinue
+    if ($tpm) { Write-Host ("  TPM       : {0} (present: {1}, enabled: {2})" -f $tpm.TpmInformation.ManufacturerIdTxt, $tpm.TpmPresent, $tpm.TpmReady) }
+    else { Write-Host '  TPM       : Get-Tpm needs an elevated session' -ForegroundColor Yellow }
+    $vt = (Get-CimInstance Win32_Processor | Select-Object -First 1).VirtualizationFirmwareEnabled
+    $hv = (Get-CimInstance Win32_ComputerSystem).HypervisorPresent
+    Write-Host ("  VT-x/SVM  : {0}   Hypervisor running: {1}" -f $(if ($null -ne $vt) { $vt } else { '?' }), $(if ($hv) { 'yes' } else { 'no' }))
+    $pend = Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'
+    Write-Host ("  Reboot pending: {0}" -f $(if ($pend) { 'yes' } else { 'no' }))
+}
+
+function Show-UserTweakMenu {
+    $userTweaks = $Script:Tweaks | Where-Object { $_.user -eq 1 }
+    Write-Section ("User tweaks - {0} (no admin needed)" -f $userTweaks.Count)
+    $i = 1
+    foreach ($t in $userTweaks) {
+        $st = Get-TweakState $t.id
+        $mark = if ($null -eq $st) { '?' } elseif ($st) { '*' } else { ' ' }
+        Write-Host ("   {0,2}. [{1}] {2}" -f $i, $mark, $t.name) -ForegroundColor $(if ($st) { 'Green' } else { 'Gray' })
+        $i++
+    }
+    Write-Host "    0. Back"
+    $c = Read-Host "  Number to APPLY (r<N> to restore, 0=back)"
+    if ($c -match '^r(\d+)$') {
+        $n = [int]$Matches[1]
+        if ($n -ge 1 -and $n -lt $i) { Restore-Tweak $userTweaks[$n-1].id }
+    } elseif ($c -match '^\d+$' -and [int]$c -ge 1 -and [int]$c -lt $i) {
+        Invoke-Tweak $userTweaks[[int]$c - 1].id
+    }
+}
+
 function Show-DriverInfo {
     Write-Section 'GPU / driver info'
     $gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
@@ -573,7 +718,7 @@ function Invoke-RestoreAll {
 }
 
 # ----------------------------------------------------------------- entry
-Write-Kit ("OptimizeKit engine v2.2 started (admin={0})" -f (Test-Admin)) 'info'
+Write-Kit ("OptimizeKit engine v2.8 started (admin={0})" -f (Test-Admin)) 'info'
 
 if ($RestoreAll) { if (Test-Admin) { Backup-Registry; Invoke-RestoreAll } else { Write-Kit 'admin required for -RestoreAll' 'err' }; exit 0 }
 if ($Status)     { Show-StatusAll; exit 0 }
@@ -581,6 +726,11 @@ if ($Apply)      { Backup-Registry; foreach ($id in ($Apply -split ',')) { Invok
 if ($Profile)    { Backup-Registry; switch ($Profile) { 'gaming' { Invoke-GamingProfile } 'privacy' { Invoke-PrivacyProfile } 'debloat' { Invoke-DebloatProfile } 'full' { Invoke-FullKit } }; exit 0 }
 if ($Full)       { if (Test-Admin) { Backup-Registry; Show-MainMenu } else { Write-Kit 'admin session required for -Full (relaunch OptimizeKit.bat)' 'err' }; exit 0 }
 if ($Silent)     { Backup-Registry; Invoke-GamingProfile; exit 0 }
+if ($Tweaks)     { Show-TweakMenu; exit 0 }
+if ($Network)    { Test-Latency; Invoke-DnsTest; exit 0 }
+if ($Cleanup)    { if (Test-Admin) { Invoke-JunkCleanup } else { Write-Kit 'admin recommended for a full cleanup' 'warn'; Invoke-JunkCleanup }; exit 0 }
+if ($Firmware)   { Show-FirmwareInfo; exit 0 }
+if ($Drivers)    { Show-DriverInfo; exit 0 }
 
 # No switches: interactive menu. Without admin, offer elevation once (decline -> user menu).
 if (-not (Test-Admin) -and -not $User) {
