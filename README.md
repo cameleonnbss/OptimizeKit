@@ -11,7 +11,7 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![UI](https://img.shields.io/badge/UI-HTML%20%2F%20CSS%20%2F%20JS-e34f26?style=flat-square&logo=html5&logoColor=white)](web/index.html)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
-[![Size](https://img.shields.io/badge/exe-~6.5%20MB%20static-ff9800?style=flat-square)](#-download)
+[![Size](https://img.shields.io/badge/exe-~6.6%20MB%20static-ff9800?style=flat-square)](#-download)
 
 **Desktop window dashboard** · **Gaming score** · **77 reversible tweaks** · **Firmware panel (SecureBoot/TPM/VT)** · **Driver auto-update engine** · **Process Reducer (EcoQoS)** · **Security scan** · **DiskScope** · **5 tuning centers** · **300-title game database + 106 covers** · **Network center** · **AnTuTu-style benchmark** · **79-tool catalog** · **Ctrl+K palette** · **12 themes** · **EN/FR**
 
@@ -85,7 +85,7 @@ All shots captured from the live app (v2.9, real machine data, no mockups).
 | All releases | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
-`OptimizeKit.exe` is fully **static** (MinGW-w64, ~6.5 MB): no runtime, no DLLs, no install. The whole interface ships inside the exe; an optional `web/` folder next to it just lets you serve the same dashboard from a fresh edit.
+`OptimizeKit.exe` is fully **static** (MinGW-w64, ~6.6 MB): no runtime, no DLLs, no install. The whole interface ships inside the exe; an optional `web/` folder next to it just lets you serve the same dashboard from a fresh edit.
 
 ## ⚡ Quick start
 
@@ -161,7 +161,7 @@ OptimizeKit.exe --ping <host>      latency test
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│  OptimizeKit.exe (static C++20, ~6.5 MB)               │
+│  OptimizeKit.exe (static C++20, ~6.6 MB)               │
 │                                                        │
 │  ┌──────────────┐  ┌────────────────────────────────┐  │
 │  │ Win32 window │  │  embedded HTTP server          │  │

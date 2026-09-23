@@ -147,7 +147,7 @@ json smartPlan(const string& goal) {
     json items = json::array();
     for (auto& r : rows) {
         string why = r.applied ? "Already active - the Windows default is overridden and backed up."
-                   : r.needAdmin ? "Requires elevation - relaunch from OptimizeKit.bat (option 1, admin)."
+                   : r.needAdmin ? "Requires elevation - relaunch from OptimizeKit-Admin.bat or the exe as administrator."
                    : "Ready to apply - snapshotted first, reversible in one click.";
         items.push_back({
             {"id", r.id}, {"name", narrow(r.name)}, {"desc", narrow(r.desc)},

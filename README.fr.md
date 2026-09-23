@@ -11,7 +11,7 @@
 [![Language](https://img.shields.io/badge/C%2B%2B-20-00599c?style=flat-square&logo=c%2B%2B&logoColor=white)](https://isocpp.org)
 [![UI](https://img.shields.io/badge/UI-HTML%20%2F%20CSS%20%2F%20JS-e34f26?style=flat-square&logo=html5&logoColor=white)](web/index.html)
 [![License](https://img.shields.io/badge/license-MIT-3dd68c?style=flat-square)](LICENSE)
-[![Size](https://img.shields.io/badge/exe-~6.5%20Mo%20statique-ff9800?style=flat-square)](#-t%C3%A9l%C3%A9chargement)
+[![Size](https://img.shields.io/badge/exe-~6.6%20Mo%20statique-ff9800?style=flat-square)](#-t%C3%A9l%C3%A9chargement)
 
 **Dashboard en fenêtre bureau** · **Score gaming** · **77 tweaks réversibles** · **Panneau firmware (SecureBoot/TPM/VT)** · **Moteur de mise à jour des pilotes** · **Process Reducer (EcoQoS)** · **Scan sécurité** · **DiskScope** · **5 centres de tuning** · **Base de 300 jeux + 106 jaquettes** · **Centre réseau** · **Benchmark type AnTuTu** · **Catalogue de 79 outils** · **Palette Ctrl+K** · **12 thèmes** · **EN/FR**
 
@@ -85,7 +85,7 @@ Captures prises depuis l'app en direct (v2.9, données réelles, aucun mockup).
 | Toutes les versions | https://github.com/cameleonnbss/OptimizeKit/releases |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
-`OptimizeKit.exe` est totalement **statique** (MinGW-w64, ~6,5 Mo) : pas de runtime, pas de DLL, pas d'installation. Toute l'interface voyage dans l'exe ; un dossier `web/` optionnel à côté sert simplement le même dashboard depuis une édition fraîche.
+`OptimizeKit.exe` est totalement **statique** (MinGW-w64, ~6,6 Mo) : pas de runtime, pas de DLL, pas d'installation. Toute l'interface voyage dans l'exe ; un dossier `web/` optionnel à côté sert simplement le même dashboard depuis une édition fraîche.
 
 ## ⚡ Démarrage rapide
 
@@ -161,7 +161,7 @@ OptimizeKit.exe --ping <hôte>      test de latence
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│  OptimizeKit.exe (C++20 statique, ~6,5 Mo)             │
+│  OptimizeKit.exe (C++20 statique, ~6,6 Mo)             │
 │                                                        │
 │  ┌──────────────┐  ┌────────────────────────────────┐  │
 │  │ Fenêtre Win32│  │  serveur HTTP embarqué         │  │
